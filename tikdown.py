@@ -30,14 +30,8 @@ downloading = False
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_random(min=1, max=2))
-def get_tiktok_info(shared_link):
+def get_tiktok_info(video_id):
     try:
-        parsed = re.findall("^https?://www.tiktok.com/[^/]+/video/(\d+)", shared_link)
-        if len(parsed) == 0:
-            log("剪贴板中的内容不是Tiktok分享链接")
-            return {"success": False}
-        video_id = parsed[0]
-        log("TikTok视频ID:", video_id)
         tiktok_api_link = "https://api.tiktokv.com/aweme/v1/multi/aweme/detail/?aweme_ids=%5B{}%5D".format(video_id)  # 从TikTok官方API获取部分视频数据
         log("正在请求API链接:", tiktok_api_link)
         response = requests.get(url=tiktok_api_link, headers=download_headers).text
@@ -53,22 +47,21 @@ def get_tiktok_info(shared_link):
         return {"success": False}
 
 
-def download(shared_link):
+def downloader(video_id):
     global downloading
 
     downloading = True  # 开始下载
-    info = get_tiktok_info(shared_link)
+    info = get_tiktok_info(video_id)
     if info["success"]:
         video_title = re.sub(r"[\/\\\:\*\?\"\<\>\|]", "", info["video_title"]).replace("\n", "")  # 删除title中的非法字符
         filename = info["video_author"] + " - " + video_title + ".mp4"
-        download_url = info["video_url"]
         try:
             target_file = os.path.join(download_dir, filename)
             if os.path.exists(target_file):
                 log("视频文件已存在: ", target_file)
             else:
                 log("开始下载视频: ", filename)
-                response = requests.get(download_url, headers=download_headers)
+                response = requests.get(info["video_url"], headers=download_headers)
                 with open(target_file, "wb") as f:
                     f.write(response.content)
                     f.close()
@@ -81,16 +74,16 @@ def download(shared_link):
 
 def manage_download_list():
     if not downloading and len(download_list) > 0:
-        downloader = thread.start_new_thread(download, (download_list.pop(),))  # 没有在下载则起动一个下载线程
+        thread.start_new_thread(downloader, (download_list.pop(),))  # 没有在下载则起动一个下载线程
 
 
 def check_clipboard():
-    parsed = re.findall("(https?://www.tiktok.com/[^/]+/video/\d+)", win.clipboard_get())
+    parsed = re.findall("(https?://www.tiktok.com/[^/]+/video/(\d+))", win.clipboard_get())
     if len(parsed) == 0:
-        log("剪贴板中的内容不是Tiktok分享链接")
+        log("剪贴板内无Tiktok分享链接")
     else:
-        download_list.insert(0, parsed[0])
-        log("已添加下载链接")
+        download_list.insert(0, parsed[0][1])
+        log("任务已创建")
     manage_download_list()  # 进行下载列表管理
 
 
