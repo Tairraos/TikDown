@@ -1,0 +1,20 @@
+{
+  "name": "Tiktok Downloader",
+  "version": "1.0.0",
+  "description": "What is the app name?",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/Tairraos/tiktok-downloader",
+  "keywords": [
+    "Electron",
+    "tiktok",
+    "downloader"
+  ],
+  "author": "Tairraos",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^18.2.4"
+  }
+}
