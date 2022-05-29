@@ -1,8 +1,10 @@
 ### Tiktok Downloader
 Tiktok downloader build by Electron
 
-### Get tool
-Download from release.
+### Download
+Still in developing, not release yet.
+https://github.com/Tairraos/tiktok-downloader/releases
+
 ### Instruction
 I don't think any instruction is needed, the UI is simple enough that WYSWYG.
 
