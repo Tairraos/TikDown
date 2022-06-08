@@ -1,20 +1,18 @@
 {
-  "name": "tiktok-downloader",
-  "version": "1.0.0",
-  "description": "What is the app name?",
-  "main": "main.js",
-  "scripts": {
-    "start": "electron ."
-  },
-  "repository": "https://github.com/Tairraos/tiktok-downloader",
-  "keywords": [
-    "Electron",
-    "tiktok",
-    "downloader"
-  ],
-  "author": "Tairraos",
-  "license": "MIT",
-  "devDependencies": {
-    "electron": "^18.2.4"
-  }
+    "name": "tiktok-downloader",
+    "productName": "tiktok-downloader",
+    "description": "My Electron application description",
+    "keywords": [],
+    "main": "./main.js",
+    "version": "1.0.0",
+    "author": "Tairraos",
+    "defaultLang": "zh_CN",
+    "scripts": {
+        "start": "electron src/main.js"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "cheerio": "^1.0.0-rc.11",
+        "electron": "19.0.1"
+    }
 }

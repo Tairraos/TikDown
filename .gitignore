@@ -1,13 +1,2 @@
-__pycache__/
-__pypackages__/
-node_modules/
-pip-log.txt
-.Python
-.coverage
-.scrapy
-*$py.class
-*.py[cod]
-*.manifest
-*.spec
-*.log
-
+node_modules
+.prettierrc.js

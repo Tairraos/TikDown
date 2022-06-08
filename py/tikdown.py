@@ -95,7 +95,7 @@ def log(*args):
 win = tkinter.Tk()
 win.title("Tiktok 下载器")
 win.geometry("200x90")
-win.iconphoto(True, tkinter.PhotoImage(file="favicon.png"))
+# win.iconphoto(True, tkinter.PhotoImage(file="favicon.png"))
 win.wm_attributes("-topmost", "true")
 button = tkinter.Button(win, text="点击下载剪贴板链接", bg="#7CCD7C", width=20, height=5, command=check_clipboard).pack()
 win.mainloop()
