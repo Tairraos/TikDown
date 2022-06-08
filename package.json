@@ -8,7 +8,8 @@
     "author": "Tairraos",
     "defaultLang": "zh_CN",
     "scripts": {
-        "start": "electron src/main.js"
+        "start": "electron src/main.js",
+        "buildsvg": "node tool/buildSvgSymbol.js"
     },
     "dependencies": {},
     "devDependencies": {

@@ -1,32 +1,44 @@
-// This file is required by the index.html file and will
-// be executed in the renderer process for that window.
-// No Node.js APIs are available in this process because
-// `nodeIntegration` is turned off. Use `preload.js` to
-// selectively enable features needed in the rendering
-// process.
-
 function $(arg) {
-    arg = arg.trim();
     if (arg.match(/^</)) {
         const template = document.createElement("template");
         template.innerHTML = arg;
         return template.content.firstChild;
     } else {
-        return document.querySelector.bind(arg);
+        return document.querySelector(arg);
     }
 }
 
-console.log(i18n.get("Download Folder"));
+const getSvg = (iconName) => $(`<span class="icon ${iconName}"><svg><use xlink:href="#icon-${iconName}"/></svg></span>`);
+const getText = (i18nKey) => $(`<span class="text">${i18n.get(i18nKey)}</span>`);
+const getBtn = (id, iconName, i18nKey) => {
+    const btn = $(`<button id="${id}"/>`);
+    iconName && btn.appendChild(getSvg(iconName));
+    i18nKey && btn.appendChild(getText(i18nKey, ""));
+    return btn;
+};
+
 const header = $("#header-area");
 const footer = $("#footer-area");
 const logContainer = $("#log-area");
 
-const btnDownload = $(`<button class=".btn-download"><span>${i18n.get("Paste/Download")}</span></button>`);
-const btnKeepTop = $(`<button class=".btn-download"><span>${i18n.get("Keep Top")}</span></button>`);
-const btnSelectTarget = $(`<button class=".btn-download"><span>${i18n.get("Download Folder")}</span></button>`);
-const statDownloading = $(`<button class=".btn-download"><span>${i18n.get("Downloading_")}</span></button>`);
-const statWaiting = $(`<button class=".btn-download"><span>${i18n.get("Waiting_")}</span></button>`);
-const statDownloaded = $(`<button class=".btn-download"><span>${i18n.get("Downloaded_")}</span></button>`);
-const statFailed = $(`<button class=".btn-download"><span>${i18n.get("Failed_")}</span></button>`);
-const btnGithub = $(`<button class=".btn-download"><span>${i18n.get("Github Source")}</span></button>`);
-const txtStatus = $(`<span class=".txt-status">${i18n.get("Parsing...")}</span>`);
+const btnPaste = getBtn("btnPaste", "paste", "Paste/Download");
+const btnKeepTop = getBtn("btnKeepTop", "keeptop", "Keep Top");
+const btnMaxWin = getBtn("btnMaxWin", "maximize", "Keep Top");
+const btnMinWin = getBtn("btnMinWin", "minimize", "Keep Top");
+const btnSelectTarget = getBtn("btnSelectTarget", "folder", "Download Folder");
+const statDownloading = getBtn("statDownloading", "download", "Downloading_");
+const statWaiting = getBtn("statWaiting", "waiting", "Waiting_");
+const statDownloaded = getBtn("statDownloaded", "success", "Downloaded_");
+const statFailed = getBtn("statFailed", "failed", "Failed_");
+const btnGithub = getBtn("btnGithub", "github", "Github Source");
+const txtStatus = getBtn("txtStatus", null, "Parsing...");
+
+header.appendChild(btnPaste);
+header.appendChild(btnKeepTop);
+header.appendChild(btnSelectTarget);
+footer.appendChild(btnGithub);
+footer.appendChild(statDownloading);
+footer.appendChild(statWaiting);
+footer.appendChild(statDownloaded);
+footer.appendChild(statFailed);
+logContainer.appendChild(txtStatus);
