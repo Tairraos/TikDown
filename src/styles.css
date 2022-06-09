@@ -1,3 +1,104 @@
-/* styles.css */
+body,
+html {
+    height: 100%;
+}
 
-/* Add styles here to customize the appearance of your app */
+body {
+    margin: 0;
+    background-color: #d4d4d4;
+}
+
+#app-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#header-area {
+    height: 75px;
+    background: #d4d4d4;
+    border-bottom: 1px solid #b0b0b0;
+}
+
+#log-area {
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: #f0f0f0;
+}
+
+#footer-area {
+    height: 29px;
+    border-top: 1px solid #b0b0b0;
+}
+
+#header-area .icon {
+    display: inline-block;
+    height: 32px;
+    line-height: 45px;
+    width: 32px;
+    vertical-align: middle;
+    margin: 4px 29px;
+    fill: #333;
+}
+
+#header-area .text {
+    display: inline-block;
+    margin-top: 3px;
+    color: #333;
+}
+
+#header-area button {
+    display: inline-block;
+    height: 66px;
+    width: 90px;
+    padding: 0;
+    margin: 5px 5px 0 5px;
+    border: 0;
+    border-radius: 10px;
+    background-color: #d0d0d0;
+}
+
+#header-area button:hover {
+    background-color: #c0c0c0;
+}
+#header-area button:active {
+    background-color: #b0b0b0;
+}
+
+.icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.icon.paste svg {
+    width: 32px;
+    height: 32px;
+}
+
+.icon.keeptop svg {
+}
+
+.icon.maximize svg {
+}
+
+.icon.minimize svg {
+}
+
+.icon.folder svg {
+}
+
+.icon.download svg {
+}
+
+.icon.waiting svg {
+}
+
+.icon.success svg {
+}
+
+.icon.failed svg {
+}
+
+.icon.github svg {
+}
