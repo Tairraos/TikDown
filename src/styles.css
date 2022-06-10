@@ -8,62 +8,21 @@ body {
     background-color: #d4d4d4;
 }
 
+p,
+button,
+span,
+div {
+    font-family: Helvetica, Tahoma, Arial, "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei";
+}
+
+button {
+    cursor: pointer;
+}
+
 #app-root {
     display: flex;
     flex-direction: column;
     height: 100%;
-}
-
-#header-area {
-    height: 75px;
-    background: #d4d4d4;
-    border-bottom: 1px solid #b0b0b0;
-}
-
-#log-area {
-    flex: 1;
-    overflow-x: hidden;
-    overflow-y: auto;
-    background-color: #f0f0f0;
-}
-
-#footer-area {
-    height: 29px;
-    border-top: 1px solid #b0b0b0;
-}
-
-#header-area .icon {
-    display: inline-block;
-    height: 32px;
-    line-height: 45px;
-    width: 32px;
-    vertical-align: middle;
-    margin: 4px 29px;
-    fill: #333;
-}
-
-#header-area .text {
-    display: inline-block;
-    margin-top: 3px;
-    color: #333;
-}
-
-#header-area button {
-    display: inline-block;
-    height: 66px;
-    width: 90px;
-    padding: 0;
-    margin: 5px 5px 0 5px;
-    border: 0;
-    border-radius: 10px;
-    background-color: #d0d0d0;
-}
-
-#header-area button:hover {
-    background-color: #c0c0c0;
-}
-#header-area button:active {
-    background-color: #b0b0b0;
 }
 
 .icon svg {
@@ -76,29 +35,122 @@ body {
     height: 32px;
 }
 
-.icon.keeptop svg {
+#header-area {
+    height: 75px;
+    background: #d4d4d4;
+    border-bottom: 1px solid #b0b0b0;
 }
 
-.icon.maximize svg {
+#header-area .icon {
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+    margin: 12px 30px;
+    fill: #333;
+    font-size: 0;
 }
 
-.icon.minimize svg {
+#header-area .text {
+    display: inline-block;
+    margin-top: 3px;
+    font-size: 14px;
+    color: #333;
+}
+#header-area .icon.paste {
+    height: 32px;
+    width: 32px;
+    margin: 4px 30px;
 }
 
-.icon.folder svg {
+.icon-btn {
+    display: inline-block;
+    height: 66px;
+    width: 90px;
+    padding: 0;
+    margin: 5px 5px 0 5px;
+    border: 0;
+    border-radius: 10px;
+    vertical-align: middle;
+    background-color: #d0d0d0;
 }
 
-.icon.download svg {
+.icon-btn:hover {
+    background-color: #c0c0c0;
 }
 
-.icon.waiting svg {
+.icon-btn:active {
+    background-color: #b0b0b0;
 }
 
-.icon.success svg {
+#log-area {
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: #f0f0f0;
 }
 
-.icon.failed svg {
+#footer-area {
+    height: 29px;
+    border-top: 1px solid #b0b0b0;
+    text-align: right;
+    vertical-align: middle;
+    padding: 0 10px;
 }
 
-.icon.github svg {
+#footer-area .icon {
+    height: 12px;
+    width: 12px;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 5px 0 0;
+    font-size: 0;
+}
+
+#footer-area .text {
+    display: inline-block;
+    color: #333;
+    font-size: 12px;
+}
+
+#footer-area svg {
+    height: 12px;
+    width: 12px;
+}
+
+#footer-area .btnGithub {
+    border: 0;
+    background: transparent;
+    fill: #333;
+    width: 24px;
+    height: 18px;
+    padding: 0;
+    margin: 6px 0;
+    display: block;
+    float: left;
+}
+#footer-area .btnGithub svg {
+        height: 16px;
+    width: 16px;
+}
+
+.icon-stat {
+    display: inline-block;
+    height: 18px;
+    margin: 5px 8px;
+}
+
+#footer-area .statDownloading svg {
+    fill: #d59720;
+}
+
+#footer-area .statWaiting svg {
+    fill: #929191;
+}
+
+#footer-area .statDownloaded svg {
+    fill: #24a137;
+}
+
+#footer-area .statFailed svg {
+    fill: #bd403a;
 }

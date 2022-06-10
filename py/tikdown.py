@@ -41,7 +41,7 @@ def get_tiktok_info(video_id):
             "video_title": result["aweme_details"][0]["desc"],  # 视频标题,
             "video_url": result["aweme_details"][0]["video"]["play_addr"]["url_list"][0],  # 无水印视频链接
             "video_author": result["aweme_details"][0]["author"]["nickname"],  # 视频作者
-            "video_cover": result["aweme_details"][0]["video"]["cover"]["url_list"][0]  # 封面图
+            "video_cover": result["aweme_details"][0]["video"]["cover"]["url_list"][0],  # 封面图
         }
     except Exception as e:
         log("网络请求有错误")
@@ -95,7 +95,6 @@ def log(*args):
 win = tkinter.Tk()
 win.title("Tiktok 下载器")
 win.geometry("200x90")
-# win.iconphoto(True, tkinter.PhotoImage(file="favicon.png"))
 win.wm_attributes("-topmost", "true")
 button = tkinter.Button(win, text="点击下载剪贴板链接", bg="#7CCD7C", width=20, height=5, command=check_clipboard).pack()
 win.mainloop()
