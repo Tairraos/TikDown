@@ -1,30 +1,51 @@
+let conf = {
+    header: $("#header-area"),
+    footer: $("#footer-area"),
+    logContainer: $("#log-area"),
+    btnGithub: $(".btnGithub"),
+    btnPaste: getIconComponent("button", "icon-btn btnPaste", "paste", "Paste/Download"),
+    btnKeepTop: getIconComponent("button", "icon-btn btnKeepTop", "keeptop", "Keep Top"),
+    btnMinWin: getIconComponent("button", "icon-btn btnMinWin", "minimize", "Mini Window"),
+    btnSelectTarget: getIconComponent("button", "icon-btn btnSelectTarget", "folder", "Download Folder"),
+    btnExit: getIconComponent("button", "icon-btn btnExit", "exit", "Exit"),
+    statDownloading: getIconComponent("div", "icon-stat statDownloading", "downloading", "Downloading_", 0),
+    statWaiting: getIconComponent("div", "icon-stat statWaiting", "waiting", "Waiting_", 0),
+    statDownloaded: getIconComponent("div", "icon-stat statDownloaded", "downloaded", "Downloaded_", 0),
+    statFailed: getIconComponent("div", "icon-stat statFailed", "failed", "Failed_", 0),
+    historyList: [],
+    keepTop: false
+};
 
-const header = $("#header-area");
-const footer = $("#footer-area");
-const logContainer = $("#log-area");
-const btnGithub = $(".btnGithub");
-$(".btnGithub").title = i18n.get("Github Source");
+buildUI();
+bindEvent();
 
-const btnPaste = getIconComponent("button", "icon-btn btnPaste", "paste", "Paste/Download");
-const btnKeepTop = getIconComponent("button", "icon-btn btnKeepTop", "keeptop", "Keep Top");
-const btnMinWin = getIconComponent("button", "icon-btn btnMinWin", "minimize", "Mini Window");
-const btnSelectTarget = getIconComponent("button", "icon-btn btnSelectTarget", "folder", "Download Folder");
+function buildUI() {
+    conf.header.appendChild(conf.btnPaste);
+    conf.header.appendChild(conf.btnKeepTop);
+    conf.header.appendChild(conf.btnMinWin);
+    conf.header.appendChild(conf.btnSelectTarget);
+    conf.header.appendChild(conf.btnExit);
 
-header.appendChild(btnPaste);
-header.appendChild(btnKeepTop);
-header.appendChild(btnMinWin);
-header.appendChild(btnSelectTarget);
+    conf.footer.appendChild(conf.statDownloading);
+    conf.footer.appendChild(conf.statWaiting);
+    conf.footer.appendChild(conf.statDownloaded);
+    conf.footer.appendChild(conf.statFailed);
+    conf.btnGithub.title = i18n.get("Github Source");
+}
+// const txtStatus = getIconComponent("button", "txtStatus", null, "Parsing...");
+// logContainer.appendChild(txtStatus);
 
-const statDownloading = getIconComponent("div", "icon-stat statDownloading", "downloading", "Downloading_", 0);
-const statWaiting = getIconComponent("div", "icon-stat statWaiting", "waiting", "Waiting_", 0);
-const statDownloaded = getIconComponent("div", "icon-stat statDownloaded", "downloaded", "Downloaded_", 0);
-const statFailed = getIconComponent("div", "icon-stat statFailed", "failed", "Failed_", 0);
+function bindEvent() {
+    conf.btnGithub.addEventListener("click", () => {
+        utils.openGithub();
+    });
 
-footer.appendChild(statDownloading);
-footer.appendChild(statWaiting);
-footer.appendChild(statDownloaded);
-footer.appendChild(statFailed);
+    conf.btnKeepTop.addEventListener("click", () => {
+        conf.keepTop = !conf.keepTop;
+        utils.toggleKeepTop(conf.keepTop);
+    });
 
-const txtStatus = getIconComponent("button", "txtStatus", null, "Parsing...");
-
-logContainer.appendChild(txtStatus);
+    conf.btnExit.addEventListener("click", () => {
+        utils.exit();
+    });
+}

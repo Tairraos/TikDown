@@ -39,6 +39,15 @@ const utils = {
             }
             fs.mkdirSync(dir);
         }
+    },
+    openGithub: () => {
+        ipcRenderer.invoke("openGithub");
+    },
+    toggleKeepTop: (toggle) => {
+        ipcRenderer.invoke("keepTop", toggle);
+    },
+    exit: () => {
+        ipcRenderer.invoke("exit");
     }
 };
 
