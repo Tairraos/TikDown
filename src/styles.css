@@ -25,12 +25,12 @@ button {
     height: 100%;
 }
 
-.icon svg {
+.normal .icon svg {
     width: 16px;
     height: 16px;
 }
 
-.icon.paste svg {
+.normal .icon.paste svg {
     width: 32px;
     height: 32px;
 }
@@ -56,6 +56,11 @@ button {
     font-size: 14px;
     color: #333;
 }
+
+.mini #header-area .text {
+    display: none;
+}
+
 #header-area .icon.paste {
     height: 32px;
     width: 32px;
@@ -82,11 +87,15 @@ button {
     background-color: #b0b0b0;
 }
 
-#log-area {
+.normal #task-area {
     flex: 1;
     overflow-x: hidden;
     overflow-y: auto;
     background-color: #f0f0f0;
+}
+
+.mini #task-area {
+    display: none;
 }
 
 #footer-area {
@@ -106,10 +115,15 @@ button {
     font-size: 0;
 }
 
-#footer-area .text {
+#footer-area .text,
+#footer-area .data {
     display: inline-block;
     color: #333;
     font-size: 12px;
+}
+
+.mini #footer-area .text {
+    display: none;
 }
 
 #footer-area svg {
@@ -128,6 +142,11 @@ button {
     display: block;
     float: left;
 }
+
+.mini #footer-area .btn-github {
+    display: none;
+}
+
 #footer-area .btn-github svg {
     height: 16px;
     width: 16px;

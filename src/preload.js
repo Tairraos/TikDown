@@ -2,34 +2,14 @@ const os = require("os");
 const fs = require("fs");
 const path = require("path");
 const package = require(path.join(__dirname, "../package.json"));
-const { contextBridge, ipcRenderer } = require("electron");
-
-//Get I18n
-const langPattern = /^[a-z]{2}_[A-Z]{2}$/;
-// const defaultLang = package.defaultLang || "zh_CN";
-const i18n = {
-    lang: "zh_CN",
-    select: (lang) => {
-        if (lang.match(langPattern) && typeof i18n[lang] === "object") {
-            i18n.lang = lang;
-        }
-    },
-    get: (item, ...args) => {
-        return (i18n[i18n.lang][item] || item).replace(/\{(\d+)\}/g, function (match, number) {
-            return args[+number];
-        });
-    }
-};
-const root = path.join(__dirname, "i18n");
-const files = fs.readdirSync(root);
-files.forEach((item) => {
-    const fileBase = path.basename(item, ".json");
-    if (fs.statSync(path.join(root, item)).isFile() && fileBase.match(langPattern)) {
-        i18n[fileBase] = require(path.join(root, item));
-    }
-});
+const { contextBridge, ipcRenderer, clipboard } = require("electron");
 
 const utils = {
+    getVersion: () => package.version,
+    readClipboard: () => clipboard.readText(),
+    toggleKeepTop: (toggle) => ipcRenderer.invoke("keepTop", toggle),
+    openGithub: () => ipcRenderer.invoke("openGithub"),
+    exit: () => ipcRenderer.invoke("exit"),
     existDir: (dir) => fs.existsSync(dir) && fs.statSync(dir).isDirectory(),
     prepareDir: (dir) => {
         dir = dir.replace(/^~/, os.homedir());
@@ -39,21 +19,33 @@ const utils = {
             }
             fs.mkdirSync(dir);
         }
-    },
-    openGithub: () => {
-        ipcRenderer.invoke("openGithub");
-    },
-    toggleKeepTop: (toggle) => {
-        ipcRenderer.invoke("keepTop", toggle);
-    },
-    exit: () => {
-        ipcRenderer.invoke("exit");
     }
 };
 
-window.addEventListener("DOMContentLoaded", () => {
-    document.title = i18n.get("Tiktok Downloader", package.version);
-});
+function prepareI18n(defaultLang) {
+    const i18n = {
+        lang: defaultLang,
+        select: (lang) => {
+            if (lang.match(/^[a-z]{2}_[A-Z]{2}$/) && typeof i18n[lang] === "object") {
+                i18n.lang = lang;
+            }
+        },
+        get: (item, ...args) => {
+            return (i18n[i18n.lang][item] || item).replace(/\{(\d+)\}/g, function (match, number) {
+                return args[+number];
+            });
+        }
+    };
+    const root = path.join(__dirname, "i18n");
+    const files = fs.readdirSync(root);
+    files.forEach((item) => {
+        const fileBase = path.basename(item, ".json");
+        if (fs.statSync(path.join(root, item)).isFile() && fileBase.match(/^[a-z]{2}_[A-Z]{2}$/)) {
+            i18n[fileBase] = require(path.join(root, item));
+        }
+    });
+    return i18n;
+}
 
-contextBridge.exposeInMainWorld("i18n", i18n);
+contextBridge.exposeInMainWorld("i18n", prepareI18n("zh_CN"));
 contextBridge.exposeInMainWorld("utils", utils);

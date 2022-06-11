@@ -1,18 +1,16 @@
 let dom = {
+        root: $("#app-root"),
+        header: $("#header-area"),
         footer: $("#footer-area"),
-        logContainer: $("#log-area"),
-        btnGithub: $(".btn-github"),
-        header: $("#header-area")
+        taskLog: $("#task-area"),
+        btnGithub: $(".btn-github")
     },
-    store = {
-        historyList: [],
-        keepTop: false
-    };
+    taskQue = {};
 
-buildUI();
-bindEvent();
+function createUI() {
+    document.title = i18n.get("Tiktok Downloader", utils.getVersion());
+    dom.btnGithub.title = i18n.get("Github Source");
 
-function buildUI() {
     dom.btnPaste = getIconComponent("button", "btn", "paste", "Paste/Download");
     dom.btnKeepTop = getIconComponent("button", "btn", "keeptop", "Keep Top");
     dom.btnQuitTop = getIconComponent("button", "btn", "quittop", "Quit Top");
@@ -40,26 +38,50 @@ function buildUI() {
     dom.footer.appendChild(dom.statWaiting);
     dom.footer.appendChild(dom.statDownloaded);
     dom.footer.appendChild(dom.statFailed);
-    dom.btnGithub.title = i18n.get("Github Source");
 }
 // const txtStatus = getIconComponent("button", "txtStatus", null, "Parsing...");
-// logContainer.appendChild(txtStatus);
+// taskLog.appendChild(txtStatus);
 
 function bindEvent() {
+    dom.btnPaste.addEventListener("click", () => {
+
+    });
+
     dom.btnGithub.addEventListener("click", () => {
         utils.openGithub();
     });
+
     dom.btnKeepTop.addEventListener("click", () => {
         utils.toggleKeepTop(true);
         dom.btnQuitTop.classList.remove("hide");
         dom.btnKeepTop.classList.add("hide");
     });
+
     dom.btnQuitTop.addEventListener("click", () => {
         utils.toggleKeepTop(false);
         dom.btnQuitTop.classList.add("hide");
         dom.btnKeepTop.classList.remove("hide");
     });
+
+    dom.btnMiniWin.addEventListener("click", () => {
+        dom.root.classList.add("mini");
+        dom.btnMiniWin.classList.add("hide");
+        dom.root.classList.remove("normal");
+        dom.btnNormalWin.classList.remove("hide");
+    });
+
+    dom.btnNormalWin.addEventListener("click", () => {
+        dom.root.classList.add("normal");
+        dom.btnNormalWin.classList.add("hide");
+        dom.root.classList.remove("mini");
+        dom.btnMiniWin.classList.remove("hide");
+    });
+
     dom.btnExit.addEventListener("click", () => {
         utils.exit();
     });
 }
+
+//start rendering
+createUI();
+bindEvent();
