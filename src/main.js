@@ -1,10 +1,8 @@
 const { app, shell, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 
-let conf = {};
-
 function createWindow() {
-    const mainWindow = new BrowserWindow({
+    global.mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
@@ -12,7 +10,6 @@ function createWindow() {
         },
         icon: "resource/favicon.ico"
     });
-    conf.mainWindow = mainWindow;
 
     //open debug
     mainWindow.webContents.openDevTools();
@@ -51,14 +48,13 @@ function initIPC() {
         shell.openExternal("https://github.com/Tairraos/tiktok-downloader");
     });
 
-    ipcMain.handle("keepTop", (toggle) => {
-        conf.mainWindow.alwaysOnTop(!!toggle);
+    ipcMain.handle("keepTop", (event, toggle) => {
+        global.mainWindow.setAlwaysOnTop(toggle);
     });
 
     ipcMain.handle("exit", () => {
         app.quit();
     });
-
 }
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

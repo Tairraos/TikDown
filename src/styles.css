@@ -117,7 +117,7 @@ button {
     width: 12px;
 }
 
-#footer-area .btnGithub {
+#footer-area .btn-github {
     border: 0;
     background: transparent;
     fill: #333;
@@ -128,8 +128,8 @@ button {
     display: block;
     float: left;
 }
-#footer-area .btnGithub svg {
-        height: 16px;
+#footer-area .btn-github svg {
+    height: 16px;
     width: 16px;
 }
 
@@ -139,18 +139,22 @@ button {
     margin: 5px 8px;
 }
 
-#footer-area .statDownloading svg {
+#footer-area .stat-downloading svg {
     fill: #d59720;
 }
 
-#footer-area .statWaiting svg {
+#footer-area .stat-wWaiting svg {
     fill: #929191;
 }
 
-#footer-area .statDownloaded svg {
+#footer-area .stat-downloaded svg {
     fill: #24a137;
 }
 
-#footer-area .statFailed svg {
+#footer-area .stat-failed svg {
     fill: #bd403a;
+}
+
+.hide {
+    display: none;
 }
