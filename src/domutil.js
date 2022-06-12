@@ -36,3 +36,38 @@ function iconDataStat(iconName, textKey, data) {
     ].join("");
     return $(domStr);
 }
+
+function taskBox(params) {
+    const domStr = [
+        `<div class="task-box task-${params.videoId}">`,
+        `<div class="task-thumb"><svg xmlns='http://www.w3.org/2000/svg'><use xlink:href='#icon-unknown'/></svg></div>`,
+        `<div class="task-info">`,
+        `<div class="task-url">${params.videoUrl}</div>`,
+        `<div class="task-title"></div>`,
+        `<div class="task-download">`,
+        `<span class="task-size"></span>`,
+        `<span class="task-processbar"><span class="task-process"></span></span>`,
+        `</div></div>`,
+        `<div class="task-status"></div>`,
+        `</div>`
+    ].join("");
+    return $(domStr);
+}
+
+function setFolderStat(folder) {
+    if (folder !== "") {
+        dom.statFolderText.innerText = folder;
+        dom.statFolderText.classList.remove("error");
+    }
+    if (!utils.existDir(dom.statFolderText.innerText)) {
+        dom.statFolderText.classList.add("error");
+    }
+}
+
+function setLogStat(text) {
+    dom.staLogText.innerText = text;
+    clearTimeout(dom.staLogText.timer);
+    dom.staLogText.timer = setTimeout(() => {
+        dom.staLogText.innerText = "";
+    }, 3000);
+}

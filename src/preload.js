@@ -37,7 +37,7 @@ function prepareI18n(defaultLang) {
     files.forEach((file) => {
         const lang = path.basename(file, ".json");
         if (fs.statSync(path.join(root, file)).isFile() && lang.match(/^[a-z]{2}_[A-Z]{2}$/)) {
-            langList.langList.push(lang);
+            i18n.langList.push(lang);
             i18n[lang] = require(path.join(root, file));
         }
     });

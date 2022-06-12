@@ -19,7 +19,7 @@ function createUI() {
     dom.btnMiniWin = iconButton("minimize", "Mini Window");
     dom.btnNormalWin = iconButton("maximize", "Normal Window");
     dom.btnFolder = iconButton("folder", "Download Folder");
-    dom.btnFolderText = $(`<button class="text-btn"></button>`);
+    dom.statFolderText = $(`<span class="text-stat"></span>`);
     dom.btnExit = iconButton("exit", "Exit");
 
     dom.btnQuitTop.classList.add("hide");
@@ -31,28 +31,38 @@ function createUI() {
     dom.headerRight.appendChild(dom.btnMiniWin);
     dom.headerRight.appendChild(dom.btnNormalWin);
     dom.headerRight.appendChild(dom.btnFolder);
-    dom.headerRight.appendChild(dom.btnFolderText);
+    dom.headerRight.appendChild(dom.statFolderText);
     dom.headerRight.appendChild(dom.btnExit);
 
     dom.btnGithub = iconButton("github", "Github Source");
-    dom.staTextLog = $(`<button class="text-btn"></button>`);
+    dom.staLogText = $(`<span class="text-stat"></span>`);
     dom.statDownloading = iconDataStat("downloading", "Downloading_", 0);
     dom.statWaiting = iconDataStat("waiting", "Waiting_", 0);
     dom.statDownloaded = iconDataStat("downloaded", "Downloaded_", 0);
     dom.statFailed = iconDataStat("failed", "Failed_", 0);
 
     dom.footerLeft.appendChild(dom.btnGithub);
+    dom.footerLeft.appendChild(dom.staLogText);
     dom.footerRight.appendChild(dom.statDownloading);
     dom.footerRight.appendChild(dom.statWaiting);
     dom.footerRight.appendChild(dom.statDownloaded);
     dom.footerRight.appendChild(dom.statFailed);
 }
-// const txtStatus = getIconComponent("button", "txtStatus", null, "Parsing...");
-// taskLog.appendChild(txtStatus);
+
+function createTaskUI(prams) {
+    const domtask = taskBox(prams);
+    dom.taskLog.appendChild(domtask);
+    dom.taskLog.scrollTo(0, dom.taskLog.scrollHeight);
+    return domtask;
+}
 
 function bindEvent() {
     dom.btnPaste.addEventListener("click", () => {
-        console.log(utils.readClipboard());
+        // parse_clipboard();
+        createTaskUI({
+            videoUrl: "http://xxx.xxx.xxx/xxxxxx",
+            videoId: "1231231231"
+        });
     });
     dom.btnGithub.addEventListener("click", () => {
         utils.openGithub();
@@ -85,25 +95,12 @@ function bindEvent() {
     });
 
     dom.btnFolder.addEventListener("click", async () => {
-        setDownloadFolder(await utils.selectFolder());
-    });
-    dom.btnFolderText.addEventListener("click", async () => {
-        setDownloadFolder(await utils.selectFolder());
+        setFolderStat(await utils.selectFolder());
     });
 
     dom.btnExit.addEventListener("click", () => {
         utils.exit();
     });
-}
-
-function setDownloadFolder(folder) {
-    if (folder !== "") {
-        dom.btnFolderText.innerText = folder;
-        dom.btnFolderText.classList.remove("error");
-    }
-    if (!uril.existDir(dom.btnFolderText.innerText)) {
-        dom.btnFolderText.classList.add("error");
-    }
 }
 
 //start rendering
