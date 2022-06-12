@@ -11,7 +11,9 @@
         "start": "electron src/main.js",
         "buildsvg": "node tool/buildSvgSymbol.js"
     },
-    "dependencies": {},
+    "dependencies": {
+        "electron-settings": "^4.0.2"
+    },
     "devDependencies": {
         "cheerio": "^1.0.0-rc.11",
         "electron": "19.0.1"

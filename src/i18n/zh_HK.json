@@ -1,17 +1,21 @@
 {
+    "language_name": "簡體中文",
     "Tiktok Downloader": "Tiktok下載器 v{0}",
     "Paste/Download": "粘帖/下載",
-    "Keep Top": "窗口置頂",
+    "Keep Top": "置頂",
+    "Quit Top": "取消置頂",
     "Mini Window": "迷你窗口",
     "Normal Window": "正常窗口",
     "Download Folder": "保存位置",
-    "Downloading_": "下載：{0}",
-    "Waiting_": "等待：{0}",
-    "Downloaded_": "完成：{0}",
-    "Failed_": "失敗：{0}",
+    "Exit": "退出",
+    "Downloading_": "下載：",
+    "Waiting_": "等待：",
+    "Downloaded_": "完成：",
+    "Failed_": "失敗：",
     "Parsing...": "正在解析",
     "Downloading...": "正在下載",
     "Downloaded": "下載完成",
     "Failed": "下載失敗",
-    "Github Source": "開源地址"
+    "Github Source": "開源地址",
+    "Clipboard have no valid Tiktok/Douyin URL.": "剪貼板裏不存在有效的Tiktok/抖音鏈接。"
 }
