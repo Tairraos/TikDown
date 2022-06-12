@@ -7,13 +7,32 @@ function $(arg) {
     return document.querySelector(arg);
 }
 
-function getIconComponent(type, cls, iconName, i18nKey, data) {
+function iconTextButton(iconName, textKey) {
     const domStr = [
-        `<${type} class="icon-${cls} ${cls}-iconName">`,
-        `<span class="icon ${iconName}"><svg><use xlink:href="#icon-${iconName}"/></svg></span>`,
-        `<span class="text">${i18n.get(i18nKey)}</span>`,
-        data !== undefined ? `<span class="data">${data}</span>` : "",
-        `</${type}>`
+        `<button class="icon-text-btn btn-${iconName}" title="${i18n.get(textKey)}">`,
+        `<svg class="icon ${iconName}"><use xlink:href="#icon-${iconName}"/></svg>`,
+        `<span class="text">${i18n.get(textKey)}</span>`,
+        `</button>`
+    ].join("");
+    return $(domStr);
+}
+
+function iconButton(iconName, textKey) {
+    const domStr = [
+        `<button class="icon-btn btn-${iconName}" title="${i18n.get(textKey)}">`,
+        `<svg class="icon ${iconName}"><use xlink:href="#icon-${iconName}"/></svg>`,
+        `</button>`
+    ].join("");
+    return $(domStr);
+}
+
+function iconDataStat(iconName, textKey, data) {
+    const domStr = [
+        `<div class="icon-data-stat stat-${iconName}">`,
+        `<svg class="icon ${iconName}"><use xlink:href="#icon-${iconName}"/></svg>`,
+        `<span class="text">${i18n.get(textKey)}</span>`,
+        `<span class="data">${data}</span>`,
+        `</button>`
     ].join("");
     return $(domStr);
 }

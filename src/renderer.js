@@ -3,50 +3,57 @@ let dom = {
         header: $("#header-area"),
         footer: $("#footer-area"),
         taskLog: $("#task-area"),
-        btnGithub: $(".btn-github")
+        headerLeft: $("#header-area .left-area"),
+        headerRight: $("#header-area .right-area"),
+        footerLeft: $("#footer-area .left-area"),
+        footerRight: $("#footer-area .right-area")
     },
     taskQue = {};
 
 function createUI() {
     document.title = i18n.get("Tiktok Downloader", utils.getVersion());
-    dom.btnGithub.title = i18n.get("Github Source");
 
-    dom.btnPaste = getIconComponent("button", "btn", "paste", "Paste/Download");
-    dom.btnKeepTop = getIconComponent("button", "btn", "keeptop", "Keep Top");
-    dom.btnQuitTop = getIconComponent("button", "btn", "quittop", "Quit Top");
-    dom.btnMiniWin = getIconComponent("button", "btn", "minimize", "Mini Window");
-    dom.btnNormalWin = getIconComponent("button", "btn", "maximize", "Normal Window");
-    dom.btnSelectTarget = getIconComponent("button", "btn", "folder", "Download Folder");
-    dom.btnExit = getIconComponent("button", "btn", "exit", "Exit");
+    dom.btnPaste = iconTextButton("paste", "Paste/Download");
+    dom.btnKeepTop = iconButton("keeptop", "Keep Top");
+    dom.btnQuitTop = iconButton("quittop", "Quit Top");
+    dom.btnMiniWin = iconButton("minimize", "Mini Window");
+    dom.btnNormalWin = iconButton("maximize", "Normal Window");
+    dom.btnFolder = iconButton("folder", "Download Folder");
+    dom.btnFolderText = $(`<button class="text-btn"></button>`);
+    dom.btnExit = iconButton("exit", "Exit");
 
     dom.btnQuitTop.classList.add("hide");
     dom.btnNormalWin.classList.add("hide");
 
-    dom.header.appendChild(dom.btnPaste);
-    dom.header.appendChild(dom.btnKeepTop);
-    dom.header.appendChild(dom.btnQuitTop);
-    dom.header.appendChild(dom.btnMiniWin);
-    dom.header.appendChild(dom.btnNormalWin);
-    dom.header.appendChild(dom.btnSelectTarget);
-    dom.header.appendChild(dom.btnExit);
+    dom.headerLeft.appendChild(dom.btnPaste);
+    dom.headerRight.appendChild(dom.btnKeepTop);
+    dom.headerRight.appendChild(dom.btnQuitTop);
+    dom.headerRight.appendChild(dom.btnMiniWin);
+    dom.headerRight.appendChild(dom.btnNormalWin);
+    dom.headerRight.appendChild(dom.btnFolder);
+    dom.headerRight.appendChild(dom.btnFolderText);
+    dom.headerRight.appendChild(dom.btnExit);
 
-    dom.statDownloading = getIconComponent("div", "stat", "downloading", "Downloading_", 0);
-    dom.statWaiting = getIconComponent("div", "stat", "waiting", "Waiting_", 0);
-    dom.statDownloaded = getIconComponent("div", "stat", "downloaded", "Downloaded_", 0);
-    dom.statFailed = getIconComponent("div", "stat", "failed", "Failed_", 0);
-    dom.footer.appendChild(dom.statDownloading);
-    dom.footer.appendChild(dom.statWaiting);
-    dom.footer.appendChild(dom.statDownloaded);
-    dom.footer.appendChild(dom.statFailed);
+    dom.btnGithub = iconButton("github", "Github Source");
+    dom.staTextLog = $(`<button class="text-btn"></button>`);
+    dom.statDownloading = iconDataStat("downloading", "Downloading_", 0);
+    dom.statWaiting = iconDataStat("waiting", "Waiting_", 0);
+    dom.statDownloaded = iconDataStat("downloaded", "Downloaded_", 0);
+    dom.statFailed = iconDataStat("failed", "Failed_", 0);
+
+    dom.footerLeft.appendChild(dom.btnGithub);
+    dom.footerRight.appendChild(dom.statDownloading);
+    dom.footerRight.appendChild(dom.statWaiting);
+    dom.footerRight.appendChild(dom.statDownloaded);
+    dom.footerRight.appendChild(dom.statFailed);
 }
 // const txtStatus = getIconComponent("button", "txtStatus", null, "Parsing...");
 // taskLog.appendChild(txtStatus);
 
 function bindEvent() {
     dom.btnPaste.addEventListener("click", () => {
-
+        console.log(utils.readClipboard());
     });
-
     dom.btnGithub.addEventListener("click", () => {
         utils.openGithub();
     });
@@ -77,9 +84,26 @@ function bindEvent() {
         dom.btnMiniWin.classList.remove("hide");
     });
 
+    dom.btnFolder.addEventListener("click", async () => {
+        setDownloadFolder(await utils.selectFolder());
+    });
+    dom.btnFolderText.addEventListener("click", async () => {
+        setDownloadFolder(await utils.selectFolder());
+    });
+
     dom.btnExit.addEventListener("click", () => {
         utils.exit();
     });
+}
+
+function setDownloadFolder(folder) {
+    if (folder !== "") {
+        dom.btnFolderText.innerText = folder;
+        dom.btnFolderText.classList.remove("error");
+    }
+    if (!uril.existDir(dom.btnFolderText.innerText)) {
+        dom.btnFolderText.classList.add("error");
+    }
 }
 
 //start rendering

@@ -2,29 +2,25 @@ const os = require("os");
 const fs = require("fs");
 const path = require("path");
 const package = require(path.join(__dirname, "../package.json"));
-const { contextBridge, ipcRenderer, clipboard } = require("electron");
+const { contextBridge, ipcRenderer, clipboard, shell } = require("electron");
 
 const utils = {
+    //node bridge
     getVersion: () => package.version,
+    openGithub: () => shell.openExternal("https://github.com/Tairraos/tiktok-downloader"),
     readClipboard: () => clipboard.readText(),
-    toggleKeepTop: (toggle) => ipcRenderer.invoke("keepTop", toggle),
-    openGithub: () => ipcRenderer.invoke("openGithub"),
-    exit: () => ipcRenderer.invoke("exit"),
     existDir: (dir) => fs.existsSync(dir) && fs.statSync(dir).isDirectory(),
-    prepareDir: (dir) => {
-        dir = dir.replace(/^~/, os.homedir());
-        if (!utils.existDir(dir)) {
-            if (!utils.existDir(path.dirname(dir))) {
-                utils.prepareDir(path.dirname(dir));
-            }
-            fs.mkdirSync(dir);
-        }
-    }
+
+    //ipc bridge
+    exit: () => ipcRenderer.invoke("exit"),
+    toggleKeepTop: (toggle) => ipcRenderer.invoke("keepTop", toggle),
+    selectFolder: () => ipcRenderer.invoke("selectFolder")
 };
 
 function prepareI18n(defaultLang) {
     const i18n = {
         lang: defaultLang,
+        langList: [],
         select: (lang) => {
             if (lang.match(/^[a-z]{2}_[A-Z]{2}$/) && typeof i18n[lang] === "object") {
                 i18n.lang = lang;
@@ -38,10 +34,11 @@ function prepareI18n(defaultLang) {
     };
     const root = path.join(__dirname, "i18n");
     const files = fs.readdirSync(root);
-    files.forEach((item) => {
-        const fileBase = path.basename(item, ".json");
-        if (fs.statSync(path.join(root, item)).isFile() && fileBase.match(/^[a-z]{2}_[A-Z]{2}$/)) {
-            i18n[fileBase] = require(path.join(root, item));
+    files.forEach((file) => {
+        const lang = path.basename(file, ".json");
+        if (fs.statSync(path.join(root, file)).isFile() && lang.match(/^[a-z]{2}_[A-Z]{2}$/)) {
+            langList.langList.push(lang);
+            i18n[lang] = require(path.join(root, file));
         }
     });
     return i18n;

@@ -1,14 +1,10 @@
 body,
 html {
     height: 100%;
-}
-
-body {
     margin: 0;
     background-color: #d4d4d4;
 }
 
-p,
 button,
 span,
 div {
@@ -19,72 +15,70 @@ button {
     cursor: pointer;
 }
 
+.hide {
+    display: none !important;
+}
+
+.icon {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.btn-paste .icon {
+    width: 32px;
+    height: 32px;
+    margin-top: 5px;
+}
+
+.normal .icon-btn .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.normal .icon-data-stat .icon {
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+}
+
 #app-root {
     display: flex;
     flex-direction: column;
     height: 100%;
 }
 
-.normal .icon svg {
-    width: 16px;
-    height: 16px;
-}
-
-.normal .icon.paste svg {
-    width: 32px;
-    height: 32px;
-}
-
-#header-area {
+/* layout */
+.normal #header-area {
     height: 75px;
     background: #d4d4d4;
     border-bottom: 1px solid #b0b0b0;
+    display: flex;
+    flex-direction: row;
 }
 
-#header-area .icon {
-    display: inline-block;
-    height: 16px;
-    width: 16px;
-    margin: 12px 30px;
-    fill: #333;
-    font-size: 0;
+.normal #header-area .left-area {
+    line-height: 75px;
+    flex: 1;
 }
 
-#header-area .text {
-    display: inline-block;
-    margin-top: 3px;
-    font-size: 14px;
-    color: #333;
+.normal #header-area .right-area {
+    padding-right: 10px;
+    display: flex;
+    align-items: flex-end;
 }
 
-.mini #header-area .text {
-    display: none;
+.normal #footer-area {
+    height: 29px;
+    border-top: 1px solid #b0b0b0;
+    display: flex;
+}
+.normal #footer-area .left-area {
+    width: 435px;
 }
 
-#header-area .icon.paste {
-    height: 32px;
-    width: 32px;
-    margin: 4px 30px;
-}
-
-.icon-btn {
-    display: inline-block;
-    height: 66px;
-    width: 90px;
-    padding: 0;
-    margin: 5px 5px 0 5px;
-    border: 0;
-    border-radius: 10px;
-    vertical-align: middle;
-    background-color: #d0d0d0;
-}
-
-.icon-btn:hover {
-    background-color: #c0c0c0;
-}
-
-.icon-btn:active {
-    background-color: #b0b0b0;
+.normal #footer-area .right-area {
+    flex: 1;
+    text-align: right;
 }
 
 .normal #task-area {
@@ -98,82 +92,154 @@ button {
     display: none;
 }
 
-#footer-area {
-    height: 29px;
-    border-top: 1px solid #b0b0b0;
-    text-align: right;
-    vertical-align: middle;
-    padding: 0 10px;
+/* components */
+.normal .icon-text-btn .text {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #333;
 }
 
-#footer-area .icon {
-    height: 12px;
-    width: 12px;
+.mini .icon-text-btn .text {
+    display: none;
+}
+
+.btn-paste {
+    height: 66px;
+    width: 120px;
+    border-radius: 5px;
+    vertical-align: middle;
+    background-color: #d0d0d0;
+    border: 2px solid transparent;
+    margin: 4px 8px;
+}
+
+.normal .icon-btn {
+    height: 32px;
+    width: 32px;
+    fill: #333;
+    padding: 0;
+    border-radius: 4px;
+    border: 0;
+    vertical-align: middle;
+    background-color: transparent;
+}
+ .normal .text-btn {
+     height: 20px;
+     width: 200px;
+     margin: 6px 10px 6px 0;
+     background: #f0f0f0;
+     border: 1px solid #666;
+     border-radius: 2px;
+     text-align: left;
+     color: #333;
+ }
+ .normal .text-btn.error {
+    border: 1px solid #bd403a;
+ }
+.mini .text-btn{
+    display:none;
+}
+.icon-btn:hover, .icon-text-btn:hover {
+    background-color: #c0c0c0;
+}
+
+.icon-btn:active, .icon-text-btn:active {
+    background-color: #b0b0b0;
+}
+
+#footer-area .icon-data-stat {
     display: inline-block;
-    vertical-align: middle;
-    margin: 0 5px 0 0;
     font-size: 0;
+    height: 18px;
+    margin-right: 20px;
 }
 
-#footer-area .text,
-#footer-area .data {
+.icon-data-stat .text,
+.icon-data-stat .data {
     display: inline-block;
     color: #333;
     font-size: 12px;
+    vertical-align: middle;
 }
 
-.mini #footer-area .text {
+.mini .icon-data-stat .text {
     display: none;
 }
 
-#footer-area svg {
-    height: 12px;
-    width: 12px;
-}
-
-#footer-area .btn-github {
-    border: 0;
-    background: transparent;
-    fill: #333;
+.normal .btn-github {
     width: 24px;
-    height: 18px;
-    padding: 0;
-    margin: 6px 0;
-    display: block;
-    float: left;
+    height: 24px;
+    margin: 2px 5px;
 }
 
-.mini #footer-area .btn-github {
+.mini .btn-github {
     display: none;
 }
 
-#footer-area .btn-github svg {
-    height: 16px;
-    width: 16px;
-}
-
-.icon-stat {
-    display: inline-block;
-    height: 18px;
-    margin: 5px 8px;
-}
-
-#footer-area .stat-downloading svg {
+.stat-downloading svg {
     fill: #d59720;
 }
 
-#footer-area .stat-wWaiting svg {
+.stat-wWaiting svg {
     fill: #929191;
 }
 
-#footer-area .stat-downloaded svg {
+.stat-downloaded svg {
     fill: #24a137;
 }
 
-#footer-area .stat-failed svg {
+.stat-failed svg {
     fill: #bd403a;
 }
 
-.hide {
-    display: none;
+/* effect */
+body #app-root .border-flash-ok {
+    animation: flash-green 0.6s linear;
+}
+
+body #app-root .border-flash-errpr {
+    animation: flash-red 0.6s linear;
+}
+
+@keyframes flash-green {
+    0% {
+        border-color: #24a137ff;
+    }
+    20% {
+        border-color: #24a13700;
+    }
+    40% {
+        border-color: #24a137ff;
+    }
+    60% {
+        border-color: #24a13700;
+    }
+    80% {
+        border-color: #24a137ff;
+    }
+    100% {
+        border-color: #24a13700;
+    }
+}
+
+@keyframes flash-red {
+    0% {
+        border-color: #bd403aff;
+    }
+    20% {
+        border-color: #bd403a00;
+    }
+    40% {
+        border-color: #bd403aff;
+    }
+    60% {
+        border-color: #bd403a00;
+    }
+    80% {
+        border-color: #bd403aff;
+    }
+    100% {
+        border-color: #bd403a00;
+    }
 }

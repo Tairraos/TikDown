@@ -1,4 +1,4 @@
-const { app, shell, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 
 function createWindow() {
@@ -44,12 +44,13 @@ app.on("window-all-closed", function () {
 });
 
 function initIPC() {
-    ipcMain.handle("openGithub", () => {
-        shell.openExternal("https://github.com/Tairraos/tiktok-downloader");
-    });
-
     ipcMain.handle("keepTop", (event, toggle) => {
         global.mainWindow.setAlwaysOnTop(toggle);
+    });
+
+    ipcMain.handle("selectFolder", async () => {
+        const result = await dialog.showOpenDialog({ properties: ["openDirectory"] }, (folder) => folder);
+        return result.canceled ? "" : result.filePaths[0];
     });
 
     ipcMain.handle("exit", () => {
