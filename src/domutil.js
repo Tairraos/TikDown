@@ -74,7 +74,9 @@ function setFolderStat(folder) {
     }
 }
 
-function setLogStat(text) {
+function printLog(text) {}
+
+function printLog(text) {
     dom.staLogText.innerText = text;
     clearTimeout(dom.staLogText.timer);
     dom.staLogText.timer = setTimeout(() => {

@@ -9,9 +9,10 @@ button,
 span,
 div {
     font-family: Helvetica, Tahoma, Arial, "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei";
+    cursor: default;
 }
 
-button {
+button, select, button span {
     cursor: pointer;
 }
 

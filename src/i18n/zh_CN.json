@@ -8,11 +8,14 @@
     "Normal Window": "正常窗口",
     "Download Folder": "保存位置",
     "Exit": "退出",
-    "Waiting": "等待",
+    "Waiting...": "等待",
     "Parsing...": "正在解析",
     "Downloading...": "正在下载",
     "Downloaded": "下载完成",
     "Failed": "下载失败",
     "Github Source": "开源地址",
-    "Clipboard have no valid Tiktok/Douyin URL.": "剪贴板里不存在有效的Tiktok/抖音链接。"
+    "You have added a new download task.": "你已经添加了一个新的下载任务。",
+    "The content in the clipboard is not a valid Tiktok/Douyin URL.": "剪贴板里的内容并非有效的Tiktok/Douyin网址。",
+    "You have changed the download folder.": "您更改了下载文件夹。",
+    "You have changed the display language.": "您更改了显示语言。"
 }

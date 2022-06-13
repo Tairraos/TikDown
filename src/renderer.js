@@ -38,10 +38,10 @@ function createUI() {
 
     dom.btnGithub = iconButton("github", "Github Source");
     dom.staLogText = $(`<span class="text-stat"></span>`);
-    dom.statDownloading = iconDataStat("downloading", "Downloading_", 0);
-    dom.statWaiting = iconDataStat("waiting", "Waiting_", 0);
-    dom.statDownloaded = iconDataStat("downloaded", "Downloaded_", 0);
-    dom.statFailed = iconDataStat("failed", "Failed_", 0);
+    dom.statDownloading = iconDataStat("downloading", "Downloading...", 0);
+    dom.statWaiting = iconDataStat("waiting", "Waiting...", 0);
+    dom.statDownloaded = iconDataStat("downloaded", "Downloaded", 0);
+    dom.statFailed = iconDataStat("failed", "Failed", 0);
 
     dom.footerLeft.appendChild(dom.btnGithub);
     dom.footerLeft.appendChild(dom.staLogText);
@@ -99,12 +99,20 @@ function bindEvent() {
     dom.btnFolder.addEventListener("click", async () => {
         setFolderStat(await utils.selectFolder());
     });
-    dom.btnFolderText.addEventListener("click", async () => {
+
+    dom.btnFolderText.addEventListener("click", () => {
         const target = dom.btnFolderText.innerText;
         if (utils.existDir(target)) {
             utils.openFolder(target);
         }
     });
+
+    dom.selectLang.addEventListener("change", () => {
+        const lang = dom.selectLang.value;
+        utils.setSetting("language", lang);
+        i18n.selectLang(lang);
+    });
+
     dom.btnExit.addEventListener("click", () => {
         utils.exit();
     });

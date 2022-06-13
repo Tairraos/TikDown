@@ -8,14 +8,14 @@
     "Normal Window": "Normal Window",
     "Download Folder": "Download Folder",
     "Exit": "Exit",
-    "Downloading_": "Downloading:",
-    "Waiting_": "Waiting:",
-    "Downloaded_": "Downloaded:",
-    "Failed_": "Failed:",
+    "Waiting...": "Waiting...",
     "Parsing...": "Parsing...",
     "Downloading...": "Downloading...",
     "Downloaded": "Downloaded",
     "Failed": "Failed",
     "Github Source": "Github Source",
-    "Clipboard have no valid Tiktok/Douyin URL.": "Clipboard have no valid Tiktok/Douyin URL."
+    "You have added a new download task.": "You have added a new download task.",
+    "The content in the clipboard is not a valid Tiktok/Douyin URL.": "The content in the clipboard is not a valid Tiktok/Douyin URL.",
+    "You have changed the download folder.": "You have changed the download folder.",
+    "You have changed the display language.": "You have changed the display language."
 }
