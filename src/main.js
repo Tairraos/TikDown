@@ -76,8 +76,5 @@ function prepareSettings() {
         target = path.join(os.homedir(), "Download");
         settings.setSync("download.folder", target);
     }
-    return {
-        lang: lang,
-        target: target
-    };
+    return { lang, target };
 }

@@ -19,5 +19,6 @@
     "You have added a new download task.": "你已经添加了一个新的下载任务。",
     "The content in the clipboard is not a valid Tiktok/Douyin URL.": "剪贴板里的内容并非有效的Tiktok/Douyin网址。",
     "You have changed the download folder.": "您更改了下载文件夹。",
-    "You have changed the display language.": "您更改了显示语言。"
+    "You have changed the display language.": "您更改了显示语言。",
+    "The same task is already available in the download list.": "下载列表里已经有相同的任务。"
 }

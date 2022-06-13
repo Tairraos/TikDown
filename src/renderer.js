@@ -60,12 +60,9 @@ function createTaskUI(prams) {
 
 function bindEvent() {
     dom.btnPaste.addEventListener("click", () => {
-        // parse_clipboard();
-        createTaskUI({
-            videoUrl: "http://xxx.xxx.xxx/xxxxxx",
-            videoId: "1231231231"
-        });
+        pasteContent();
     });
+    
     dom.btnGithub.addEventListener("click", () => {
         utils.openGithub();
     });

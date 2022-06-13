@@ -36,10 +36,10 @@ function iconDataStat(iconName, textKey, data) {
     return $(domStr);
 }
 function downloadFolderButton() {
-    return $(`<button class="btn-stat" title="${i18n.get("Open folder")}" data-i18n="title:Open folder">${config.target}</button>`);
+    return $(`<button class="btn-stat" title="${i18n.get("Open folder")}" data-i18n="title%Open folder">${config.target}</button>`);
 }
 function selectLangBox() {
-    const domArr = [`<select class="select-lang" title="${i18n.get("Change language")}" data-i18n="title:Change language">`];
+    const domArr = [`<select class="select-lang" title="${i18n.get("Change language")}" data-i18n="title%Change language">`];
     i18n.langList.forEach((item) => {
         domArr.push(`<option value="${item.name}" ${item.name === i18n.lang ? "selected" : ""}>${item.local}</option>`);
     });
@@ -56,12 +56,25 @@ function taskBox(params) {
         `<div class="task-title"></div>`,
         `<div class="task-download">`,
         `<span class="task-size"></span>`,
-        `<span class="task-processbar"><span class="task-process"></span></span>`,
+        `<span class="task-processbar hide"><span class="task-process"></span></span>`,
         `</div></div>`,
         `<div class="task-status"></div>`,
         `</div>`
     ].join("");
     return $(domStr);
+}
+
+function updateTask(id, data) {
+    const prefix = `.task-${task.list[id].videoId}`;
+    data.thumb && ($(`${prefix} .task-thumb`).innerHTML = `<img src="${data.thumb}" />`);
+    data.status && ($(`${prefix} .task-status`).innerText = i18n.get(data.status));
+    data.url && ($(`${prefix} .task-url`).innerText = data.url);
+    data.title && ($(`${prefix} .task-title`).innerText = data.title);
+    data.size && ($(`${prefix} .task-size`).innerText = data.size);
+    if (data.process) {
+        $(`${prefix} .task-processbar`).classList.remove("hide");
+        $(`${prefix} .task-process`).style.width = `${data.process * 2}px`;
+    }
 }
 
 function setFolderStat(folder) {

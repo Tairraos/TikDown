@@ -1,4 +1,7 @@
-const tasks = [];
+const task = {
+    lastId: 1,
+    list: {}
+};
 
 function downloader(video_id) {
     downloading = True; // 开始下载
@@ -37,23 +40,44 @@ function log(...args) {
     console.log(...args);
 }
 
-function parse_clipboard() {
+function pasteContent() {
     const clipStr = utils.readClipboard();
     const parsed = clipStr.match(/https?:\/\/www.tiktok.com\/[^/]+\/video\/(\d+)/);
     if (parsed) {
-        taskManager({ videoUrl: parsed[0], videoId: parsed[1] });
+        if ($(`task-${params.videoId}`)) {
+            printLog("The same task is already available in the download list.");
+        } else {
+            taskManager({ videoUrl: parsed[0], videoId: parsed[1] });
+            printLog("You have added a new download task.");
+        }
     } else {
-        reportError(0, "Clipboard have no valid Tiktok/Douyin URL.");
+        printLog("The content in the clipboard is not a valid Tiktok/Douyin URL.");
     }
 }
 
 async function taskManager(params) {
-    createTask(params);
-    const videoData = await parse(params.videoId);
+    const id = createTask(params);
+    updateTask(id, { status: "Parsing..." });
+    const data = await parse(params.videoId);
+    if (data.success) {
+        updateTask(id, { status: "Waiting..." });
+        updateTask(id, { status: "Downloading..." });
+        updateTask(id, { status: "Downloaded" });
+    } else {
+        updateTask(id, { status: "Failed" , title: data.resaon});
+    }
 }
 
 function createTask(params) {
-    const taskUI = creatrTaskUI(params);
+    const dom = createTaskUI(params),
+        id = task.lastId++;
+    task.list[id] = {
+        ...params,
+        dom,
+        step: "Parsing...",
+        isRunning: true
+    };
+    return id;
 }
 
 async function parse(videoId) {
@@ -73,10 +97,10 @@ async function parse(videoId) {
     if (result.status_code === 0) {
         return {
             success: true,
-            video_title: result["aweme_details"][0]["desc"], // 视频标题,
-            video_url: result["aweme_details"][0]["video"]["play_addr"]["url_list"][0], // 无水印视频链接
-            video_author: result["aweme_details"][0]["author"]["nickname"], // 视频作者
-            video_cover: result["aweme_details"][0]["video"]["cover"]["url_list"][0] // 封面图
+            title: result["aweme_details"][0]["desc"], // 视频标题,
+            url: result["aweme_details"][0]["video"]["play_addr"]["url_list"][0], // 无水印视频链接
+            author: result["aweme_details"][0]["author"]["nickname"], // 视频作者
+            cover: result["aweme_details"][0]["video"]["cover"]["url_list"][0] // 封面图
         };
     }
     return { success: false, reason: status_msg };
