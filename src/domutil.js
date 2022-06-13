@@ -9,9 +9,9 @@ function $(arg) {
 
 function iconTextButton(iconName, textKey) {
     const domStr = [
-        `<button class="icon-text-btn btn-${iconName}" title="${i18n.get(textKey)}">`,
+        `<button class="icon-text-btn btn-${iconName}" title="${i18n.get(textKey)}" data-i18n="title/${textKey}">`,
         `<svg class="icon ${iconName}"><use xlink:href="#icon-${iconName}"/></svg>`,
-        `<span class="text">${i18n.get(textKey)}</span>`,
+        `<span class="text" data-i18n="innerText/${textKey}">${i18n.get(textKey)}</span>`,
         `</button>`
     ].join("");
     return $(domStr);
@@ -19,7 +19,7 @@ function iconTextButton(iconName, textKey) {
 
 function iconButton(iconName, textKey) {
     const domStr = [
-        `<button class="icon-btn btn-${iconName}" title="${i18n.get(textKey)}">`,
+        `<button class="icon-btn btn-${iconName}" title="${i18n.get(textKey)}" data-i18n="title/${textKey}">`,
         `<svg class="icon ${iconName}"><use xlink:href="#icon-${iconName}"/></svg>`,
         `</button>`
     ].join("");
@@ -28,13 +28,21 @@ function iconButton(iconName, textKey) {
 
 function iconDataStat(iconName, textKey, data) {
     const domStr = [
-        `<div class="icon-data-stat stat-${iconName}">`,
+        `<div class="icon-data-stat stat-${iconName}" title="${i18n.get(textKey)}" data-i18n="title/${textKey}">`,
         `<svg class="icon ${iconName}"><use xlink:href="#icon-${iconName}"/></svg>`,
-        `<span class="text">${i18n.get(textKey)}</span>`,
         `<span class="data">${data}</span>`,
         `</button>`
     ].join("");
     return $(domStr);
+}
+
+function selectLangBox() {
+    const domArr = [`<select class="select-lang">`];
+    i18n.langList.forEach((item) => {
+        domArr.push(`<option value="${item.name}" ${item.name === i18n.lang ? "selected" : ""}>${item.local}</option>`);
+    });
+    domArr.push(`</select>`);
+    return $(domArr.join(""));
 }
 
 function taskBox(params) {
@@ -56,11 +64,13 @@ function taskBox(params) {
 
 function setFolderStat(folder) {
     if (folder !== "") {
-        dom.statFolderText.innerText = folder;
-        dom.statFolderText.classList.remove("error");
+        dom.btnFolderText.innerText = folder;
+        dom.btnFolderText.classList.remove("error");
     }
-    if (!utils.existDir(dom.statFolderText.innerText)) {
-        dom.statFolderText.classList.add("error");
+    if (!utils.existDir(dom.btnFolderText.innerText)) {
+        dom.btnFolderText.classList.add("error");
+    } else {
+        utils.setSetting("download.folder", folder);
     }
 }
 

@@ -73,7 +73,7 @@ button {
     display: flex;
 }
 .normal #footer-area .left-area {
-    width: 440px;
+    width: 540px;
 }
 
 .normal #footer-area .right-area {
@@ -126,7 +126,8 @@ button {
     vertical-align: middle;
     background-color: transparent;
 }
-.normal .text-stat {
+.normal .text-stat,
+.normal .btn-stat {
     height: 20px;
     display: inline-block;
     text-align: left;
@@ -139,25 +140,29 @@ button {
     white-space: nowrap;
 }
 
-.normal #header-area .text-stat {
+.normal #header-area .btn-stat {
     margin: 4px 10px 4px 2px;
     padding: 0 5px;
     direction: rtl;
     background: #f0f0f0;
     border: 1px solid #666;
     border-radius: 2px;
-    width: 250px;
+    width: 220px;
 }
 
 .normal #footer-area .text-stat {
-    width: 400px;
+    width: 500px;
 }
 
-.normal #header-area .text-stat.error {
+.normal #header-area .btn-stat.error {
     border: 1px solid #bd403a;
 }
 
-.mini .text-stat {
+.normal #header-area .select-lang {height: 20px;margin: 4px 10px 4px 0;background: #f0f0f0;border: 1px solid #666;border-radius: 2px;}
+
+.mini #header-areatext-stat,
+.mini #header-area.btn-stat,
+.mini #header-area .select-lang {
     display: none;
 }
 .icon-btn:hover,
@@ -177,16 +182,11 @@ button {
     margin-right: 20px;
 }
 
-.icon-data-stat .text,
 .icon-data-stat .data {
     display: inline-block;
     color: #333;
     font-size: 12px;
     vertical-align: middle;
-}
-
-.mini .icon-data-stat .text {
-    display: none;
 }
 
 .normal .btn-github {
@@ -266,8 +266,7 @@ body #app-root .border-flash-errpr {
     }
 }
 
-
-#task-area .task-box{
+#task-area .task-box {
     height: 60px;
     display: flex;
     flex-direction: row;
@@ -302,7 +301,11 @@ body #app-root .border-flash-errpr {
     align-items: center;
 }
 
-#task-area .task-download { display:flex;flex-direction: row;align-items: center;}
+#task-area .task-download {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
 
 #task-area .task-size {
     display: inline-block;

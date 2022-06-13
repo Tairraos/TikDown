@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const os = require("os");
 const path = require("path");
-const settings = require('electron-settings');
+const settings = require("electron-settings");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 
 function createWindow() {
     global.mainWindow = new BrowserWindow({
@@ -18,15 +19,10 @@ function createWindow() {
     mainWindow.loadFile("index.html");
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
     createWindow();
 
     app.on("activate", function () {
-        // On macOS it's common to re-create a window in the app when the
-        // dock icon is clicked and there are no other windows open.
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
         }
@@ -35,9 +31,6 @@ app.whenReady().then(() => {
     initIPC();
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on("window-all-closed", function () {
     if (process.platform !== "darwin") {
         app.quit();
@@ -57,7 +50,34 @@ function initIPC() {
     ipcMain.handle("exit", () => {
         app.quit();
     });
-    
+
+    ipcMain.handle("getSettings", async () => {
+        return await prepareSettings();
+    });
+
+    ipcMain.handle("setSetting", (event, name, value) => {
+        settings.setSync(name, value);
+    });
 }
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+
+function prepareSettings() {
+    let lang, target;
+
+    if (settings.hasSync("language")) {
+        lang = settings.getSync("language");
+    } else {
+        lang = "en_US";
+        settings.setSync("language", lang);
+    }
+
+    if (settings.hasSync("download.folder")) {
+        target = settings.getSync("download.folder");
+    } else {
+        target = path.join(os.homedir(), "Download");
+        settings.setSync("download.folder", target);
+    }
+    return {
+        lang: lang,
+        target: target
+    };
+}

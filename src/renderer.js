@@ -19,7 +19,8 @@ function createUI() {
     dom.btnMiniWin = iconButton("minimize", "Mini Window");
     dom.btnNormalWin = iconButton("maximize", "Normal Window");
     dom.btnFolder = iconButton("folder", "Download Folder");
-    dom.statFolderText = $(`<span class="text-stat"></span>`);
+    dom.btnFolderText = $(`<button class="btn-stat">${config.target}</button>`);
+    dom.selectLang = selectLangBox();
     dom.btnExit = iconButton("exit", "Exit");
 
     dom.btnQuitTop.classList.add("hide");
@@ -31,7 +32,8 @@ function createUI() {
     dom.headerRight.appendChild(dom.btnMiniWin);
     dom.headerRight.appendChild(dom.btnNormalWin);
     dom.headerRight.appendChild(dom.btnFolder);
-    dom.headerRight.appendChild(dom.statFolderText);
+    dom.headerRight.appendChild(dom.btnFolderText);
+    dom.headerRight.appendChild(dom.selectLang);
     dom.headerRight.appendChild(dom.btnExit);
 
     dom.btnGithub = iconButton("github", "Github Source");
@@ -97,12 +99,19 @@ function bindEvent() {
     dom.btnFolder.addEventListener("click", async () => {
         setFolderStat(await utils.selectFolder());
     });
-
+    dom.btnFolderText.addEventListener("click", async () => {
+        const target = dom.btnFolderText.innerText;
+        if (utils.existDir(target)) {
+            utils.openFolder(target);
+        }
+    });
     dom.btnExit.addEventListener("click", () => {
         utils.exit();
     });
 }
 
 //start rendering
-createUI();
-bindEvent();
+initApp().then(() => {
+    createUI();
+    bindEvent();
+});
