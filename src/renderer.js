@@ -18,8 +18,8 @@ function createUI() {
     dom.btnQuitTop = iconButton("quittop", "Quit Top");
     dom.btnMiniWin = iconButton("minimize", "Mini Window");
     dom.btnNormalWin = iconButton("maximize", "Normal Window");
-    dom.btnFolder = iconButton("folder", "Download Folder");
-    dom.btnFolderText = $(`<button class="btn-stat">${config.target}</button>`);
+    dom.btnFolder = iconButton("folder", "Change download folder");
+    dom.btnFolderText = downloadFolderButton();
     dom.selectLang = selectLangBox();
     dom.btnExit = iconButton("exit", "Exit");
 
@@ -108,9 +108,7 @@ function bindEvent() {
     });
 
     dom.selectLang.addEventListener("change", () => {
-        const lang = dom.selectLang.value;
-        utils.setSetting("language", lang);
-        i18n.selectLang(lang);
+        changeLanguage(dom.selectLang.value);
     });
 
     dom.btnExit.addEventListener("click", () => {

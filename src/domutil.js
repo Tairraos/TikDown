@@ -9,9 +9,9 @@ function $(arg) {
 
 function iconTextButton(iconName, textKey) {
     const domStr = [
-        `<button class="icon-text-btn btn-${iconName}" title="${i18n.get(textKey)}" data-i18n="title/${textKey}">`,
+        `<button class="icon-text-btn btn-${iconName}" title="${i18n.get(textKey)}" data-i18n="title%${textKey}">`,
         `<svg class="icon ${iconName}"><use xlink:href="#icon-${iconName}"/></svg>`,
-        `<span class="text" data-i18n="innerText/${textKey}">${i18n.get(textKey)}</span>`,
+        `<span class="text" data-i18n="innerText%${textKey}">${i18n.get(textKey)}</span>`,
         `</button>`
     ].join("");
     return $(domStr);
@@ -19,7 +19,7 @@ function iconTextButton(iconName, textKey) {
 
 function iconButton(iconName, textKey) {
     const domStr = [
-        `<button class="icon-btn btn-${iconName}" title="${i18n.get(textKey)}" data-i18n="title/${textKey}">`,
+        `<button class="icon-btn btn-${iconName}" title="${i18n.get(textKey)}" data-i18n="title%${textKey}">`,
         `<svg class="icon ${iconName}"><use xlink:href="#icon-${iconName}"/></svg>`,
         `</button>`
     ].join("");
@@ -28,16 +28,18 @@ function iconButton(iconName, textKey) {
 
 function iconDataStat(iconName, textKey, data) {
     const domStr = [
-        `<div class="icon-data-stat stat-${iconName}" title="${i18n.get(textKey)}" data-i18n="title/${textKey}">`,
+        `<div class="icon-data-stat stat-${iconName}" title="${i18n.get(textKey)}" data-i18n="title%${textKey}">`,
         `<svg class="icon ${iconName}"><use xlink:href="#icon-${iconName}"/></svg>`,
         `<span class="data">${data}</span>`,
         `</button>`
     ].join("");
     return $(domStr);
 }
-
+function downloadFolderButton() {
+    return $(`<button class="btn-stat" title="${i18n.get("Open folder")}" data-i18n="title:Open folder">${config.target}</button>`);
+}
 function selectLangBox() {
-    const domArr = [`<select class="select-lang">`];
+    const domArr = [`<select class="select-lang" title="${i18n.get("Change language")}" data-i18n="title:Change language">`];
     i18n.langList.forEach((item) => {
         domArr.push(`<option value="${item.name}" ${item.name === i18n.lang ? "selected" : ""}>${item.local}</option>`);
     });
@@ -74,7 +76,15 @@ function setFolderStat(folder) {
     }
 }
 
-function printLog(text) {}
+function changeLanguage(lang) {
+    const domList = document.querySelectorAll("[data-i18n]");
+    utils.setSetting("language", lang);
+    i18n.select(lang);
+    domList.forEach((item) => {
+        const [attr, i18nKey] = item.getAttribute("data-i18n").split("%");
+        item[attr] = i18n.get(i18nKey);
+    });
+}
 
 function printLog(text) {
     dom.staLogText.innerText = text;
