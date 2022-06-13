@@ -99,6 +99,7 @@ button, select, button span {
     margin-top: 5px;
     font-size: 12px;
     color: #333;
+    height: 12px;
 }
 
 .mini .icon-text-btn .text {
@@ -159,7 +160,7 @@ button, select, button span {
     border: 1px solid #bd403a;
 }
 
-.normal #header-area .select-lang {height: 20px;margin: 4px 10px 4px 0;background: #f0f0f0;border: 1px solid #666;border-radius: 2px;}
+.normal #header-area .select-lang {height: 20px;margin: 4px 10px 4px 0;background: #f0f0f0;border: 1px solid #666;border-radius: 2px;outline: none;font-size: 13px;}
 
 .mini #header-areatext-stat,
 .mini #header-area.btn-stat,

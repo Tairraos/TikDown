@@ -73,6 +73,7 @@ function setFolderStat(folder) {
         dom.btnFolderText.classList.add("error");
     } else {
         utils.setSetting("download.folder", folder);
+        printLog("You have changed the download folder.");
     }
 }
 
@@ -84,10 +85,11 @@ function changeLanguage(lang) {
         const [attr, i18nKey] = item.getAttribute("data-i18n").split("%");
         item[attr] = i18n.get(i18nKey);
     });
+    printLog("You have changed the display language.");
 }
 
-function printLog(text) {
-    dom.staLogText.innerText = text;
+function printLog(i18nKey) {
+    dom.staLogText.innerText = i18n.get(i18nKey);
     clearTimeout(dom.staLogText.timer);
     dom.staLogText.timer = setTimeout(() => {
         dom.staLogText.innerText = "";
