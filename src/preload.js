@@ -16,13 +16,15 @@ const utils = {
     exit: () => ipcRenderer.invoke("exit"),
     toggleKeepTop: (toggle) => ipcRenderer.invoke("keepTop", toggle),
     selectFolder: () => ipcRenderer.invoke("selectFolder"),
-    getSettings: () => ipcRenderer.invoke("getSettings"),
-    setSetting: (name, value) => ipcRenderer.invoke("setSetting", name, value)
+    getSettingsLang: () => ipcRenderer.invoke("getSettingsLang"),
+    getSettingsTarget: () => ipcRenderer.invoke("getSettingsTarget"),
+    setSettingLang: (value) => ipcRenderer.invoke("setSettingLang", value),
+    setSettingTarget: (value) => ipcRenderer.invoke("setSettingTarget", value)
 };
 
-function prepareI18n(defaultLang) {
+function prepareI18n(lang) {
     const i18n = {
-        lang: defaultLang,
+        lang: lang,
         langList: [],
         select: (lang) => {
             if (lang.match(/^[a-z]{2}_[A-Z]{2}$/) && typeof i18n[lang] === "object") {
@@ -51,11 +53,12 @@ function prepareI18n(defaultLang) {
 }
 
 async function initApp() {
-    const config = await utils.getSettings();
+    const lang = await utils.getSettingsLang(),
+        target = await utils.getSettingsTarget();
 
-    contextBridge.exposeInMainWorld("i18n", prepareI18n(config.lang));
+    contextBridge.exposeInMainWorld("i18n", prepareI18n(lang));
     contextBridge.exposeInMainWorld("utils", utils);
-    contextBridge.exposeInMainWorld("config", config);
+    contextBridge.exposeInMainWorld("config", { lang, target });
 }
 
 contextBridge.exposeInMainWorld("initApp", initApp);

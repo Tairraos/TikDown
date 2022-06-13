@@ -83,6 +83,14 @@ function updateTask(id, data) {
     }
 }
 
+function updateTaskCounter() {
+    const counter = countTask();
+    dom.dataDownloading.innerText = counter.Downloading || 0;
+    dom.dataWaiting.innerText = (counter.Waiting || 0) + (counter.Parsing || 0);
+    dom.dataDownloaded.innerText = counter.Downloaded || 0;
+    dom.dataFailed.innerText = counter.Failed || 0;
+}
+
 function setFolderStat(folder) {
     if (folder !== "") {
         dom.btnFolderText.innerText = folder;
@@ -91,14 +99,14 @@ function setFolderStat(folder) {
     if (!utils.existDir(dom.btnFolderText.innerText)) {
         dom.btnFolderText.classList.add("error");
     } else {
-        utils.setSetting("download.folder", folder);
+        utils.setSettingTarget(folder);
         printLog("You have changed the download folder.");
     }
 }
 
 function changeLanguage(lang) {
     const domList = document.querySelectorAll("[data-i18n]");
-    utils.setSetting("language", lang);
+    utils.setSettingLang(lang);
     i18n.select(lang);
     domList.forEach((item) => {
         const [attr, i18nKey] = item.getAttribute("data-i18n").split("%");

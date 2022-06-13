@@ -33,11 +33,11 @@ async function taskManager(params) {
     if (data.success) {
         const title = `${data.title.replace(/[/\\:*?"<>|\n]/g, "")}`.replace(/&[^;]{3,5};/g, " "),
             filename = `${data.author} - ${title.replace(/^(.{50}[\w]+.).*/, "$1")} - ${id}.mp4`;
+        task.list[id].step = STEP_WAITING;
+        updateTask(id, { status: STEP_WAITING, title: filename, thumb: data.cover });
         task.list[id].filename = filename;
         task.list[id].fileurl = data.fileUrl;
         task.list[id].videoCover = data.cover;
-        task.list[id].step = STEP_WAITING;
-        updateTask(id, { status: STEP_WAITING, title: filename, thumb: data.cover });
         // updateTask(id, { status: STEP_DOWNLOADING });
         // updateTask(id, { status: STEP_DOWNLOADED });
     } else {
@@ -48,8 +48,26 @@ async function taskManager(params) {
 
 function createTask(params) {
     const dom = createTaskUI(params);
-    task.list[task.lastId] = { ...params, dom, step: STEP_PARSING, isRunning: true };
+    task.list[task.lastId] = { id: task.lastId, ...params, dom, step: STEP_PARSING };
     return task.lastId++;
+}
+
+function countTask() {
+    let result = {};
+    for (let key in task.list) {
+        let step = task.list[key].step.replace(/\./g, "");
+        result[step] = (result[step] || 0) + 1;
+    }
+    return result;
+}
+
+function getWaitingTask() {
+    let result = {};
+    for (let key in task.list) {
+        if (task.list[key].step === STEP_WAITING){
+            return task.list[key];
+        }
+    }
 }
 
 async function parse(videoId) {

@@ -39,9 +39,13 @@ function createUI() {
     dom.btnGithub = iconButton("github", "Github Source");
     dom.staLogText = $(`<span class="text-stat"></span>`);
     dom.statDownloading = iconDataStat("downloading", "Downloading...", 0);
+    dom.dataDownloading = dom.statDownloading.querySelector(".data");
     dom.statWaiting = iconDataStat("waiting", "Waiting...", 0);
+    dom.dataWaiting = dom.statWaiting.querySelector(".data");
     dom.statDownloaded = iconDataStat("downloaded", "Downloaded", 0);
+    dom.dataDownloaded = dom.statDownloaded.querySelector(".data");
     dom.statFailed = iconDataStat("failed", "Failed", 0);
+    dom.dataFailed = dom.statFailed.querySelector(".data");
 
     dom.footerLeft.appendChild(dom.btnGithub);
     dom.footerLeft.appendChild(dom.staLogText);
@@ -62,7 +66,7 @@ function bindEvent() {
     dom.btnPaste.addEventListener("click", () => {
         pasteContent();
     });
-    
+
     dom.btnGithub.addEventListener("click", () => {
         utils.openGithub();
     });
