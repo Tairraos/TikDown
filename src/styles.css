@@ -222,7 +222,7 @@ body #app-root .border-flash-ok {
     animation: flash-green 0.6s linear;
 }
 
-body #app-root .border-flash-errpr {
+body #app-root .border-flash-error {
     animation: flash-red 0.6s linear;
 }
 
@@ -277,30 +277,35 @@ body #app-root .border-flash-errpr {
     margin: 2px 1px;
     font-size: 13px;
     color: #222;
-    font-weight: 300;
+    background: #f0f0f0;
 }
 #task-area .task-thumb {
     width: 120px;
 }
 #task-area .task-thumb img,
 #task-area .task-thumb svg {
-    width: 80px;
-    height: 45px;
-    margin: 7px 20px;
+    width: 96px;
+    height: 54px;
+    margin: 3px 10px;
+    border-radius: 5px;
 }
 #task-area .task-info {
-    flex: 1;
     display: flex;
     align-items: flex-start;
     flex-direction: column;
     justify-content: center;
+    width: 550px;
 }
 #task-area .task-url,
 #task-area .task-title,
 #task-area .task-download {
     height: 18px;
-    display: flex;
+    /* display: flex; */
     align-items: center;
+    width: 550px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #task-area .task-download {
@@ -312,7 +317,7 @@ body #app-root .border-flash-errpr {
 #task-area .task-size {
     display: inline-block;
     min-width: 60px;
-    margin-right: 10px;
+    margin-right: 20px;
 }
 #task-area .task-processbar {
     width: 200px;
@@ -329,7 +334,10 @@ body #app-root .border-flash-errpr {
 }
 
 #task-area .task-status {
-    display: flex;
-    align-items: center;
     padding: 10px;
+    flex: 1;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    flex-direction: row-reverse;
 }

@@ -64,6 +64,12 @@ function taskBox(params) {
     return $(domStr);
 }
 
+function flashPasteBtn(type) {
+    const extClass = `border-flash-${type}`;
+    dom.btnPaste.classList.add(extClass);
+    setTimeout(() => dom.btnPaste.classList.remove(extClass), 1000);
+}
+
 function updateTask(id, data) {
     const prefix = `.task-${task.list[id].videoId}`;
     data.thumb && ($(`${prefix} .task-thumb`).innerHTML = `<img src="${data.thumb}" />`);
@@ -106,5 +112,5 @@ function printLog(i18nKey) {
     clearTimeout(dom.staLogText.timer);
     dom.staLogText.timer = setTimeout(() => {
         dom.staLogText.innerText = "";
-    }, 3000);
+    }, 8000);
 }

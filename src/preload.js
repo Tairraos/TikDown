@@ -10,6 +10,7 @@ const utils = {
     openFolder: (target) => shell.openPath(target),
     readClipboard: () => clipboard.readText(),
     existDir: (dir) => fs.existsSync(dir) && fs.statSync(dir).isDirectory(),
+    existFile: (filepath) => fs.existsSync(filepath),
 
     //ipc bridge
     exit: () => ipcRenderer.invoke("exit"),
