@@ -58,7 +58,7 @@ function initIPC() {
     });
 
     ipcMain.handle("resize", (event, w, h) => {
-        config.mainWindow.setSize(w, h);
+        config.mainWindow.setSize(w, h, true);
     });
 }
 

@@ -119,6 +119,7 @@ function updateI18nStringUI(lang) {
         const [attr, i18nKey] = item.getAttribute("data-i18n").split("%");
         item[attr] = i18n.get(i18nKey);
     });
+    document.title = i18n.get("Tiktok Downloader", utils.getVersion());
     printFooterLog("You have changed the display language.");
 }
 
