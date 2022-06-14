@@ -106,9 +106,9 @@ button span {
     display: flex;
 }
 .mini #footer-area {
-   width:165px;
-   height: 16px;
-   line-height: 12px;
+    width: 165px;
+    height: 16px;
+    line-height: 12px;
 }
 .normal #footer-area .left-area {
 }
@@ -118,7 +118,10 @@ button span {
     text-align: right;
 }
 
-.mini #footer-area .right-area {text-align: left;padding-left: 10px;}
+.mini #footer-area .right-area {
+    text-align: left;
+    padding-left: 10px;
+}
 
 .normal #task-area {
     flex: 1;
@@ -131,7 +134,6 @@ button span {
 .mini #footer-area .left-area {
     display: none;
 }
-
 
 /* components */
 .icon-text-btn .text {
@@ -198,9 +200,6 @@ button span {
     border: 1px solid #666;
     border-radius: 2px;
     width: 220px;
-}
-
-.normal #footer-area .text-stat {
 }
 
 .normal #header-area .btn-stat.error {
@@ -338,19 +337,19 @@ body #app-root .border-flash-error {
     background: #f0f0f0;
 }
 
-#task-area .task-bo.downloading  {
+#task-area .task-box.downloading {
     border-color: #d59720;
 }
 
-#task-area .task-bo.waiting  {
+#task-area .task-box.waiting {
     border-color: #929191;
 }
 
-#task-area .task-bo.downloaded  {
+#task-area .task-box.downloaded {
     border-color: #24a137;
 }
 
-#task-area .task-bo.failed  {
+#task-area .task-box.failed {
     border-color: #bd403a;
 }
 
@@ -368,7 +367,7 @@ body #app-root .border-flash-error {
     align-items: center;
 }
 
-#task-area .task-thumb img{
+#task-area .task-thumb img {
     width: 120px;
 }
 #task-area .task-thumb svg {

@@ -76,12 +76,12 @@ function updateTaskBoxUI(videoId, data) {
     data.url && ($(`${container} .task-url`).innerText = data.url);
     data.title && ($(`${container} .task-title`).innerText = data.title);
     if (data.size) {
-        $(`${container} .task-size`).innerText = (data.size / 1024).toFixed(1).replace(/\B(?=(?:\d{3})+\b)/g, ',')+"KB";
+        $(`${container} .task-size`).innerText = (data.size / 1024).toFixed(1).replace(/\B(?=(?:\d{3})+\b)/g, ",") + "KB";
     }
     if (data.status) {
-        $(`${container}`).className = `task-box task-${videoId} ${data.status}`;
+        $(`${container}`).className = `task-box task-${videoId} ${data.status.toLowerCase().replace(/\.+$/, "")}`;
         $(`${container} .task-status`).innerText = i18n.get(data.status);
-        $(`${container} .task-status`).setAttribute("data-i18n",`innerText%${data.status}`)
+        $(`${container} .task-status`).setAttribute("data-i18n", `innerText%${data.status}`);
     }
     if (data.process) {
         $(`${container} .task-processbar`).classList.remove("hide");
