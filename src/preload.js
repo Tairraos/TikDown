@@ -20,7 +20,8 @@ const utils = {
     getSettingsTarget: () => ipcRenderer.invoke("getSettingsTarget"),
     setSettingLang: (value) => ipcRenderer.invoke("setSettingLang", value),
     setSettingTarget: (value) => ipcRenderer.invoke("setSettingTarget", value),
-    download: (params) => ipcRenderer.invoke("download", params)
+    download: (params) => ipcRenderer.invoke("download", params),
+    resize: (w, h) => ipcRenderer.invoke("resize", w, h)
 };
 
 const ipc = {

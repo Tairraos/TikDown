@@ -38,7 +38,18 @@ button span {
     height: 16px;
 }
 
+.mini .icon-btn .icon {
+    width: 14px;
+    height: 14px;
+}
+
 .normal .icon-data-stat .icon {
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+}
+
+.mini .icon-data-stat .icon {
     width: 12px;
     height: 12px;
     margin-right: 4px;
@@ -59,15 +70,34 @@ button span {
     flex-direction: row;
 }
 
+.mini #header-area {
+    height: 76px;
+    background: #d4d4d4;
+    display: flex;
+    flex-direction: row;
+    width: 165px;
+}
+
 .normal #header-area .left-area {
     line-height: 75px;
     flex: 1;
 }
 
+.mini #header-area .left-area {
+    line-height: 75px;
+    width: 136px;
+}
+
 .normal #header-area .right-area {
-    padding: 2px 10px;
+    padding: 2px 10px 2px 0;
     display: flex;
     align-items: flex-end;
+}
+
+.mini #header-area .right-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .normal #footer-area {
@@ -75,14 +105,20 @@ button span {
     border-top: 1px solid #b0b0b0;
     display: flex;
 }
+.mini #footer-area {
+   width:165px;
+   height: 16px;
+   line-height: 12px;
+}
 .normal #footer-area .left-area {
-    width: 540px;
 }
 
 .normal #footer-area .right-area {
     flex: 1;
     text-align: right;
 }
+
+.mini #footer-area .right-area {text-align: left;padding-left: 10px;}
 
 .normal #task-area {
     flex: 1;
@@ -91,9 +127,11 @@ button span {
     background-color: #f0f0f0;
 }
 
-.mini #task-area {
+.mini #task-area,
+.mini #footer-area .left-area {
     display: none;
 }
+
 
 /* components */
 .icon-text-btn .text {
@@ -126,6 +164,18 @@ button span {
     vertical-align: middle;
     background-color: transparent;
 }
+
+.mini .icon-btn {
+    height: 22px;
+    width: 24px;
+    fill: #333;
+    padding: 0;
+    border-radius: 4px;
+    border: 0;
+    font-size: 0;
+    background-color: transparent;
+}
+
 .normal .text-stat,
 .normal .btn-stat {
     height: 20px;
@@ -151,7 +201,6 @@ button span {
 }
 
 .normal #footer-area .text-stat {
-    width: 500px;
 }
 
 .normal #header-area .btn-stat.error {
@@ -168,11 +217,12 @@ button span {
     font-size: 13px;
 }
 
-.mini #header-areatext-stat,
-.mini #header-area.btn-stat,
-.mini #header-area .select-lang {
+.mini #header-area .btn-stat,
+.mini #header-area .select-lang,
+.mini #header-area .btn-folder {
     display: none;
 }
+
 .icon-btn:hover,
 .icon-text-btn:hover {
     background-color: #c0c0c0;
@@ -183,11 +233,17 @@ button span {
     background-color: #b0b0b0;
 }
 
-#footer-area .icon-data-stat {
+.normal #footer-area .icon-data-stat {
     display: inline-block;
     font-size: 0;
     height: 18px;
     margin-right: 20px;
+}
+
+.mini #footer-area .icon-data-stat {
+    display: inline-block;
+    font-size: 0;
+    margin-right: 12px;
 }
 
 .icon-data-stat .data {
@@ -201,10 +257,6 @@ button span {
     width: 24px;
     height: 24px;
     margin: 2px 5px;
-}
-
-.mini .btn-github {
-    display: none;
 }
 
 .stat-downloading svg {

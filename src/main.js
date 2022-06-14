@@ -16,7 +16,7 @@ function createWindow() {
     });
 
     //open debug
-    config.mainWindow.webContents.openDevTools();
+    // config.mainWindow.webContents.openDevTools();
 
     config.mainWindow.loadFile("index.html");
 }
@@ -55,6 +55,10 @@ function initIPC() {
     ipcMain.handle("download", (event, data) => {
         config.taskStore[data.id] = data;
         config.mainWindow.webContents.downloadURL(data.fileurl + "#" + data.id);
+    });
+
+    ipcMain.handle("resize", (event, w, h) => {
+        config.mainWindow.setSize(w, h);
     });
 }
 

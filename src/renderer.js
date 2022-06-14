@@ -88,6 +88,7 @@ function bindEvent() {
         dom.btnMiniWin.classList.add("hide");
         dom.root.classList.remove("normal");
         dom.btnNormalWin.classList.remove("hide");
+        utils.resize(166, 128);
     });
 
     dom.btnNormalWin.addEventListener("click", () => {
@@ -95,6 +96,7 @@ function bindEvent() {
         dom.btnNormalWin.classList.add("hide");
         dom.root.classList.remove("mini");
         dom.btnMiniWin.classList.remove("hide");
+        utils.resize(800, 600);
     });
 
     dom.btnFolder.addEventListener("click", async () => {
