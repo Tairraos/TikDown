@@ -19,7 +19,14 @@ const utils = {
     getSettingsLang: () => ipcRenderer.invoke("getSettingsLang"),
     getSettingsTarget: () => ipcRenderer.invoke("getSettingsTarget"),
     setSettingLang: (value) => ipcRenderer.invoke("setSettingLang", value),
-    setSettingTarget: (value) => ipcRenderer.invoke("setSettingTarget", value)
+    setSettingTarget: (value) => ipcRenderer.invoke("setSettingTarget", value),
+    download: (params) => ipcRenderer.invoke("download", params)
+};
+
+const ipc = {
+    store: {},
+    bindDownloadUpdated: (callback) => (ipc.store["download updated"] = callback),
+    bindDownloadCompleted: (callback) => (ipc.store["download done"] = callback)
 };
 
 function prepareI18n(lang) {
@@ -52,13 +59,29 @@ function prepareI18n(lang) {
     return i18n;
 }
 
+function initIPC() {
+    ipcRenderer.on("download updated", (event, data) => {
+        if (typeof ipc.store["download updated"] === "function") {
+            ipc.store["download updated"](data);
+        }
+    });
+
+    ipcRenderer.on("download done", (event, data) => {
+        if (typeof ipc.store["download done"] === "function") {
+            ipc.store["download done"](data);
+        }
+    });
+}
+
 async function initApp() {
     const lang = await utils.getSettingsLang(),
         target = await utils.getSettingsTarget();
 
-    contextBridge.exposeInMainWorld("i18n", prepareI18n(lang));
+    contextBridge.exposeInMainWorld("ipc", ipc);
     contextBridge.exposeInMainWorld("utils", utils);
+    contextBridge.exposeInMainWorld("i18n", prepareI18n(lang));
     contextBridge.exposeInMainWorld("config", { lang, target });
+    initIPC();
 }
 
 contextBridge.exposeInMainWorld("initApp", initApp);

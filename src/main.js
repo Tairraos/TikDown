@@ -3,8 +3,10 @@ const path = require("path");
 const settings = require("electron-settings");
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 
+const config = { taskStore: {} };
+
 function createWindow() {
-    global.mainWindow = new BrowserWindow({
+    config.mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
@@ -14,15 +16,14 @@ function createWindow() {
     });
 
     //open debug
-    mainWindow.webContents.openDevTools();
+    config.mainWindow.webContents.openDevTools();
 
-    mainWindow.loadFile("index.html");
+    config.mainWindow.loadFile("index.html");
 }
 
 function initIPC() {
     ipcMain.handle("keepTop", (event, toggle) => {
-        global.mainWindow.setAlwaysOnTop(toggle);
-        return toggle;
+        config.mainWindow.setAlwaysOnTop(toggle);
     });
 
     ipcMain.handle("selectFolder", async () => {
@@ -34,57 +35,47 @@ function initIPC() {
         app.quit();
     });
 
-    ipcMain.handle("getSettingsLang", async () => {
-        if (settings.hasSync("lang")) {
-            return settings.getSync("lang");
-        }
-        settings.setSync("lang", "en_US");
-        return "en_US";
+    ipcMain.handle("getSettingsLang", () => {
+        return settings.getSync("lang") || "en_US";
     });
 
-    ipcMain.handle("getSettingsTarget", async () => {
-        if (settings.hasSync("target")) {
-            return settings.getSync("target");
-        }
-        const target = path.join(os.homedir(), "Download");
-        settings.setSync("target", target);
-        return target;
+    ipcMain.handle("getSettingsTarget", () => {
+        config.target = settings.getSync("target") || path.join(os.homedir(), "Download");
+        return config.target;
     });
 
     ipcMain.handle("setSettingLang", (event, value) => {
         settings.setSync("lang", value);
-        return value;
     });
 
     ipcMain.handle("setSettingTarget", (event, value) => {
         settings.setSync("target", value);
-        return value;
+    });
+
+    ipcMain.handle("download", (event, data) => {
+        config.taskStore[data.id] = data;
+        config.mainWindow.webContents.downloadURL(data.fileurl + "#" + data.id);
     });
 }
 
 function initDownloadMonitor() {
-    global.mainWindow.webContents.session.on("will-download", (event, item, webContents) => {
-        // 无需对话框提示， 直接将文件保存到路径
-        item.setSavePath("/tmp/save.pdf");
+    config.mainWindow.webContents.session.on("will-download", (event, item, webContents) => {
+        const taskId = item.getURL().match(/(\d+)$/)[0],
+            task = config.taskStore[taskId];
+
+        item.setSavePath(path.join(config.target, task.filename));
 
         item.on("updated", (event, state) => {
-            if (state === "interrupted") {
-                console.log("Download is interrupted but can be resumed");
-            } else if (state === "progressing") {
-                if (item.isPaused()) {
-                    console.log("Download is paused");
-                } else {
-                    console.log(`Received bytes: ${item.getReceivedBytes()}`);
-                }
-            }
+            config.mainWindow.send("download updated", {
+                id: taskId,
+                received: item.getReceivedBytes(),
+                size: item.getTotalBytes(),
+                state
+            });
         });
 
         item.once("done", (event, state) => {
-            if (state === "completed") {
-                console.log("Download successfully");
-            } else {
-                console.log(`Download failed: ${state}`);
-            }
+            config.mainWindow.send("download done", { id: taskId, state });
         });
     });
 }
@@ -107,4 +98,3 @@ app.on("window-all-closed", function () {
         app.quit();
     }
 });
-

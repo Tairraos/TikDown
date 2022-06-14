@@ -13,15 +13,15 @@ let dom = {
 function createUI() {
     document.title = i18n.get("Tiktok Downloader", utils.getVersion());
 
-    dom.btnPaste = iconTextButton("paste", "Paste/Download");
-    dom.btnKeepTop = iconButton("keeptop", "Keep Top");
-    dom.btnQuitTop = iconButton("quittop", "Quit Top");
-    dom.btnMiniWin = iconButton("minimize", "Mini Window");
-    dom.btnNormalWin = iconButton("maximize", "Normal Window");
-    dom.btnFolder = iconButton("folder", "Change download folder");
-    dom.btnFolderText = downloadFolderButton();
-    dom.selectLang = selectLangBox();
-    dom.btnExit = iconButton("exit", "Exit");
+    dom.btnPaste = genIconTextButton("paste", "Paste/Download");
+    dom.btnKeepTop = genIconButton("keeptop", "Keep Top");
+    dom.btnQuitTop = genIconButton("quittop", "Quit Top");
+    dom.btnMiniWin = genIconButton("minimize", "Mini Window");
+    dom.btnNormalWin = genIconButton("maximize", "Normal Window");
+    dom.btnFolder = genIconButton("folder", "Change download folder");
+    dom.btnFolderText = genFolderTextBtn();
+    dom.selectLang = genLangSelector();
+    dom.btnExit = genIconButton("exit", "Exit");
 
     dom.btnQuitTop.classList.add("hide");
     dom.btnNormalWin.classList.add("hide");
@@ -36,15 +36,15 @@ function createUI() {
     dom.headerRight.appendChild(dom.selectLang);
     dom.headerRight.appendChild(dom.btnExit);
 
-    dom.btnGithub = iconButton("github", "Github Source");
+    dom.btnGithub = genIconButton("github", "Github Source");
     dom.staLogText = $(`<span class="text-stat"></span>`);
-    dom.statDownloading = iconDataStat("downloading", "Downloading...", 0);
+    dom.statDownloading = genIconDataStat("downloading", "Downloading...", 0);
     dom.dataDownloading = dom.statDownloading.querySelector(".data");
-    dom.statWaiting = iconDataStat("waiting", "Waiting...", 0);
+    dom.statWaiting = genIconDataStat("waiting", "Waiting...", 0);
     dom.dataWaiting = dom.statWaiting.querySelector(".data");
-    dom.statDownloaded = iconDataStat("downloaded", "Downloaded", 0);
+    dom.statDownloaded = genIconDataStat("downloaded", "Downloaded", 0);
     dom.dataDownloaded = dom.statDownloaded.querySelector(".data");
-    dom.statFailed = iconDataStat("failed", "Failed", 0);
+    dom.statFailed = genIconDataStat("failed", "Failed", 0);
     dom.dataFailed = dom.statFailed.querySelector(".data");
 
     dom.footerLeft.appendChild(dom.btnGithub);
@@ -56,7 +56,7 @@ function createUI() {
 }
 
 function createTaskUI(prams) {
-    const domtask = taskBox(prams);
+    const domtask = genTaskBox(prams);
     dom.taskLog.appendChild(domtask);
     dom.taskLog.scrollTo(0, dom.taskLog.scrollHeight);
     return domtask;
@@ -98,7 +98,7 @@ function bindEvent() {
     });
 
     dom.btnFolder.addEventListener("click", async () => {
-        setFolderStat(await utils.selectFolder());
+        updateFolderTextUI(await utils.selectFolder());
     });
 
     dom.btnFolderText.addEventListener("click", () => {
@@ -109,7 +109,7 @@ function bindEvent() {
     });
 
     dom.selectLang.addEventListener("change", () => {
-        changeLanguage(dom.selectLang.value);
+        updateI18nStringUI(dom.selectLang.value);
     });
 
     dom.btnExit.addEventListener("click", () => {
@@ -117,8 +117,13 @@ function bindEvent() {
     });
 }
 
+function bindIpc() {
+    ipc.bindDownloadUpdated(onDownloadUpdated);
+    ipc.bindDownloadCompleted(onDownloadCompleted);
+}
 //start rendering
 initApp().then(() => {
     createUI();
     bindEvent();
+    bindIpc();
 });

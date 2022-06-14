@@ -12,7 +12,9 @@ div {
     cursor: default;
 }
 
-button, select, button span {
+button,
+select,
+button span {
     cursor: pointer;
 }
 
@@ -94,16 +96,12 @@ button, select, button span {
 }
 
 /* components */
-.normal .icon-text-btn .text {
+.icon-text-btn .text {
     display: block;
     margin-top: 5px;
     font-size: 12px;
     color: #333;
     height: 12px;
-}
-
-.mini .icon-text-btn .text {
-    display: none;
 }
 
 .btn-paste {
@@ -160,7 +158,15 @@ button, select, button span {
     border: 1px solid #bd403a;
 }
 
-.normal #header-area .select-lang {height: 20px;margin: 4px 10px 4px 0;background: #f0f0f0;border: 1px solid #666;border-radius: 2px;outline: none;font-size: 13px;}
+.normal #header-area .select-lang {
+    height: 20px;
+    margin: 4px 10px 4px 0;
+    background: #f0f0f0;
+    border: 1px solid #666;
+    border-radius: 2px;
+    outline: none;
+    font-size: 13px;
+}
 
 .mini #header-areatext-stat,
 .mini #header-area.btn-stat,
@@ -269,40 +275,68 @@ body #app-root .border-flash-error {
 }
 
 #task-area .task-box {
-    height: 60px;
+    height: 80px;
     display: flex;
     flex-direction: row;
     border: 1px solid #929191;
     border-radius: 4px;
-    margin: 2px 1px;
+    margin: 6px 5px;
     font-size: 13px;
     color: #222;
     background: #f0f0f0;
 }
+
+#task-area .task-bo.downloading  {
+    border-color: #d59720;
+}
+
+#task-area .task-bo.waiting  {
+    border-color: #929191;
+}
+
+#task-area .task-bo.downloaded  {
+    border-color: #24a137;
+}
+
+#task-area .task-bo.failed  {
+    border-color: #bd403a;
+}
+
 #task-area .task-thumb {
+    width: 135px;
+}
+
+#task-area .task-cover {
+    width: 120px;
+    height: 70px;
+    margin: 4px 5px;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+#task-area .task-thumb img{
     width: 120px;
 }
-#task-area .task-thumb img,
 #task-area .task-thumb svg {
     width: 96px;
     height: 54px;
-    margin: 3px 10px;
-    border-radius: 5px;
 }
+
 #task-area .task-info {
     display: flex;
     align-items: flex-start;
     flex-direction: column;
     justify-content: center;
-    width: 550px;
+    width: 540px;
 }
 #task-area .task-url,
 #task-area .task-title,
 #task-area .task-download {
-    height: 18px;
-    /* display: flex; */
+    height: 20px;
     align-items: center;
-    width: 550px;
+    width: 540px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
