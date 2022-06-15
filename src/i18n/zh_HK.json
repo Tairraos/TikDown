@@ -10,14 +10,15 @@
     "Open folder": "打開文件夾位置",
     "Change language": "更改語言",
     "Exit": "退出",
-    "Waiting...": "等待",
-    "Parsing...": "正在解析",
-    "Downloading...": "正在下載",
+    "Waiting...": "等待下載...",
+    "Parsing...": "正在解析...",
+    "Downloading...": "正在下載...",
     "Downloaded": "下載完成",
     "Failed": "下載失敗",
     "Github Source": "開源地址",
     "You have added a new download task.": "你已經添加了一個新的下載任務。",
     "The content in the clipboard is not a valid Tiktok/Douyin URL.": "剪貼板裏的內容並非有效的Tiktok/Douyin網址。",
     "You have changed the download folder.": "您更改了下載文件夾。",
-    "You have changed the display language.": "您更改了顯示語言。"
+    "You have changed the display language.": "您更改了顯示語言。",
+    "The same task is already available in the download list.": "下載列表裏已經有相同的任務。"
 }

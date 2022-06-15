@@ -1,6 +1,6 @@
 {
     "language_name": "English",
-    "Tiktok Downloader": "Tiktok Downloader v{0}",
+    "Tiktok Downloader": "Tiktok Downloader",
     "Paste/Download": "Paste/Download",
     "Keep Top": "Keep Top",
     "Quit Top": "Quit Top",
@@ -19,5 +19,6 @@
     "You have added a new download task.": "You have added a new download task.",
     "The content in the clipboard is not a valid Tiktok/Douyin URL.": "The content in the clipboard is not a valid Tiktok/Douyin URL.",
     "You have changed the download folder.": "You have changed the download folder.",
-    "You have changed the display language.": "You have changed the display language."
+    "You have changed the display language.": "You have changed the display language.",
+    "The same task is already available in the download list.": "The same task is already available in the download list."
 }
