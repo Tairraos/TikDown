@@ -84,7 +84,15 @@ function initDownloadMonitor() {
     });
 }
 
-app.whenReady().then(() => {
+const lockDetector = app.requestSingleInstanceLock();
+
+if (!lockDetector) {
+    app.quit();
+} else {
+    app.on("second-instance", () => showMainWindow());
+}
+
+app.on("ready", () => {
     createWindow();
 
     app.on("activate", function () {

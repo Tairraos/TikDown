@@ -1,14 +1,14 @@
 {
     "name": "tiktok-downloader",
-    "productName": "tiktok-downloader",
-    "description": "My Electron application description",
-    "keywords": [],
+    "productName": "Tiktok Downloader",
+    "description": "Electron version downloader to download Tiktok video.",
+    "keywords": ["Tiktok", "Douyin", "video", "downloader"],
     "main": "./main.js",
     "version": "1.0.0",
     "author": "Tairraos",
-    "defaultLang": "zh_CN",
     "scripts": {
-        "start": "electron --inspect=8888 src/main.js",
+        "start": "electron src/main.js",
+        "debug": "electron --inspect=8888 src/main.js",
         "buildsvg": "node tool/buildSvgSymbol.js"
     },
     "dependencies": {
