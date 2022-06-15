@@ -84,12 +84,9 @@ function initDownloadMonitor() {
     });
 }
 
-const lockDetector = app.requestSingleInstanceLock();
-
-if (!lockDetector) {
+const onlyInstance = app.requestSingleInstanceLock();
+if (!onlyInstance) {
     app.quit();
-} else {
-    app.on("second-instance", () => showMainWindow());
 }
 
 app.on("ready", () => {
@@ -104,6 +101,8 @@ app.on("ready", () => {
     initIPC();
     initDownloadMonitor();
 });
+
+app.on("second-instance", () => config.mainWindow.show());
 
 app.on("window-all-closed", function () {
     if (process.platform !== "darwin") {

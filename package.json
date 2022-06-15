@@ -6,6 +6,7 @@
     "main": "./main.js",
     "version": "1.0.0",
     "author": "Tairraos",
+    "license": "MIT",
     "scripts": {
         "start": "electron src/main.js",
         "debug": "electron --inspect=8888 src/main.js",
