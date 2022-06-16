@@ -40,7 +40,7 @@ function initIPC() {
     });
 
     ipcMain.handle("getSettingsTarget", () => {
-        config.target = settings.getSync("target") || path.join(os.homedir(), "Download");
+        config.target = settings.getSync("target") || path.join(os.homedir(), "Downloads");
         return config.target;
     });
 
