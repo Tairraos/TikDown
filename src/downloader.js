@@ -10,6 +10,7 @@ const taskStore = { newTaskId: 1, queue: {}, isBusy: false, watchHandler: null, 
 
 function pasteContent(clipStr) {
     const parsed = clipStr.match(/https?:\/\/www.tiktok.com\/[^/]+\/video\/(\d+)/);
+    taskStore.lastClipboard = clipStr;
     if (parsed) {
         if ($(`.task-${parsed[1]}`)) {
             printFooterLog("The same task is already available in the download list.");
@@ -30,7 +31,6 @@ function watchClipboard(toggle) {
         taskStore.watchHandler = setInterval(() => {
             const clipStr = utils.readClipboard();
             if (taskStore.lastClipboard !== clipStr) {
-                taskStore.lastClipboard = clipStr;
                 pasteContent(clipStr);
             }
         }, 1000);
