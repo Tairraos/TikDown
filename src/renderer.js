@@ -15,6 +15,8 @@ function createUI() {
 
     dom.btnPaste = genIconTextButton("paste", "Paste/Download");
     dom.btnKeepTop = genIconButton("keeptop", "Keep Top");
+    dom.btnWatch = genIconButton("watch", "Watch Clipboard");
+    dom.btnStopWatch = genIconButton("stopwatch", "Stop Watch Clipboard");
     dom.btnQuitTop = genIconButton("quittop", "Quit Top");
     dom.btnMiniWin = genIconButton("minimize", "Mini Window");
     dom.btnNormalWin = genIconButton("maximize", "Normal Window");
@@ -23,10 +25,13 @@ function createUI() {
     dom.selectLang = genLangSelector();
     dom.btnExit = genIconButton("exit", "Exit");
 
+    dom.btnStopWatch.classList.add("hide");
     dom.btnQuitTop.classList.add("hide");
     dom.btnNormalWin.classList.add("hide");
 
     dom.headerLeft.appendChild(dom.btnPaste);
+    dom.headerRight.appendChild(dom.btnWatch);
+    dom.headerRight.appendChild(dom.btnStopWatch);
     dom.headerRight.appendChild(dom.btnKeepTop);
     dom.headerRight.appendChild(dom.btnQuitTop);
     dom.headerRight.appendChild(dom.btnMiniWin);
@@ -64,11 +69,23 @@ function createTaskUI(prams) {
 
 function bindEvent() {
     dom.btnPaste.addEventListener("click", () => {
-        pasteContent();
+        pasteContent(utils.readClipboard());
     });
 
     dom.btnGithub.addEventListener("click", () => {
         utils.openGithub();
+    });
+
+    dom.btnWatch.addEventListener("click", () => {
+        watchClipboard(true);
+        dom.btnStopWatch.classList.remove("hide");
+        dom.btnWatch.classList.add("hide");
+    });
+
+    dom.btnStopWatch.addEventListener("click", () => {
+        watchClipboard(false);
+        dom.btnStopWatch.classList.add("hide");
+        dom.btnWatch.classList.remove("hide");
     });
 
     dom.btnKeepTop.addEventListener("click", () => {

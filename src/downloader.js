@@ -6,10 +6,9 @@ const STEP_FAILED = "Failed";
 const STAT_OK = "ok";
 const STAT_ERROR = "error";
 
-const taskStore = { newTaskId: 1, queue: {}, isBusy: false };
+const taskStore = { newTaskId: 1, queue: {}, isBusy: false, watchHandler: null, lastClipboard: "" };
 
-function pasteContent() {
-    const clipStr = utils.readClipboard();
+function pasteContent(clipStr) {
     const parsed = clipStr.match(/https?:\/\/www.tiktok.com\/[^/]+\/video\/(\d+)/);
     if (parsed) {
         if ($(`.task-${parsed[1]}`)) {
@@ -23,6 +22,21 @@ function pasteContent() {
     } else {
         printFooterLog("The content in the clipboard is not a valid Tiktok/Douyin URL.");
         flashPasteBtnUI(STAT_ERROR);
+    }
+}
+
+function watchClipboard(toggle) {
+    if (toggle) {
+        taskStore.watchHandler = setInterval(() => {
+            const clipStr = utils.readClipboard();
+            if (taskStore.lastClipboard !== clipStr) {
+                taskStore.lastClipboard = clipStr;
+                pasteContent(clipStr);
+            }
+        }, 1000);
+    } else {
+        clearInterval(taskStore.watchHandler);
+        taskStore.watchHandler = null;
     }
 }
 
