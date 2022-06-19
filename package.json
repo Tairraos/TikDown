@@ -8,13 +8,13 @@
         "video",
         "downloader"
     ],
-    "main": "./src//main.js",
+    "main": "src/main.js",
     "version": "1.0.0",
     "author": "Tairraos",
     "license": "MIT",
     "scripts": {
-        "start": "electron ./src/main.js",
-        "debug": "electron --inspect=8888 ./src/main.js",
+        "start": "electron src/main.js",
+        "debug": "electron --inspect=8888 src/main.js",
         "buildsvg": "node tool/buildSvgSymbol.js",
         "build-icon": "electron-icon-builder --input=./build/favicon.png --output=build --flatten",
         "pack": "electron-builder"
@@ -27,41 +27,5 @@
         "electron": "19.0.1",
         "electron-builder": "^23.0.3",
         "electron-icon-builder": "^2.0.1"
-    },
-    "build": {
-        "appId": "Tikdown",
-        "productName": "Tikdown",
-        "copyright": "Copyright © 2022 Tairraos",
-        "directories": {
-            "buildResources": "build",
-            "output": "dist"
-        },
-        "mac": {
-            "target": [
-                "dmg",
-                "zip"
-            ],
-            "category": "public.app-category.utilities"
-        },
-        "dmg": {
-            "icon": "build/icons/icon.icns",
-            "window": {
-                "width": 540,
-                "height": 420
-            }
-        },
-        "win": {
-            "target": [
-                "msi",
-                "nsis"
-            ],
-            "icon": "build/icons/icon.ico"
-        },
-        "nsis": {
-            "oneClick": false,
-            "language": "2052",
-            "perMachine": true,
-            "allowToChangeInstallationDirectory": true
-        }
     }
 }

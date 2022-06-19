@@ -60,8 +60,8 @@ function createUI() {
     dom.footerRight.appendChild(dom.statFailed);
 }
 
-function createTaskUI(prams) {
-    const domtask = genTaskBox(prams);
+function createTaskUI(task) {
+    const domtask = genTaskBox(task);
     dom.taskLog.appendChild(domtask);
     dom.taskLog.scrollTo(0, dom.taskLog.scrollHeight);
     return domtask;
@@ -69,7 +69,7 @@ function createTaskUI(prams) {
 
 function bindEvent() {
     dom.btnPaste.addEventListener("click", () => {
-        pasteContent(utils.readClipboard());
+        manageTask(utils.readClipboard());
     });
 
     dom.btnGithub.addEventListener("click", () => {

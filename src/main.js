@@ -16,7 +16,7 @@ function createWindow() {
     });
 
     //open debug
-    config.mainWindow.webContents.openDevTools();
+    // config.mainWindow.webContents.openDevTools();
 
     config.mainWindow.loadFile("index.html");
 }
@@ -53,8 +53,8 @@ function initIPC() {
     });
 
     ipcMain.handle("download", (event, data) => {
-        config.taskStore[data.id] = data;
-        config.mainWindow.webContents.downloadURL(data.fileurl + "#" + data.id);
+        config.taskStore[data.taskId] = data;
+        config.mainWindow.webContents.downloadURL(data.fileurl + "#" + data.taskId);
     });
 
     ipcMain.handle("resize", (event, w, h) => {
@@ -71,7 +71,7 @@ function initDownloadMonitor() {
 
         item.on("updated", (event, state) => {
             config.mainWindow.send("download updated", {
-                id: taskId,
+                taskId: taskId,
                 received: item.getReceivedBytes(),
                 size: item.getTotalBytes(),
                 state
@@ -79,7 +79,7 @@ function initDownloadMonitor() {
         });
 
         item.once("done", (event, state) => {
-            config.mainWindow.send("download done", { id: taskId, state });
+            config.mainWindow.send("download done", { taskId: taskId, state });
         });
     });
 }

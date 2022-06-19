@@ -47,12 +47,12 @@ function genLangSelector() {
     return $(domArr.join(""));
 }
 
-function genTaskBox(params) {
+function genTaskBox(task) {
     const domStr = [
-        `<div class="task-box task-${params.videoId}">`,
+        `<div class="task-box task-${task.domId}">`,
         `<div class="task-thumb"><div class="task-cover"><svg xmlns='http://www.w3.org/2000/svg'><use xlink:href='#icon-unknown'/></svg></div></div>`,
         `<div class="task-info">`,
-        `<div class="task-url">${params.videoUrl}</div>`,
+        `<div class="task-url">${task.videoUrl}</div>`,
         `<div class="task-title"></div>`,
         `<div class="task-download">`,
         `<span class="task-size"></span>`,
@@ -70,16 +70,16 @@ function flashPasteBtnUI(type) {
     setTimeout(() => dom.btnPaste.classList.remove(extClass), 1000);
 }
 
-function updateTaskBoxUI(videoId, data) {
-    const container = `.task-${videoId}`;
+function updateTaskBoxUI(domId, data) {
+    const container = `.task-${domId}`;
     data.cover && ($(`${container} .task-cover`).innerHTML = `<img src="${data.cover}" />`);
     data.url && ($(`${container} .task-url`).innerText = data.url);
-    data.title && ($(`${container} .task-title`).innerText = data.title);
+    data.title && ($(`${container} .task-title`).innerText = i18n.get(data.title));
     if (data.size) {
         $(`${container} .task-size`).innerText = (data.size / 1024).toFixed(1).replace(/\B(?=(?:\d{3})+\b)/g, ",") + "KB";
     }
     if (data.status) {
-        $(`${container}`).className = `task-box task-${videoId} ${data.status.toLowerCase().replace(/\.+$/, "")}`;
+        $(`${container}`).className = `task-box task-${domId} ${data.status.toLowerCase().replace(/\.+$/, "")}`;
         $(`${container} .task-status`).innerText = i18n.get(data.status);
         $(`${container} .task-status`).setAttribute("data-i18n", `innerText%${data.status}`);
     }
