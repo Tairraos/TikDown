@@ -8,13 +8,13 @@
         "video",
         "downloader"
     ],
-    "main": "src/main.js",
+    "main": "./main.js",
     "version": "1.0.0",
     "author": "Tairraos",
     "license": "MIT",
     "scripts": {
-        "start": "electron src/main.js",
-        "debug": "electron --inspect=8888 src/main.js",
+        "start": "electron ./main.js",
+        "debug": "electron --inspect=8888 ./main.js",
         "buildsvg": "node tool/buildSvgSymbol.js",
         "build-icon": "electron-icon-builder --input=./build/favicon.png --output=build --flatten",
         "pack": "electron-builder"
@@ -47,6 +47,7 @@
         },
         "dmg": {
             "icon": "build/icons/icon.icns",
+            "background": "build/setup.png",
             "window": {
                 "width": 540,
                 "height": 420

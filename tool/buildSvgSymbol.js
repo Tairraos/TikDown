@@ -1,15 +1,8 @@
-/**
- * @Copyright 2018 Cisco Systems Inc. All rights reserved.
- * @Description
- * @Author Xiaole Tao <xiaolet@cisco.com>
- * @Date 2018/3/13
- */
-
 var fs = require("fs"),
     path = require("path"),
     cheerio = require("cheerio"),
-    svgSource = path.join(__dirname, "../src/resource"),
-    targetJsFile = path.join(__dirname, "../src/icons.js");
+    svgSource = path.join(__dirname, "../resource"),
+    targetJsFile = path.join(__dirname, "../icons.js");
 
 var svgBuilder = {
     getSvgList: () => fs.readdirSync(svgSource).filter((name) => fs.statSync(path.join(svgSource + "/" + name)).isFile() && name.match(/\.svg$/)),
@@ -43,7 +36,6 @@ var svgBuilder = {
     doBuild: function () {
         var svgContent = [];
         var nameList = svgBuilder.getSvgList(svgSource);
-        //     conf.viewBox = {};
         svgContent.push('<div style="height: 0; position: absolute; top: -1000px">');
         svgContent.push('<svg xmlns="http://www.w3.org/2000/svg">');
         console.log("Start to build svg symbol from: ", svgSource);

@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const package = require(path.join(__dirname, "../package.json"));
+const package = require(path.join(__dirname, "./package.json"));
 const { contextBridge, ipcRenderer, clipboard, shell } = require("electron");
 
 const utils = {

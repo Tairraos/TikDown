@@ -15,7 +15,7 @@ function createWindow() {
         icon: "resource/favicon.ico"
     });
 
-    //open debug
+    // open debug
     // config.mainWindow.webContents.openDevTools();
 
     config.mainWindow.loadFile("index.html");

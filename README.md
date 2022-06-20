@@ -1,20 +1,14 @@
-### Tiktok Downloader
-Tiktok downloader build by Electron
+### TikDown
+This is a Tiktok/Douyin video downloader, build by Electron. To download video without watermark by only pasting shared link.
+这是一个使用了Electron构建的 Tiktok/抖音 下载器。通过粘帖剪贴板里的分享链接下载无水印的视频。
+### Download 下载
+https://github.com/Tairraos/TikDown/releases/tag/v1.0.0
 
-### Download
-Still in developing, not release yet.
-https://github.com/Tairraos/tiktok-downloader/releases
-
-### Instruction
+### Instruction 介绍
 I don't think any instruction is needed, the UI is simple enough that WYSWYG.
+App太简单了，不需要介绍。
 
-### Author comments
-This project originally started with a python version and rewrote the Electron version because it was difficult for build UI by Tkinter.
+### Screenshot 截图
+![Normal UI 普通界面](resource/UI.png)
 
-The PY downloader in "py" folder. If you are interested, cd to the folder and sratr it with following command.
-```
-pip install -r requirements.txt
-python3 tikdown.py
-```
-
-The Py code references this reop: https://github.com/Evil0ctal/Douyin_TikTok_Download_API Thanks, @Evil0ctal.
+![Mini UI 迷你界面](resource/MiniUI.png)
