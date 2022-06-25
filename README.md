@@ -20,8 +20,6 @@
 
 
 ### Comments 备注
-- Provide Mac version for now, win is on the way. 
-- 暂时只有Mac版本的，windows版正在赶工编译.
 - The chrome app version of Tiktok/Douyin works very good. 
 - Chrome app版本的Tiktok/Douyin很好用.
 - Visit Tiktok/Douyin site and there are installation icon on the far right side of the address bar. 
