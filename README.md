@@ -32,3 +32,8 @@
 
 ![Mini UI 迷你界面](resource/MiniUI.png)
 
+
+### Reference & Thanks 参考及鸣谢
+API Information / API 信息: 
+background material　／　安装程序背景: [Tiktok background vector created by BiZkettE1](https://www.freepik.com/vectors/tiktok-background)
+arraw material / 箭送水： [Trajectory vector created by freepik](https://www.freepik.com/vectors/trajectory)

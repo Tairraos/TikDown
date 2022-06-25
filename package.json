@@ -1,70 +1,86 @@
 {
-    "name": "tiktok-downloader",
-    "productName": "Tiktok Downloader",
-    "description": "Electron version downloader to download Tiktok video.",
-    "keywords": [
-        "Tiktok",
-        "Douyin",
-        "video",
-        "downloader"
-    ],
-    "main": "./main.js",
-    "version": "1.0.0",
-    "author": "Tairraos",
-    "license": "MIT",
-    "scripts": {
-        "start": "electron ./main.js",
-        "debug": "electron --inspect=8888 ./main.js",
-        "buildsvg": "node tool/buildSvgSymbol.js",
-        "build-icon": "electron-icon-builder --input=./build/favicon.png --output=build --flatten",
-        "pack": "electron-builder"
+  "name": "tiktok-downloader",
+  "productName": "Tiktok Downloader",
+  "description": "Electron version downloader to download Tiktok video.",
+  "keywords": [
+    "Tiktok",
+    "Douyin",
+    "video",
+    "downloader"
+  ],
+  "main": "./main.js",
+  "version": "1.0.0",
+  "author": "Tairraos",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ./main.js",
+    "debug": "electron --inspect=8888 ./main.js",
+    "buildsvg": "node tool/buildSvgSymbol.js",
+    "buildicon": "electron-icon-builder --input=./build/favicon.png --output=build --flatten",
+    "buildbackground": "tiffutil -cathidpicheck build/background.png build/background@2x.png -out build/background.tiff",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win"
+  },
+  "dependencies": {
+    "electron-settings": "^4.0.2"
+  },
+  "devDependencies": {
+    "cheerio": "^1.0.0-rc.11",
+    "electron": "19.0.1",
+    "electron-builder": "^23.0.3",
+    "electron-icon-builder": "^2.0.1"
+  },
+  "build": {
+    "appId": "com.tairraos.tikdown",
+    "productName": "Tikdown",
+    "copyright": "Copyright © 2022 Tairraos",
+    "compression": "maximum",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
     },
-    "dependencies": {
-        "electron-settings": "^4.0.2"
+    "asar": true,
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.utilities"
     },
-    "devDependencies": {
-        "cheerio": "^1.0.0-rc.11",
-        "electron": "19.0.1",
-        "electron-builder": "^23.0.3",
-        "electron-icon-builder": "^2.0.1"
-    },
-    "build": {
-        "appId": "com.tairraos.tikdown",
-        "productName": "Tikdown",
-        "copyright": "Copyright © 2022 Tairraos",
-        "compression": "maximum",
-        "directories": {
-            "buildResources": "build",
-            "output": "dist"
+    "dmg": {
+      "icon": "build/icon.icns",
+      "iconSize": 128,
+      "background": "build/background.tiff",
+      "contents": [
+        {
+          "x": 134,
+          "y": 289,
+          "type": "file"
         },
-        "asar": true,
-        "mac": {
-            "target": [
-                "dmg",
-                "zip"
-            ],
-            "category": "public.app-category.utilities"
-        },
-        "dmg": {
-            "icon": "build/icons/icon.icns",
-            "background": "build/setup.png",
-            "window": {
-                "width": 540,
-                "height": 420
-            }
-        },
-        "win": {
-            "target": [
-                "msi",
-                "nsis"
-            ],
-            "icon": "build/icons/icon.ico"
-        },
-        "nsis": {
-            "oneClick": false,
-            "language": "2052",
-            "perMachine": true,
-            "allowToChangeInstallationDirectory": true
+        {
+          "x": 405,
+          "y": 289,
+          "type": "link",
+          "path": "/Applications"
         }
+      ],
+      "window": {
+        "width": 540,
+        "height": 490
+      }
+    },
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "language": "2052",
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true
     }
+  }
 }
