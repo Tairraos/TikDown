@@ -5,8 +5,19 @@
 - https://github.com/Tairraos/TikDown/releases/tag/v1.0.0
 
 ### Instruction 介绍
-- I don't think any instruction is needed, the UI is simple enough that WYSWYG.
-- App太简单了，不需要介绍。
+- ![watch](resource/watch.png) / watch clipboard(auto paste) / 监视剪贴板(自动粘贴)
+- ![stopwatch](resource/stopwatch.png) / stop watch / 停止监视
+- ![keeptop](resource/keeptop.png) / Keep window on top / 保持窗口置顶
+- ![quittop](resource/quittop.png) / Quit top / 退出置顶
+- ![maximize](resource/maximize.png) / Normal window mode / 普通窗口模式
+- ![minimize](resource/minimize.png) / Mini Window Mode / 迷你窗口模式
+- ![folder](resource/folder.png) / Change save folder / 更改保存位置
+- ![exit](resource/exit.png) / Quit app / 结束程序
+- ![waiting](resource/waiting.png) / Numbers of waiting download / 等待下载的数量
+- ![downloading](resource/downloading.png) / Numbers of downloading / 下载中的数量
+- ![downloaded](resource/downloaded.png) / Numbers of downloaded / 已下载的数量
+- ![failed](resource/failed.png) / Numbers of download faileds / 失败的数量
+
 
 ### Comments 备注
 - Provide Mac version for now, win is on the way. 
