@@ -1,8 +1,11 @@
 ### TikDown
 - This is a Tiktok/Douyin video downloader, build by Electron. To download video without watermark by only pasting shared link.
 - 这是一个使用了Electron构建的 Tiktok/抖音 下载器。通过粘帖剪贴板里的分享链接下载无水印的视频。
+
+
 ### Download 下载
 - https://github.com/Tairraos/TikDown/releases/tag/v1.0.0
+
 
 ### Instruction 介绍
 - ![watch](resource/watch.png) / watch clipboard(auto paste) / 监视剪贴板(自动粘贴)
@@ -24,6 +27,7 @@
 - Chrome app版本的Tiktok/Douyin很好用.
 - Visit Tiktok/Douyin site and there are installation icon on the far right side of the address bar. 
 - 访问Tiktok/Douyin网站，在地址栏最右侧有安装图标。
+
 
 ### Screenshot 截图
 ![Normal UI 普通界面](resource/UI.png)
