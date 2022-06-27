@@ -25,8 +25,8 @@
 ### Comments 备注
 - The chrome app version of Tiktok/Douyin works very good. 
 - Chrome app版本的Tiktok/Douyin很好用.
-- Visit Tiktok/Douyin site and there are installation icon on the far right side of the address bar. 
-- 访问Tiktok/Douyin网站，在地址栏最右侧有安装图标。
+- Visit Tiktok/Douyin site via chrome, and you will see installation icon on the right of the address bar. 
+- 用Chrome访问Tiktok/Douyin网站，在地址栏最右侧有安装图标。
 
 
 ### Screenshot 截图
