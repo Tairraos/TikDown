@@ -32,6 +32,6 @@
 
 
 ### Reference & Thanks 参考及鸣谢
-- API Information / API 信息: 
+- API Information / API 信息: [Github Repo](https://github.com/Evil0ctal/Douyin_TikTok_Download_API)
 - background material　／　安装程序背景: [Tiktok background vector created by BiZkettE1](https://www.freepik.com/vectors/tiktok-background)
 - arraw material / 箭头素材： [Trajectory vector created by freepik](https://www.freepik.com/vectors/trajectory)
