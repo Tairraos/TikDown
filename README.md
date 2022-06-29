@@ -5,6 +5,8 @@
 
 ### Download 下载
 - https://github.com/Tairraos/TikDown/releases/tag/v1.0.0
+- Provided Mac & Win, if you wanna to run app under Linux, please clone repo and build by yourselves.
+- 仅提供 Mac 和 Win 的 App，如果你需要在 Linux 下使用，请自己克隆仓库编译。
 
 
 ### Instruction 介绍
