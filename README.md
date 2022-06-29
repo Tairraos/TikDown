@@ -21,6 +21,8 @@
 - ![downloaded](resource/downloaded.png) / Numbers of downloaded / 已下载的数量
 - ![failed](resource/failed.png) / Numbers of download faileds / 失败的数量
 
+### Design Source 设计源
+- https://mastergo.com/file/64638217599752
 
 ### Comments 备注
 - The chrome app version of Tiktok/Douyin works very good. 
