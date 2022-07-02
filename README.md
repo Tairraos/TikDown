@@ -29,6 +29,7 @@
 
 
 ### Comments 备注
+- ![Install Chrome App](resource/install%20chrome%20app.png)
 - The chrome app version of Tiktok/Douyin works very good. 
 - Chrome app版本的Tiktok/Douyin很好用.
 - Visit Tiktok/Douyin site via chrome, and you will see installation icon on the right of the address bar. 
