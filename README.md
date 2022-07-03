@@ -34,7 +34,9 @@
 - Chrome app版本的Tiktok/Douyin很好用.
 - Visit Tiktok/Douyin site via chrome, and you will see installation icon on the right of the address bar. 
 - 用Chrome访问Tiktok/Douyin网站，在地址栏最右侧有安装图标。
-
+- If you are looking for a Python app, there is a tiny python version of this app only 100 lines code. [Go to Python Version](https://github.com/Tairraos/tiktok-downloader.py)
+- 如果你在找 Python App, 我有一个100行代码的Pythont版本。 [跳转到Python版本](https://github.com/Tairraos/tiktok-downloader.py)
+- 
 
 ### Screenshot 截图
 ![Normal UI 普通界面](resource/UI.png)
