@@ -1,32 +1,32 @@
 ### TikDown
-- This is a Tiktok/Douyin video downloader, build by Electron. To download video without watermark by only pasting shared link.
+- This is a TikTok/Douyin downloader built with Electron. Download the video without watermark by pasting the share link in the clipboard.
 - 这是一个使用了Electron构建的 Tiktok/抖音 下载器。通过粘帖剪贴板里的分享链接下载无水印的视频。
 
 
 ### Install 安装
-- Install from brew: 用brew安装：
+- Install with brew / 用brew安装：
 ```
 brew tap Tairraos/tikdown && brew install --cask tikdown
 ```
-- Check to see new version. 用这个命令检测是否有新版本。
+- Use this command to check if new version is available / 用这个命令检测是否有新版本。
 ```
 brew livecheck tikdown
 ```
-- Download install package for win/mac. 下载 Win/Mac 安装包：  
+- Download the Win/Mac installation package / 下载 Win/Mac 安装包：  
 https://github.com/Tairraos/TikDown/releases/tag/v1.0.0
-- Provided Mac & Win, if you wanna to run app under Linux, please clone repo and build by yourselves.
+- The application is only available for Mac and Win. If you want to use it under Linux, please clone this repository and build it yourself.
 - 仅提供 Mac 和 Win 的 App，如果你需要在 Linux 下使用，请自己克隆仓库编译。
-- Find Homebew tap of TikDown here. Homebrew tap在这里维护：   
+- The Homebrew tap is maintained here / Homebrew tap在这里维护：   
 https://github.com/Tairraos/homebrew-tikdown
 
-### Instruction 介绍
-- ![watch](resource/watch.png) / watch clipboard(auto paste) / 监视剪贴板(自动粘贴)
-- ![stopwatch](resource/stopwatch.png) / stop watch / 停止监视
+### Features 介绍
+- ![watch](resource/watch.png) / Monitor clipboard (auto paste) / 监视剪贴板(自动粘贴)
+- ![stopwatch](resource/stopwatch.png) / Stop monitoring / 停止监视
 - ![keeptop](resource/keeptop.png) / Keep window on top / 保持窗口置顶
-- ![quittop](resource/quittop.png) / Quit top / 退出置顶
+- ![quittop](resource/quittop.png) / Exit window on top mode / 退出置顶
 - ![maximize](resource/maximize.png) / Normal window mode / 普通窗口模式
-- ![minimize](resource/minimize.png) / Mini Window Mode / 迷你窗口模式
-- ![folder](resource/folder.png) / Change save folder / 更改保存位置
+- ![minimize](resource/minimize.png) / Mini window mode / 迷你窗口模式
+- ![folder](resource/folder.png) / Change the save location / 更改保存位置
 - ![exit](resource/exit.png) / Quit app / 结束程序
 - ![waiting](resource/waiting.png) / Numbers of waiting download / 等待下载的数量
 - ![downloading](resource/downloading.png) / Numbers of downloading / 下载中的数量
