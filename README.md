@@ -6,7 +6,7 @@
 ### Install 安装
 - Install from brew: 用brew安装：
 ```
-brew tap Tairraos/tikdown & brew install --cask tikdown
+brew tap Tairraos/tikdown && brew install --cask tikdown
 ```
 - Check to see new version. 用这个命令检测是否有新版本。
 ```
