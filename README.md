@@ -27,11 +27,11 @@ https://github.com/Tairraos/homebrew-tikdown
 - ![maximize](resource/maximize.png) / Normal window mode / 普通窗口模式
 - ![minimize](resource/minimize.png) / Mini window mode / 迷你窗口模式
 - ![folder](resource/folder.png) / Change the save location / 更改保存位置
-- ![exit](resource/exit.png) / Quit app / 结束程序
-- ![waiting](resource/waiting.png) / Numbers of waiting download / 等待下载的数量
-- ![downloading](resource/downloading.png) / Numbers of downloading / 下载中的数量
-- ![downloaded](resource/downloaded.png) / Numbers of downloaded / 已下载的数量
-- ![failed](resource/failed.png) / Numbers of download faileds / 失败的数量
+- ![exit](resource/exit.png) / Quit application / 结束程序
+- ![waiting](resource/waiting.png) / Number of files waiting to be downloaded / 等待下载的数量
+- ![downloading](resource/downloading.png) / Number of files downloading / 下载中的数量
+- ![downloaded](resource/downloaded.png) / Number of successful downloads / 已下载的数量
+- ![failed](resource/failed.png) / Number of failed downloads / 失败的数量
 
 
 ### Design Source 设计源
@@ -40,11 +40,11 @@ https://github.com/Tairraos/homebrew-tikdown
 
 ### Comments 备注
 - ![Install Chrome App](resource/install%20chrome%20app.png)
-- The chrome app version of Tiktok/Douyin works very good. 
+- The Chrome app version of TikTok/Douyin works very well. 
 - Chrome app版本的Tiktok/Douyin很好用.
-- Visit Tiktok/Douyin site via chrome, and you will see installation icon on the right of the address bar. 
+- Visit TikTok/Douyin site from Chrome (or any other Chromium based browser), and you will see installation icon on the right of the address bar. 
 - 用Chrome访问Tiktok/Douyin网站，在地址栏最右侧有安装图标。
-- If you are looking for a Python app, there is a tiny python version of this app only 100 lines code. [Go to Python Version](https://github.com/Tairraos/tiktok-downloader.py)
+- If you are looking for a Python application, there is a tiny version of this app writen in Python, with only 100 lines code. [Go to Python Version](https://github.com/Tairraos/tiktok-downloader.py)
 - 如果你在找 Python App, 我有一个100行代码的Pythont版本。 [跳转到Python版本](https://github.com/Tairraos/tiktok-downloader.py)
 - 
 
