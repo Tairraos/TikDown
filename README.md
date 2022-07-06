@@ -19,7 +19,7 @@ https://github.com/Tairraos/TikDown/releases/tag/v1.0.0
 - Find Homebew tap of TikDown here. Homebrew tap在这里维护：   
 https://github.com/Tairraos/homebrew-tikdown
 
-### Instruction 介绍
+### Introduce 介绍
 - ![watch](resource/watch.png) / watch clipboard(auto paste) / 监视剪贴板(自动粘贴)
 - ![stopwatch](resource/stopwatch.png) / stop watch / 停止监视
 - ![keeptop](resource/keeptop.png) / Keep window on top / 保持窗口置顶
