@@ -4,9 +4,18 @@
 
 
 ### Install 安装
-- Install from brew. 用brew安装。 `brew install --cask tikdown`
-- Or brew tap. 或者使用brew tap。 `brew tap Tairraos/tikdown`
-- Check to see new version. 用这个命令检测是否有新版本。 `brew livecheck tikdown`
+- Install from brew. 用brew安装。 
+```
+brew install --cask tikdown
+```
+- Or brew tap. 或者使用brew tap。 
+```
+brew tap Tairraos/tikdown
+```
+- Check to see new version. 用这个命令检测是否有新版本。
+```
+brew livecheck tikdown
+```
 - Download install package for win/mac. 下载 Win/Mac 安装包： https://github.com/Tairraos/TikDown/releases/tag/v1.0.0
 - Provided Mac & Win, if you wanna to run app under Linux, please clone repo and build by yourselves.
 - 仅提供 Mac 和 Win 的 App，如果你需要在 Linux 下使用，请自己克隆仓库编译。
