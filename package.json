@@ -18,6 +18,7 @@
     "buildsvg": "node tool/buildSvgSymbol.js",
     "buildicon": "electron-icon-builder --input=./build/favicon.png --output=build --flatten",
     "buildbackground": "tiffutil -cathidpicheck build/background.png build/background@2x.png -out build/background.tiff",
+    "shasum": "shasum -a 256 dist/Tikdown-*.dmg",
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win"
   },
