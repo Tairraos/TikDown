@@ -46,7 +46,7 @@ https://github.com/Tairraos/homebrew-tikdown
 - 用Chrome访问Tiktok/Douyin网站，在地址栏最右侧有安装图标。
 - If you are looking for a Python application, there is a tiny version of this app writen in Python, with only 100 lines code. [Go to Python Version](https://github.com/Tairraos/tiktok-downloader.py)
 - 如果你在找 Python App, 我有一个100行代码的Pythont版本。 [跳转到Python版本](https://github.com/Tairraos/tiktok-downloader.py)
-- 
+
 
 ### Screenshot 截图
 ![Normal UI 普通界面](resource/UI.png)
