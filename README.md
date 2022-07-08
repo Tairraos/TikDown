@@ -13,20 +13,20 @@ brew tap Tairraos/tikdown && brew install --cask tikdown
 brew livecheck tikdown
 ```
 - Download the Win/Mac installation package / 下载 Win/Mac 安装包：  
-https://github.com/Tairraos/TikDown/releases/tag/v1.0.0
+https://github.com/Tairraos/TikDown/releases/latest
 - The application is only available for Mac and Win. If you want to use it under Linux, please clone this repository and build it yourself.
 - 仅提供 Mac 和 Win 的 App，如果你需要在 Linux 下使用，请自己克隆仓库编译。
 - The Homebrew tap is maintained here / Homebrew tap在这里维护：   
 https://github.com/Tairraos/homebrew-tikdown
 
 ### Features 介绍
-- ![watch](resource/watch.png) / Monitor clipboard (auto paste) / 监视剪贴板(自动粘贴)
-- ![stopwatch](resource/stopwatch.png) / Stop monitoring / 停止监视
+- ![watch](resource/watch.png) / Start clipboard monitoring (auto paste) / 监视剪贴板(自动粘贴)
+- ![stopwatch](resource/stopwatch.png) / Stop clipboard monitoring / 停止监视
 - ![keeptop](resource/keeptop.png) / Keep window on top / 保持窗口置顶
 - ![quittop](resource/quittop.png) / Exit window on top mode / 退出置顶
 - ![maximize](resource/maximize.png) / Normal window mode / 普通窗口模式
 - ![minimize](resource/minimize.png) / Mini window mode / 迷你窗口模式
-- ![folder](resource/folder.png) / Change the save location / 更改保存位置
+- ![folder](resource/folder.png) / Change download folder / 更改保存位置
 - ![exit](resource/exit.png) / Quit application / 结束程序
 - ![waiting](resource/waiting.png) / Number of files waiting to be downloaded / 等待下载的数量
 - ![downloading](resource/downloading.png) / Number of files downloading / 下载中的数量
