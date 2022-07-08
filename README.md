@@ -13,7 +13,7 @@ brew tap Tairraos/tikdown && brew install --cask tikdown
 brew livecheck tikdown
 ```
 - Download the Win/Mac installation package / 下载 Win/Mac 安装包：  
-https://github.com/Tairraos/TikDown/releases/tag/v1.0.0
+https://github.com/Tairraos/TikDown/releases/tag/v1.0.1
 - The application is only available for Mac and Win. If you want to use it under Linux, please clone this repository and build it yourself.
 - 仅提供 Mac 和 Win 的 App，如果你需要在 Linux 下使用，请自己克隆仓库编译。
 - The Homebrew tap is maintained here / Homebrew tap在这里维护：   

@@ -50,6 +50,7 @@ function initIPC() {
 
     ipcMain.handle("setSettingTarget", (event, value) => {
         settings.setSync("target", value);
+        config.target = value;
     });
 
     ipcMain.handle("download", (event, data) => {
