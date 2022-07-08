@@ -41,13 +41,13 @@ async function manageTask(clipStr) {
 
     // step 1: parse clipboard to get
     if (!parsed) {
-        printFooterLog("The content in the clipboard is not a valid Tiktok/Douyin URL.");
+        printFooterLog("The content of the clipboard is not a valid TikTok/Douyin URL.");
         return flashPasteBtnUI(STAT_ERROR);
     }
 
     const shareId = parsed[2] || parsed[3] || parsed[4];
     if ($(`.task-${shareId}`)) {
-        printFooterLog("The same task is already available in the download list.");
+        printFooterLog("The same task is already in the download list.");
         flashPasteBtnUI(STAT_ERROR);
     }
 
@@ -155,7 +155,7 @@ async function parseVideoInfo(task) {
             rootInfo.fileurl = rootInfo["video"]["play_addr"]["url_list"][0];
             break;
         default:
-            return { success: false, resaon: "The content in the clipboard is not a valid Tiktok/Douyin URL." };
+            return { success: false, resaon: "The content of the clipboard is not a valid TikTok/Douyin URL." };
     }
     return {
         success: true,

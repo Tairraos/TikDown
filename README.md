@@ -20,7 +20,7 @@ https://github.com/Tairraos/TikDown/releases/latest
 https://github.com/Tairraos/homebrew-tikdown
 
 ### Features 介绍
-- ![watch](resource/watch.png) / Start clipboard monitoring (auto paste) / 监视剪贴板(自动粘贴)
+- ![watch](resource/watch.png) / Start clipboard monitoring (auto paste) (auto paste) / 监视剪贴板(自动粘贴)
 - ![stopwatch](resource/stopwatch.png) / Stop clipboard monitoring / 停止监视
 - ![keeptop](resource/keeptop.png) / Keep window on top / 保持窗口置顶
 - ![quittop](resource/quittop.png) / Exit window on top mode / 退出置顶

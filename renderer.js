@@ -14,12 +14,12 @@ function createUI() {
     document.title = i18n.get("Tiktok Downloader", utils.getVersion());
 
     dom.btnPaste = genIconTextButton("paste", "Paste/Download");
-    dom.btnKeepTop = genIconButton("keeptop", "Keep Top");
-    dom.btnWatch = genIconButton("watch", "Watch Clipboard");
-    dom.btnStopWatch = genIconButton("stopwatch", "Stop Watch Clipboard");
-    dom.btnQuitTop = genIconButton("quittop", "Quit Top");
-    dom.btnMiniWin = genIconButton("minimize", "Mini Window");
-    dom.btnNormalWin = genIconButton("maximize", "Normal Window");
+    dom.btnKeepTop = genIconButton("keeptop", "Keep window on top");
+    dom.btnWatch = genIconButton("watch", "Start clipboard monitoring (auto paste)");
+    dom.btnStopWatch = genIconButton("stopwatch", "Stop clipboard monitoring");
+    dom.btnQuitTop = genIconButton("quittop", "Exit window on top mode");
+    dom.btnMiniWin = genIconButton("minimize", "Mini window mode");
+    dom.btnNormalWin = genIconButton("maximize", "Normal window mode");
     dom.btnFolder = genIconButton("folder", "Change download folder");
     dom.btnFolderText = genFolderTextBtn();
     dom.selectLang = genLangSelector();
@@ -41,7 +41,7 @@ function createUI() {
     dom.headerRight.appendChild(dom.selectLang);
     dom.headerRight.appendChild(dom.btnExit);
 
-    dom.btnGithub = genIconButton("github", "Github Source");
+    dom.btnGithub = genIconButton("github", "Github source");
     dom.staLogText = $(`<span class="text-stat"></span>`);
     dom.statDownloading = genIconDataStat("downloading", "Downloading...", 0);
     dom.dataDownloading = dom.statDownloading.querySelector(".data");
