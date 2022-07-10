@@ -11,7 +11,7 @@ let dom = {
     taskQue = {};
 
 function createUI() {
-    document.title = i18n.get("Tiktok Downloader", utils.getVersion());
+    document.title = i18n.get("TikTok Downloader", utils.getVersion());
 
     dom.btnPaste = genIconTextButton("paste", "Paste/Download");
     dom.btnKeepTop = genIconButton("keeptop", "Keep window on top");

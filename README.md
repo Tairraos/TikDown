@@ -1,6 +1,6 @@
 ### TikDown
 - This is a TikTok/Douyin downloader built with Electron. Download the video without watermark by pasting the share link in the clipboard.
-- 这是一个使用了Electron构建的 Tiktok/抖音 下载器。通过粘帖剪贴板里的分享链接下载无水印的视频。
+- 这是一个使用了Electron构建的 TikTok/抖音 下载器。通过粘帖剪贴板里的分享链接下载无水印的视频。
 
 
 ### Install 安装
@@ -41,9 +41,9 @@ https://github.com/Tairraos/homebrew-tikdown
 ### Comments 备注
 - ![Install Chrome App](resource/install%20chrome%20app.png)
 - The Chrome app version of TikTok/Douyin works very well. 
-- Chrome app版本的Tiktok/Douyin很好用.
+- Chrome app版本的TikTok/Douyin很好用.
 - Visit TikTok/Douyin site from Chrome (or any other Chromium based browser), and you will see installation icon on the right of the address bar. 
-- 用Chrome访问Tiktok/Douyin网站，在地址栏最右侧有安装图标。
+- 用Chrome访问TikTok/Douyin网站，在地址栏最右侧有安装图标。
 - If you are looking for a Python application, there is a tiny version of this app writen in Python, with only 100 lines code. [Go to Python Version](https://github.com/Tairraos/tiktok-downloader.py)
 - 如果你在找 Python App, 我有一个100行代码的Pythont版本。 [跳转到Python版本](https://github.com/Tairraos/tiktok-downloader.py)
 
@@ -56,5 +56,5 @@ https://github.com/Tairraos/homebrew-tikdown
 
 ### Reference & Thanks 参考及鸣谢
 - API Information / API 信息: [Github Repo](https://github.com/Evil0ctal/Douyin_TikTok_Download_API)
-- background material / 安装程序背景: [Tiktok background vector created by BiZkettE1](https://www.freepik.com/vectors/tiktok-background)
+- background material / 安装程序背景: [TikTok background vector created by BiZkettE1](https://www.freepik.com/vectors/tiktok-background)
 - arraw material / 箭头素材： [Trajectory vector created by freepik](https://www.freepik.com/vectors/trajectory)

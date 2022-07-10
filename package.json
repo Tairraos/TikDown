@@ -1,9 +1,9 @@
 {
   "name": "tiktok-downloader",
-  "productName": "Tiktok Downloader",
-  "description": "Electron version downloader to download Tiktok video.",
+  "productName": "TikTok Downloader",
+  "description": "Electron version downloader to download TikTok/Douyin video.",
   "keywords": [
-    "Tiktok",
+    "TikTok",
     "Douyin",
     "video",
     "downloader"

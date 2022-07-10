@@ -1,6 +1,6 @@
 {
     "language_name": "简体中文",
-    "Tiktok Downloader": "Tiktok下载器 v{0}",
+    "TikTok Downloader": "TikTok下载器 v{0}",
     "Paste/Download": "粘帖/下载",
     "Start clipboard monitoring (auto paste)": "监视剪贴板(自动粘帖)",
     "Stop clipboard monitoring": "停止监视剪贴板",
@@ -19,7 +19,7 @@
     "Failed": "下载失败",
     "Github source": "开源地址",
     "You have added a new download task.": "你已经添加了一个新的下载任务。",
-    "The content of the clipboard is not a valid TikTok/Douyin URL.": "剪贴板里的内容并非有效的Tiktok/Douyin网址。",
+    "The content of the clipboard is not a valid TikTok/Douyin URL.": "剪贴板里的内容并非有效的TikTok/Douyin网址。",
     "You have changed the download folder.": "您更改了下载文件夹。",
     "You have changed the display language.": "您更改了显示语言。",
     "The same task is already in the download list.": "下载列表里已经有相同的任务。"
