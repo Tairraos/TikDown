@@ -18,7 +18,7 @@ https://github.com/Tairraos/TikDown/releases/latest
 https://github.com/Tairraos/homebrew-tikdown
 
 ### Features
-- ![watch](resource/watch.png) / Start clipboard monitoring (auto paste)
+- <span style="display:inline-block;background:#ccc;padding:4px;font-size:18px;line-height:18px;border-radius:4px"><img src="resource/watch.svg"></span> / Start clipboard monitoring (auto paste)
 - ![stopwatch](resource/stopwatch.png) / Stop clipboard monitoring
 - ![keeptop](resource/keeptop.png) / Keep window on top
 - ![quittop](resource/quittop.png) / Exit window on top mode
