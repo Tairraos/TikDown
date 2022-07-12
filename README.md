@@ -92,14 +92,14 @@ https://github.com/Tairraos/homebrew-tikdown
 |![failed](resource/failed.png)|失败的数量|
 
 
-### Comments 备注
+### 备注
 - ![Install Chrome App](resource/install%20chrome%20app.png)
 - Chrome app版本的TikTok/Douyin很好用.
 - 用Chrome访问TikTok/Douyin网站，在地址栏最右侧有安装图标。
 - 如果你在找 Python App, 我有一个100行代码的Pythont版本。 [跳转到Python版本](https://github.com/Tairraos/tiktok-downloader.py)
 
 
-### Screenshot 截图
+### 截图
 - ![普通界面](resource/ui.cn.png)
 - ![迷你界面](resource/miniui.cn.png)
 
