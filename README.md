@@ -18,7 +18,7 @@ https://github.com/Tairraos/TikDown/releases/latest
 https://github.com/Tairraos/homebrew-tikdown
 
 ### Features
-- ![feature.en](readme/feature.en.svg)
+![feature.en](readme/feature.en.svg)
 
 
 ### Comments
@@ -32,7 +32,7 @@ https://github.com/Tairraos/homebrew-tikdown
 - ![Normal UI](readme/ui.en.png)
 - ![Mini UI](readme/miniui.en.png)
 
-### Features will be implemented in ongoing release
+### Features will be implemented
 - Batch add download URLs, paste in multiple lines at once.
 - Remove the counter at the end of the download file name.
 - Allow to pause, resume, cancel a downloading task.
@@ -63,7 +63,7 @@ https://github.com/Tairraos/TikDown/releases/latest
 https://github.com/Tairraos/homebrew-tikdown
 
 ### 功能
-- ![feature.cn](readme/feature.cn.svg)
+![feature.cn](readme/feature.cn.svg)
 
 
 ### 备注
@@ -77,7 +77,7 @@ https://github.com/Tairraos/homebrew-tikdown
 - ![普通界面](readme/ui.cn.png)
 - ![迷你界面](readme/miniui.cn.png)
 
-### 将会在持续版本中实现的功能
+### 将会在后续版本中实现的功能
 - 批量添加下载URL，一次粘帖入多行。
 - 移除下载文件名尾部的计数器。
 - 允许暂停，继续，取消一个正在下载的任务。
