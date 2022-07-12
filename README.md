@@ -18,18 +18,20 @@ https://github.com/Tairraos/TikDown/releases/latest
 https://github.com/Tairraos/homebrew-tikdown
 
 ### Features
-- <span style="display:inline-block;background:#ccc;padding:4px;font-size:18px;line-height:18px;border-radius:4px"><img src="resource/watch.svg" style="fill:#ff0000;"></span> / Start clipboard monitoring (auto paste)
-- ![stopwatch](resource/stopwatch.png) / Stop clipboard monitoring
-- ![keeptop](resource/keeptop.png) / Keep window on top
-- ![quittop](resource/quittop.png) / Exit window on top mode
-- ![maximize](resource/maximize.png) / Normal window mode
-- ![minimize](resource/minimize.png) / Mini window mode
-- ![folder](resource/folder.png) / Change download folder
-- ![exit](resource/exit.png) / Quit application
-- ![waiting](resource/waiting.png) / Number of files waiting to be downloaded
-- ![downloading](resource/downloading.png) / Number of files downloading
-- ![downloaded](resource/downloaded.png) / Number of successful downloads
-- ![failed](resource/failed.png) / Number of failed downloads
+|||
+|---|---|
+|![watch](resource/watch.png)|Start clipboard monitoring (auto paste)|
+|![stopwatch](resource/stopwatch.png)|Stop clipboard monitoring|
+|![keeptop](resource/keeptop.png)|Keep window on top|
+|![quittop](resource/quittop.png)|Exit window on top mode|
+|![maximize](resource/maximize.png)|Normal window mode|
+|![minimize](resource/minimize.png)|Mini window mode|
+|![folder](resource/folder.png)|Change download folder|
+|![exit](resource/exit.png)|Quit application|
+|![waiting](resource/waiting.png)|Number of files waiting to be downloaded|
+|![downloading](resource/downloading.png)|Number of files downloading|
+|![downloaded](resource/downloaded.png)|Number of successful downloads|
+|![failed](resource/failed.png)|Number of failed downloads|
 
 
 ### Comments
@@ -74,18 +76,20 @@ https://github.com/Tairraos/TikDown/releases/latest
 https://github.com/Tairraos/homebrew-tikdown
 
 ### 功能
-- ![watch](resource/watch.png) / 监视剪贴板(自动粘贴)
-- ![stopwatch](resource/stopwatch.png) / 停止监视
-- ![keeptop](resource/keeptop.png) / 保持窗口置顶
-- ![quittop](resource/quittop.png) / 退出置顶
-- ![maximize](resource/maximize.png) / 普通窗口模式
-- ![minimize](resource/minimize.png) / 迷你窗口模式
-- ![folder](resource/folder.png) / 更改保存位置
-- ![exit](resource/exit.png) / 结束程序
-- ![waiting](resource/waiting.png) / 等待下载的数量
-- ![downloading](resource/downloading.png) / 下载中的数量
-- ![downloaded](resource/downloaded.png) / 已下载的数量
-- ![failed](resource/failed.png) / 失败的数量
+|||
+|---|---|
+|![watch](resource/watch.png)|监视剪贴板(自动粘贴)|
+|![stopwatch](resource/stopwatch.png)|停止监视|
+|![keeptop](resource/keeptop.png)|保持窗口置顶|
+|![quittop](resource/quittop.png)|退出置顶|
+|![maximize](resource/maximize.png)|普通窗口模式|
+|![minimize](resource/minimize.png)|迷你窗口模式|
+|![folder](resource/folder.png)|更改保存位置|
+|![exit](resource/exit.png)|结束程序|
+|![waiting](resource/waiting.png)|等待下载的数量|
+|![downloading](resource/downloading.png)|下载中的数量|
+|![downloaded](resource/downloaded.png)|已下载的数量|
+|![failed](resource/failed.png)|失败的数量|
 
 
 ### Comments 备注
