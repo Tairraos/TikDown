@@ -72,8 +72,8 @@ async function manageTask(clipStr) {
     // step 3: parse videoId to get video info
     const data = await parseVideoInfo(task);
     if (data.success) {
-        const title = `${data.author} - ${data.title}`.replace(/[/\\:*?"<>|\n]/g, "").replace(/&[^;]{3,5};/g, " "),
-            filename = `${title.replace(/^(.{60}[\w]+.).*/, "$1")} - ${taskId}.mp4`;
+        const title = `${data.author} - ${data.title}`.replace(/[/\\:*?"<>|\n]/g, "").replace(/&[^;]{3,5};/g, " ").trim(),
+            filename = `${title.replace(/^(.{60}[\w]+.).*/, "$1")}.mp4`;
         task.step = STEP_WAITING;
         updateTaskBoxUI(task.domId, { status: STEP_WAITING, title: filename, cover: data.cover });
         task.filename = filename;

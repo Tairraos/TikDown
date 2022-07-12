@@ -1,6 +1,6 @@
 {
   "name": "tiktok-downloader",
-  "productName": "TikTok Downloader",
+  "productName": "TikDown",
   "description": "Electron version downloader to download TikTok/Douyin video.",
   "keywords": [
     "TikTok",
@@ -9,7 +9,7 @@
     "downloader"
   ],
   "main": "./main.js",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": "Tairraos",
   "license": "MIT",
   "scripts": {
@@ -18,7 +18,7 @@
     "buildsvg": "node tool/buildSvgSymbol.js",
     "buildicon": "electron-icon-builder --input=./build/favicon.png --output=build --flatten",
     "buildbackground": "tiffutil -cathidpicheck build/background.png build/background@2x.png -out build/background.tiff",
-    "shasum": "shasum -a 256 dist/Tikdown-*.dmg",
+    "shasum": "shasum -a 256 dist/TikDown-*.dmg",
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win"
   },
@@ -33,7 +33,7 @@
   },
   "build": {
     "appId": "com.tairraos.tikdown",
-    "productName": "Tikdown",
+    "productName": "TikDown",
     "copyright": "Copyright © 2022 Tairraos",
     "compression": "maximum",
     "directories": {
