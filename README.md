@@ -1,6 +1,4 @@
-### TikDown
-
-[点这里查看中文说明](#中文说明)
+# TikDown App [点这里查看中文说明](#中文说明)
 
 This is a TikTok/Douyin downloader built with Electron. Download the video without watermark by pasting the share link in the clipboard.
 
