@@ -18,7 +18,7 @@ https://github.com/Tairraos/TikDown/releases/latest
 https://github.com/Tairraos/homebrew-tikdown
 
 ### Features
-- <span style="display:inline-block;background:#ccc;padding:4px;font-size:18px;line-height:18px;border-radius:4px"><img src="resource/watch.svg"></span> / Start clipboard monitoring (auto paste)
+- <span style="display:inline-block;background:#ccc;padding:4px;font-size:18px;line-height:18px;border-radius:4px"><img src="resource/watch.svg" style="fill:#ff0000;"></span> / Start clipboard monitoring (auto paste)
 - ![stopwatch](resource/stopwatch.png) / Stop clipboard monitoring
 - ![keeptop](resource/keeptop.png) / Keep window on top
 - ![quittop](resource/quittop.png) / Exit window on top mode
@@ -108,8 +108,10 @@ https://github.com/Tairraos/homebrew-tikdown
 - 可能会做：批量下载某帐号下的所有视频。
 
 ****************************************
-## Reference & Thanks 参考及鸣谢
+<details><summary>Reference & Thanks 参考及鸣谢</summary>
+
 - UI Design / UI设计: [MasterGo](https://mastergo.com/file/64638217599752)
 - API Information / API 信息: [Github Repo](https://github.com/Evil0ctal/Douyin_TikTok_Download_API)
 - background material / 安装程序背景: [TikTok background vector created by BiZkettE1](https://www.freepik.com/vectors/tiktok-background)
 - arraw material / 箭头素材： [Trajectory vector created by freepik](https://www.freepik.com/vectors/trajectory)
+</details>
