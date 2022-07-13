@@ -33,11 +33,14 @@ https://github.com/Tairraos/homebrew-tikdown
 - ![Mini UI](readme/miniui.en.png)
 
 ### Features will be implemented
-- Batch add download URLs, paste in multiple lines at once.
-- Remove the counter at the end of the download file name.
+
+- Bug that List is cleared after closing the interface and opening it again.
 - Allow to pause, resume, cancel a downloading task.
 - Allow to cancel a task that has not been downloaded yet.
-- Bug that List is cleared after closing the interface and opening it again.
+- Allow user to select filename template
+- Allow user to save download log
+- Batch add download URLs, paste in multiple lines at once.
+- Remove the counter at the end of the download file name.
 - MAYBE: Batch downad all video of a user
 
 
@@ -78,11 +81,13 @@ https://github.com/Tairraos/homebrew-tikdown
 - ![迷你界面](readme/miniui.cn.png)
 
 ### 将会在后续版本中实现的功能
-- 批量添加下载URL，一次粘帖入多行。
-- 移除下载文件名尾部的计数器。
+- BUG: 关闭界面后再打开List被清空。
 - 允许暂停，继续，取消一个正在下载的任务。
 - 允许取消还未下载的任务。
-- BUG: 关闭界面后再打开List被清空。
+- 允许用户选择保存的文件名模板。
+- 允许用户保存下载日志
+- 批量添加下载URL，一次粘帖入多行。
+- 移除下载文件名尾部的计数器。
 - 可能会做：批量下载某帐号下的所有视频。
 
 ****************************************
