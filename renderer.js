@@ -69,7 +69,7 @@ function createTaskUI(task) {
 
 function bindEvent() {
     dom.btnPaste.addEventListener("click", () => {
-        manageTask(utils.readClipboard());
+        manageClipboard(utils.readClipboard());
     });
 
     dom.btnGithub.addEventListener("click", () => {

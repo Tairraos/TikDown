@@ -6,8 +6,17 @@ const STEP_FAILED = "Failed";
 const STAT_OK = "ok";
 const STAT_ERROR = "error";
 
-const queue = {},
-    taskStore = { newTaskId: 1, queue, isBusy: false, watchHandler: null, lastClipboard: "" };
+const taskQueue = {},
+    preQueue = [],
+    taskStore = {
+        newTaskId: 1,
+        queue: taskQueue,
+        preQueue: preQueue,
+        isParseBusy: false,
+        isDownloadBusy: false,
+        watchHandler: null,
+        lastClipboard: ""
+    };
 
 function parseContent(urlStr) {
     return urlStr.match(/https?:\/\/(www\.tiktok\.com\/@[^/]+\/video\/(\d+)|www\.douyin\.com\/video\/(\d+)|v\.douyin\.com\/([^/]+)\/)/);
@@ -18,7 +27,7 @@ function watchClipboard(toggle) {
         taskStore.watchHandler = setInterval(() => {
             const clipStr = utils.readClipboard();
             if (taskStore.lastClipboard !== clipStr) {
-                manageTask(clipStr);
+                manageClipboard(clipStr);
             }
         }, 1000);
     } else {
@@ -35,10 +44,19 @@ async function parseShareId(task) {
     return task.shareId;
 }
 
-async function manageTask(clipStr) {
-    const parsed = parseContent(clipStr);
+async function manageClipboard(clipStr) {
     taskStore.lastClipboard = clipStr;
+    preQueue.push(...clipStr.split("\n"));
+    manageTask();
+}
 
+async function manageTask() {
+    if (preQueue.length === 0 || taskStore.isParseBusy) {
+        return;
+    }
+
+    const parsed = parseContent(preQueue.shift());
+    taskStore.isParseBusy = true;
     // step 1: parse clipboard to get
     if (!parsed) {
         printFooterLog("The content of the clipboard is not a valid TikTok/Douyin URL.");
@@ -59,7 +77,7 @@ async function manageTask(clipStr) {
             videoUrl: parsed[0],
             domId: shareId
         };
-    queue[taskId] = task;
+    taskQueue[taskId] = task;
     task.dom = createTaskUI(task);
     printFooterLog("You have added a new download task.");
     flashPasteBtnUI(STAT_OK);
@@ -72,52 +90,78 @@ async function manageTask(clipStr) {
     // step 3: parse videoId to get video info
     const data = await parseVideoInfo(task);
     if (data.success) {
-        const title = `${data.author} - ${data.title}`.replace(/[/\\:*?"<>|\n]/g, "").replace(/&[^;]{3,5};/g, " ").trim(),
+        const title = `${data.author} - ${data.title}`
+                .replace(/[/\\:*?"<>|\n]/g, "")
+                .replace(/&[^;]{3,5};/g, " ")
+                .trim(),
             filename = `${title.replace(/^(.{60}[\w]+.).*/, "$1")}.mp4`;
         task.step = STEP_WAITING;
-        updateTaskBoxUI(task.domId, { status: STEP_WAITING, title: filename, cover: data.cover });
+        updateTaskBoxUI(task.domId, {
+            status: STEP_WAITING,
+            title: filename,
+            cover: data.cover
+        });
         task.filename = filename;
         task.fileurl = data.fileurl;
         task.videoCover = data.cover;
         downloadWaitingTask();
     } else {
         task.step = STEP_FAILED;
-        updateTaskBoxUI(task.domId, { status: STEP_FAILED, title: data.resaon });
+        updateTaskBoxUI(task.domId, {
+            status: STEP_FAILED,
+            title: data.resaon
+        });
     }
+
+    taskStore.isParseBusy = false;
+    manageTask();
 }
 
 function downloadWaitingTask() {
     // step 4: download video
-    if (!taskStore.isBusy) {
+    if (!taskStore.isDownloadBusy) {
         const task = getWaitingTask();
         if (task) {
-            utils.download({ taskId: task.taskId, filename: task.filename, fileurl: task.fileurl });
-            taskStore.isBusy = true;
+            utils.download({
+                taskId: task.taskId,
+                filename: task.filename,
+                fileurl: task.fileurl
+            });
+            taskStore.isDownloadBusy = true;
         }
     }
 }
 
 function onDownloadUpdated(data) {
-    queue[data.taskId].step = STEP_DOWNLOADING;
-    updateTaskBoxUI(queue[data.taskId].domId, { status: STEP_DOWNLOADING, size: data.size, process: ((data.received / data.size) * 100).toFixed(1) });
+    taskQueue[data.taskId].step = STEP_DOWNLOADING;
+    updateTaskBoxUI(taskQueue[data.taskId].domId, {
+        status: STEP_DOWNLOADING,
+        size: data.size,
+        process: ((data.received / data.size) * 100).toFixed(1)
+    });
 }
 
 function onDownloadCompleted(data) {
     if (data.state === "completed") {
-        queue[data.taskId].step = STEP_DOWNLOADED;
-        updateTaskBoxUI(queue[data.taskId].domId, { status: STEP_DOWNLOADED });
+        taskQueue[data.taskId].step = STEP_DOWNLOADED;
+        updateTaskBoxUI(taskQueue[data.taskId].domId, {
+            status: STEP_DOWNLOADED
+        });
     } else {
-        queue[data.taskId].step = STEP_FAILED;
-        updateTaskBoxUI(queue[data.taskId].domId, { status: STEP_FAILED, title: data.state });
+        taskQueue[data.taskId].step = STEP_FAILED;
+        updateTaskBoxUI(taskQueue[data.taskId].domId, {
+            status: STEP_FAILED,
+            title: data.state
+        });
     }
-    taskStore.isBusy = false;
+    taskStore.isDownloadBusy = false;
     downloadWaitingTask();
 }
 
 function updateTaskCounter() {
     const result = {};
-    for (let key in queue) {
-        let step = queue[key].step.replace(/\.+$/, "");
+    for (let key in taskQueue) {
+        let step = taskQueue[key].step.replace(/\.+$/, "");
         result[step] = (result[step] || 0) + 1;
     }
     taskStore.counter = result;
@@ -125,9 +169,9 @@ function updateTaskCounter() {
 }
 
 function getWaitingTask() {
-    for (let key in queue) {
-        if (queue[key].step === STEP_WAITING) {
-            return queue[key];
+    for (let key in taskQueue) {
+        if (taskQueue[key].step === STEP_WAITING) {
+            return taskQueue[key];
         }
     }
 }
@@ -155,7 +199,10 @@ async function parseVideoInfo(task) {
             rootInfo.fileurl = rootInfo["video"]["play_addr"]["url_list"][0];
             break;
         default:
-            return { success: false, resaon: "The content of the clipboard is not a valid TikTok/Douyin URL." };
+            return {
+                success: false,
+                resaon: "The content of the clipboard is not a valid TikTok/Douyin URL."
+            };
     }
     return {
         success: true,

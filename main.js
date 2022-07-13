@@ -2,7 +2,6 @@ const os = require("os");
 const path = require("path");
 const settings = require("electron-settings");
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
-
 const config = { taskStore: {} };
 
 function createWindow() {
@@ -98,6 +97,19 @@ app.on("ready", () => {
             createWindow();
         }
     });
+
+    if (process.platform === "darwin") {
+        let forceQuit = false;
+        app.on("before-quit", () => {
+            forceQuit = true;
+        });
+        config.mainWindow.on("close", (event) => {
+            if (!forceQuit) {
+                event.preventDefault();
+                config.mainWindow.minimize();
+            }
+        });
+    }
 
     initIPC();
     initDownloadMonitor();
