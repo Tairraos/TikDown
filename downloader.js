@@ -45,6 +45,11 @@ async function parseShareId(task) {
 }
 
 async function manageClipboard(clipStr) {
+    if (taskStore.lastClipboard === clipStr) {
+        printFooterLog("The same task is already in the download list.");
+        flashPasteBtnUI(STAT_ERROR);
+        return;
+    }
     taskStore.lastClipboard = clipStr;
     preQueue.push(...clipStr.split("\n"));
     manageTask();

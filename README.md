@@ -48,7 +48,7 @@ https://github.com/Tairraos/homebrew-tikdown
 
 ## 中文说明
 
-这是一个使用了Electron构建的 TikTok/抖音 下载器。通过粘帖剪贴板里的分享链接下载无水印的视频。
+基于Electron构建的 TikTok/抖音 下载器。通过粘帖剪贴板里的分享链接下载无水印的视频。
 
 ### 安装
 - 用brew安装：
