@@ -195,12 +195,12 @@ async function parseVideoInfo(task) {
             rootInfo.fileurl = (await fetchURL(rootInfo["video"]["play_addr"]["url_list"][0].replace("playwm", "play")))["url"];
             break;
         case "www.tiktok":
-            apiurl = `https://api.tiktokv.com/aweme/v1/multi/aweme/detail/?aweme_ids=[${task.videoId}]`;
+            apiurl = `https://api.tiktokv.com/aweme/v1/aweme/detail/?aweme_id=[${task.videoId}]`;
             result = await fetchURL(apiurl);
             if (result.status_code !== 0) {
                 return { success: false, reason: result.status_msg };
             }
-            rootInfo = result["aweme_details"][0];
+            rootInfo = result["aweme_detail"];
             rootInfo.fileurl = rootInfo["video"]["play_addr"]["url_list"][0];
             break;
         default:
