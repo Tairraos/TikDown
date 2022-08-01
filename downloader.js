@@ -65,13 +65,15 @@ async function manageTask() {
     // step 1: parse clipboard to get
     if (!parsed) {
         printFooterLog("The content of the clipboard is not a valid TikTok/Douyin URL.");
+        taskStore.isParseBusy = false;
         return flashPasteBtnUI(STAT_ERROR);
     }
 
     const shareId = parsed[2] || parsed[3] || parsed[4];
     if ($(`.task-${shareId}`)) {
         printFooterLog("The same task is already in the download list.");
-        flashPasteBtnUI(STAT_ERROR);
+        taskStore.isParseBusy = false;
+        return flashPasteBtnUI(STAT_ERROR);
     }
 
     const taskId = taskStore.newTaskId++,
@@ -195,7 +197,7 @@ async function parseVideoInfo(task) {
             rootInfo.fileurl = (await fetchURL(rootInfo["video"]["play_addr"]["url_list"][0].replace("playwm", "play")))["url"];
             break;
         case "www.tiktok":
-            apiurl = `https://api.tiktokv.com/aweme/v1/aweme/detail/?aweme_id=[${task.videoId}]`;
+            apiurl = `https://api.tiktokv.com/aweme/v1/aweme/detail/?aweme_id=${task.videoId}`;
             result = await fetchURL(apiurl);
             if (result.status_code !== 0) {
                 return { success: false, reason: result.status_msg };
