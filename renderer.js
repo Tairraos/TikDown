@@ -8,7 +8,8 @@ let dom = {
         footerLeft: $("#footer-area .left-area"),
         footerRight: $("#footer-area .right-area")
     },
-    taskQue = {};
+    taskQue = {},
+    config = {};
 
 function createUI() {
     document.title = i18n.get("TikDown", utils.getVersion());
@@ -140,8 +141,16 @@ function bindIpc() {
     ipc.bindDownloadUpdated(onDownloadUpdated);
     ipc.bindDownloadCompleted(onDownloadCompleted);
 }
+
+function prepareConfig() {
+    config.lang = setting.lang;
+    config.target = setting.target;
+    config.record = Array.from(setting.record);
+}
+
 //start rendering
 initApp().then(() => {
+    prepareConfig();
     createUI();
     bindEvent();
     bindIpc();

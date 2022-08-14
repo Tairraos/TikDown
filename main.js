@@ -4,6 +4,15 @@ const settings = require("electron-settings");
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const config = { taskStore: {} };
 
+/**
+ * Add setting here
+ */
+const defaultSettings = {
+    lang: "en_US",
+    target: path.join(os.homedir(), "Downloads"),
+    record: []
+};
+
 function createWindow() {
     config.mainWindow = new BrowserWindow({
         width: 800,
@@ -34,22 +43,18 @@ function initIPC() {
         app.quit();
     });
 
-    ipcMain.handle("getSettingsLang", () => {
-        return settings.getSync("lang") || "en_US";
+    ipcMain.handle("getSetting", (event, item) => {
+        if (Object.keys(defaultSettings).includes(item)) {
+            config[item] = settings.getSync(item) || defaultSettings[item];
+            return config[item];
+        }
     });
 
-    ipcMain.handle("getSettingsTarget", () => {
-        config.target = settings.getSync("target") || path.join(os.homedir(), "Downloads");
-        return config.target;
-    });
-
-    ipcMain.handle("setSettingLang", (event, value) => {
-        settings.setSync("lang", value);
-    });
-
-    ipcMain.handle("setSettingTarget", (event, value) => {
-        settings.setSync("target", value);
-        config.target = value;
+    ipcMain.handle("setSetting", (event, item, value) => {
+        if (Object.keys(defaultSettings).includes(item)) {
+            config[item] = value;
+            settings.setSync(item, config[item]);
+        }
     });
 
     ipcMain.handle("download", (event, data) => {

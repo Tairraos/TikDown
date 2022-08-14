@@ -97,9 +97,10 @@ async function manageTask() {
     // step 3: parse videoId to get video info
     const data = await parseVideoInfo(task);
     if (data.success) {
-        const title = `${data.author} - ${data.title}`
+        const title = `${data.author} - ${data.date} - ${data.title}`
                 .replace(/[/\\:*?"<>|\n]/g, "")
                 .replace(/&[^;]{3,5};/g, " ")
+                .replace(/#[^ ]+( |$)/g, "")
                 .trim(),
             filename = `${title.replace(/^(.{60}[\w]+.).*/, "$1")}.mp4`;
         task.step = STEP_WAITING;
@@ -154,6 +155,8 @@ function onDownloadCompleted(data) {
         updateTaskBoxUI(taskQueue[data.taskId].domId, {
             status: STEP_DOWNLOADED
         });
+        config.record.push(taskQueue[data.taskId].videoId);
+        utils.setSetting("record", config.record);
     } else {
         taskQueue[data.taskId].step = STEP_FAILED;
         updateTaskBoxUI(taskQueue[data.taskId].domId, {
@@ -216,7 +219,8 @@ async function parseVideoInfo(task) {
         title: rootInfo["desc"],
         fileurl: rootInfo.fileurl,
         author: rootInfo["author"]["nickname"],
-        cover: rootInfo["video"]["cover"]["url_list"][0]
+        cover: rootInfo["video"]["cover"]["url_list"][0],
+        date: new Date(rootInfo.create_time * 1000).toISOString().replace(/-|T.*/g, "")
     };
 }
 

@@ -106,14 +106,16 @@ function updateFolderTextUI(folder) {
     if (!utils.existDir(dom.btnFolderText.innerText)) {
         dom.btnFolderText.classList.add("error");
     } else {
-        utils.setSettingTarget(folder);
+        config.target = folder;
+        utils.setSetting("target", folder);
         printFooterLog("You have changed the download folder.");
     }
 }
 
 function updateI18nStringUI(lang) {
     const domList = document.querySelectorAll("[data-i18n]");
-    utils.setSettingLang(lang);
+    config.lang = lang;
+    utils.setSetting("lang", lang);
     i18n.select(lang);
     domList.forEach((item) => {
         const [attr, i18nKey] = item.getAttribute("data-i18n").split("%");

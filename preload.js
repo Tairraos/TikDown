@@ -16,10 +16,8 @@ const utils = {
     exit: () => ipcRenderer.invoke("exit"),
     toggleKeepTop: (toggle) => ipcRenderer.invoke("keepTop", toggle),
     selectFolder: () => ipcRenderer.invoke("selectFolder"),
-    getSettingsLang: () => ipcRenderer.invoke("getSettingsLang"),
-    getSettingsTarget: () => ipcRenderer.invoke("getSettingsTarget"),
-    setSettingLang: (value) => ipcRenderer.invoke("setSettingLang", value),
-    setSettingTarget: (value) => ipcRenderer.invoke("setSettingTarget", value),
+    getSetting: (item) => ipcRenderer.invoke("getSetting", item),
+    setSetting: (item, value) => ipcRenderer.invoke("setSetting", item, value),
     download: (params) => ipcRenderer.invoke("download", params),
     resize: (w, h) => ipcRenderer.invoke("resize", w, h)
 };
@@ -75,13 +73,14 @@ function initIPC() {
 }
 
 async function initApp() {
-    const lang = await utils.getSettingsLang(),
-        target = await utils.getSettingsTarget();
+    const lang = await utils.getSetting("lang"),
+        target = await utils.getSetting("target"),
+        record = await utils.getSetting("record");
 
     contextBridge.exposeInMainWorld("ipc", ipc);
     contextBridge.exposeInMainWorld("utils", utils);
     contextBridge.exposeInMainWorld("i18n", prepareI18n(lang));
-    contextBridge.exposeInMainWorld("config", { lang, target });
+    contextBridge.exposeInMainWorld("setting", { lang, target, record });
     initIPC();
 }
 
