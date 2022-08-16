@@ -19,7 +19,15 @@ const taskQueue = {},
     };
 
 function parseContent(urlStr) {
-    return urlStr.match(/https?:\/\/(www\.tiktok\.com\/@[^/]+\/video\/(\d+)|www\.douyin\.com\/video\/(\d+)|v\.douyin\.com\/([^/]+)\/)/);
+    let parsed = urlStr.match(
+        /https?:\/\/(www\.tiktok\.com\/@[^/]+\/video\/(\d+)|vm\.tiktok\.com\/([^/]+)\/|www\.douyin\.com\/video\/(\d+)|v\.douyin\.com\/([^/]+)\/)/
+    );
+
+    return parsed ? {
+        videoUrl: parsed[0],
+        type: parsed[1].replace(/((www|v|vm)\.(tiktok|douyin)).*/, "$1"),
+        shareId: parsed.slice(2).filter((n) => n)[0]
+    } : null;
 }
 
 function watchClipboard(toggle) {
@@ -37,9 +45,9 @@ function watchClipboard(toggle) {
 }
 
 async function parseShareId(task) {
-    if (task.type === "v.douyin") {
-        const parsed = parseContent((await fetchURL(task.videoUrl))["url"]);
-        return parsed[3];
+    if (task.type === "v.douyin" || task.type === "vm.tiktok") {
+        let parsed = parseContent((await fetchURL(task.videoUrl))["url"]);
+        return parsed.shareId;
     }
     return task.shareId;
 }
@@ -69,8 +77,8 @@ async function manageTask() {
         return flashPasteBtnUI(STAT_ERROR);
     }
 
-    const shareId = parsed[2] || parsed[3] || parsed[4];
-    if ($(`.task-${shareId}`)) {
+    const shareId = parsed.shareId;
+    if ($(`.task-${parsed.shareId}`)) {
         printFooterLog("The same task is already in the download list.");
         taskStore.isParseBusy = false;
         return flashPasteBtnUI(STAT_ERROR);
@@ -79,9 +87,9 @@ async function manageTask() {
     const taskId = taskStore.newTaskId++,
         task = {
             taskId,
-            shareId,
-            type: parsed[1].replace(/((www|v)\.(tiktok|douyin)).*/, "$1"),
-            videoUrl: parsed[0],
+            videoUrl: parsed.videoUrl,  
+            type: parsed.type,
+            shareId: parsed.shareId,
             domId: shareId
         };
     taskQueue[taskId] = task;
@@ -199,6 +207,7 @@ async function parseVideoInfo(task) {
             rootInfo = result["item_list"][0];
             rootInfo.fileurl = (await fetchURL(rootInfo["video"]["play_addr"]["url_list"][0].replace("playwm", "play")))["url"];
             break;
+        case "vm.tiktok":
         case "www.tiktok":
             apiurl = `https://api.tiktokv.com/aweme/v1/aweme/detail/?aweme_id=${task.videoId}`;
             result = await fetchURL(apiurl);
