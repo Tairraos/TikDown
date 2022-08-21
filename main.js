@@ -2,7 +2,7 @@ const os = require("os");
 const path = require("path");
 const settings = require("electron-settings");
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
-const config = { taskStore: {} };
+const { DownloaderHelper } = require("node-downloader-helper");
 
 /**
  * Add setting here
@@ -58,34 +58,32 @@ function initIPC() {
     });
 
     ipcMain.handle("download", (event, data) => {
-        config.taskStore[data.taskId] = data;
-        config.mainWindow.webContents.downloadURL(data.fileurl + "#" + data.taskId);
+        const taskId = data.taskId;
+
+        const dl = new DownloaderHelper(data.fileurl, config.target, {
+            fileName: data.filename
+        });
+
+        dl.on("end", (info) => {
+            config.mainWindow.send("downloadEnd", { taskId, isSuccess: !info.incomplete });
+        });
+        dl.on("error", (info) => {
+            config.mainWindow.send("downloadError", { taskId, message: info.message });
+        });
+        dl.on("download", (info) => {
+            config.mainWindow.send("downloadStart", { taskId, size: info.totalSize });
+        });
+        dl.on("progress", (info) => {
+            config.mainWindow.send("downloadProgress", { taskId, progress: info.progress });
+        });
+        dl.start().catch((info) => {
+            config.mainWindow.send("downloadError", { taskId, message: info.message });
+        });
+        // config.mainWindow.webContents.downloadURL(data.fileurl + "#" + data.taskId);
     });
 
     ipcMain.handle("resize", (event, w, h) => {
         config.mainWindow.setSize(w, h, true);
-    });
-}
-
-function initDownloadMonitor() {
-    config.mainWindow.webContents.session.on("will-download", (event, item, webContents) => {
-        const taskId = item.getURL().match(/(\d+)$/)[0],
-            task = config.taskStore[taskId];
-
-        item.setSavePath(path.join(config.target, task.filename));
-
-        item.on("updated", (event, state) => {
-            config.mainWindow.send("download updated", {
-                taskId: taskId,
-                received: item.getReceivedBytes(),
-                size: item.getTotalBytes(),
-                state
-            });
-        });
-
-        item.once("done", (event, state) => {
-            config.mainWindow.send("download done", { taskId: taskId, state });
-        });
     });
 }
 
@@ -117,7 +115,6 @@ app.on("ready", () => {
     }
 
     initIPC();
-    initDownloadMonitor();
 });
 
 app.on("second-instance", () => config.mainWindow.show());

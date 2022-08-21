@@ -56,7 +56,7 @@ function genTaskBox(task) {
         `<div class="task-title"></div>`,
         `<div class="task-download">`,
         `<span class="task-size"></span>`,
-        `<span class="task-processbar hide"><span class="task-process"></span></span>`,
+        `<span class="task-progressbar hide"><span class="task-progress"></span></span>`,
         `</div></div>`,
         `<div class="task-status"></div>`,
         `</div>`
@@ -83,9 +83,9 @@ function updateTaskBoxUI(domId, data) {
         $(`${container} .task-status`).innerText = i18n.get(data.status);
         $(`${container} .task-status`).setAttribute("data-i18n", `innerText%${data.status}`);
     }
-    if (data.process) {
-        $(`${container} .task-processbar`).classList.remove("hide");
-        $(`${container} .task-process`).style.width = `${+data.process * 2}px`;
+    if (data.progress) {
+        $(`${container} .task-progressbar`).classList.remove("hide");
+        $(`${container} .task-progress`).style.width = `${+data.progress * 2}px`;
     }
     updateFooterStatUI();
 }

@@ -402,14 +402,14 @@ body #app-root .border-flash-error {
     min-width: 60px;
     margin-right: 20px;
 }
-#task-area .task-processbar {
+#task-area .task-progressbar {
     width: 200px;
     height: 4px;
     border: 1px solid #ccc;
     border-radius: 4px;
     display: flex;
 }
-#task-area .task-process {
+#task-area .task-progress {
     width: 25px;
     height: 4px;
     display: inline-block;
