@@ -87,7 +87,7 @@ async function manageTask() {
     const taskId = taskStore.newTaskId++,
         task = {
             taskId,
-            videoUrl: parsed.videoUrl,  
+            videoUrl: parsed.videoUrl,
             type: parsed.type,
             shareId: parsed.shareId,
             domId: shareId
@@ -105,12 +105,14 @@ async function manageTask() {
     // step 3: parse videoId to get video info
     const data = await parseVideoInfo(task);
     if (data.success) {
-        const title = `${data.author} - ${data.date} - ${data.title}`
-                .replace(/[/\\:*?"<>|\n]/g, "")
-                .replace(/&[^;]{3,5};/g, " ")
-                .replace(/#[^ ]+( |$)/g, "")
-                .trim(),
-            filename = `${title.replace(/^(.{60}[\w]+.).*/, "$1")}.mp4`;
+        const title = data.title
+                .replace(/[/\\:*?"<>|\n]/g, "") //remove invalid chars
+                .replace(/&[^;]{3,5};/g, " ") //remove html entities
+                .replace(/#[^ ]+( |$)/g, "") //remove #tags
+                .trim()
+                .replace(/^(.{60}[\w]+.).*/, "$1") //truncate title to 60 chars + last word
+                .replace(/^(.{80}).*/, "$1"), //truncate title to 80 chars
+            filename = `${data.author} - ${data.date} - ${title || i18n.get("untitled")}.mp4`;
         task.step = STEP_WAITING;
         updateTaskBoxUI(task.domId, {
             status: STEP_WAITING,
@@ -146,34 +148,6 @@ function downloadWaitingTask() {
             taskStore.isDownloadBusy = true;
         }
     }
-}
-
-function onDownloadUpdated(data) {
-    taskQueue[data.taskId].step = STEP_DOWNLOADING;
-    updateTaskBoxUI(taskQueue[data.taskId].domId, {
-        status: STEP_DOWNLOADING,
-        size: data.size,
-        process: ((data.received / data.size) * 100).toFixed(1)
-    });
-}
-
-function onDownloadCompleted(data) {
-    if (data.state === "completed") {
-        taskQueue[data.taskId].step = STEP_DOWNLOADED;
-        updateTaskBoxUI(taskQueue[data.taskId].domId, {
-            status: STEP_DOWNLOADED
-        });
-        config.record.push(taskQueue[data.taskId].videoId);
-        utils.setSetting("record", config.record);
-    } else {
-        taskQueue[data.taskId].step = STEP_FAILED;
-        updateTaskBoxUI(taskQueue[data.taskId].domId, {
-            status: STEP_FAILED,
-            title: data.state
-        });
-    }
-    taskStore.isDownloadBusy = false;
-    downloadWaitingTask();
 }
 
 function updateTaskCounter() {
@@ -247,3 +221,47 @@ async function fetchURL(url) {
 
     return response.redirected ? response : await response.json();
 }
+
+/**
+ * Put download event handler here, will be bind to IPC in renderer.js
+ */
+const downloadEventHandler = {
+    downloadStart: function (data) {
+        taskQueue[data.taskId].step = STEP_DOWNLOADING;
+        updateTaskBoxUI(taskQueue[data.taskId].domId, {
+            status: STEP_DOWNLOADING,
+            size: data.size
+        });
+    },
+
+    downloadProgress: function (data) {
+        taskQueue[data.taskId].step = STEP_DOWNLOADING;
+        updateTaskBoxUI(taskQueue[data.taskId].domId, {
+            status: STEP_DOWNLOADING,
+            progress: data.progress
+        });
+    },
+
+    downloadError: function (data) {
+        taskQueue[data.taskId].step = STEP_FAILED;
+        updateTaskBoxUI(taskQueue[data.taskId].domId, {
+            status: STEP_FAILED,
+            title: data.message
+        });
+    },
+
+    downloadEnd: function (data) {
+        if (data.isSuccess) {
+            taskQueue[data.taskId].step = STEP_DOWNLOADED;
+            updateTaskBoxUI(taskQueue[data.taskId].domId, {
+                status: STEP_DOWNLOADED
+            });
+            config.record.push(taskQueue[data.taskId].videoId);
+            utils.setSetting("record", config.record);
+        } else {
+            onDownloadError(data);
+        }
+        taskStore.isDownloadBusy = false;
+        downloadWaitingTask();
+    }
+};

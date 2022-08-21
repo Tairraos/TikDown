@@ -22,10 +22,15 @@ const utils = {
     resize: (w, h) => ipcRenderer.invoke("resize", w, h)
 };
 
+const eventList = ["downloadStart", "downloadEnd", "downloadProgress", "downloadPaused", "downloadStopped", "downloadError"];
 const ipc = {
-    store: {},
-    bindDownloadUpdated: (callback) => (ipc.store["download updated"] = callback),
-    bindDownloadCompleted: (callback) => (ipc.store["download done"] = callback)
+    eventList,
+    eventStore: Object.fromEntries(eventList.map((item) => [item, () => {}])),
+    addEventListener: (event, callback) => {
+        if (eventList.includes(event) && typeof callback === "function") {
+            ipc.eventStore[event] = callback;
+        }
+    }
 };
 
 function prepareI18n(lang) {
@@ -58,20 +63,6 @@ function prepareI18n(lang) {
     return i18n;
 }
 
-function initIPC() {
-    ipcRenderer.on("download updated", (event, data) => {
-        if (typeof ipc.store["download updated"] === "function") {
-            ipc.store["download updated"](data);
-        }
-    });
-
-    ipcRenderer.on("download done", (event, data) => {
-        if (typeof ipc.store["download done"] === "function") {
-            ipc.store["download done"](data);
-        }
-    });
-}
-
 async function initApp() {
     const lang = await utils.getSetting("lang"),
         target = await utils.getSetting("target"),
@@ -81,7 +72,7 @@ async function initApp() {
     contextBridge.exposeInMainWorld("utils", utils);
     contextBridge.exposeInMainWorld("i18n", prepareI18n(lang));
     contextBridge.exposeInMainWorld("setting", { lang, target, record });
-    initIPC();
+    eventList.forEach((item) => ipcRenderer.on(item, (event, data) => ipc.eventStore[item](data)));
 }
 
 contextBridge.exposeInMainWorld("initApp", initApp);

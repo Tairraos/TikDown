@@ -23,7 +23,8 @@
     "build:win": "electron-builder --win"
   },
   "dependencies": {
-    "electron-settings": "^4.0.2"
+    "electron-settings": "^4.0.2",
+    "node-downloader-helper": "^2.1.3"
   },
   "devDependencies": {
     "cheerio": "^1.0.0-rc.11",

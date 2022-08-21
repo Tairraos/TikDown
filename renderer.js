@@ -11,6 +11,12 @@ let dom = {
     taskQue = {},
     config = {};
 
+function prepareConfig() {
+    config.lang = setting.lang;
+    config.target = setting.target;
+    config.record = Array.from(setting.record);
+}
+
 function createUI() {
     document.title = i18n.get("TikDown", utils.getVersion());
 
@@ -68,7 +74,7 @@ function createTaskUI(task) {
     return domtask;
 }
 
-function bindEvent() {
+function bindUIEvent() {
     dom.btnPaste.addEventListener("click", () => {
         manageClipboard(utils.readClipboard());
     });
@@ -137,21 +143,16 @@ function bindEvent() {
     });
 }
 
-function bindIpc() {
-    ipc.bindDownloadUpdated(onDownloadUpdated);
-    ipc.bindDownloadCompleted(onDownloadCompleted);
-}
-
-function prepareConfig() {
-    config.lang = setting.lang;
-    config.target = setting.target;
-    config.record = Array.from(setting.record);
+function bindDownloadEvent() {
+    Object.keys(downloadEventHandler).forEach((item) => {
+        ipc.addEventListener(item, downloadEventHandler[item]);
+    });
 }
 
 //start rendering
 initApp().then(() => {
     prepareConfig();
     createUI();
-    bindEvent();
-    bindIpc();
+    bindUIEvent(); //bind UI event to DOM
+    bindDownloadEvent(); //bind download event to IPC
 });
