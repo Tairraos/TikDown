@@ -1,4 +1,5 @@
 const os = require("os");
+const fs = require("fs");
 const path = require("path");
 const settings = require("electron-settings");
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
@@ -24,9 +25,16 @@ function createWindow() {
     });
 
     // open debug
-    config.mainWindow.webContents.openDevTools();
-
+    // config.mainWindow.webContents.openDevTools();
     config.mainWindow.loadFile("index.html");
+}
+
+function getUnqueFilename(filename, n = 1) {
+    if (fs.existsSync(path.join(config.target, filename))) {
+        filename = filename.replace(/\(\d+\)\.mp4$/, "") + `(${n}).mp4`;
+        return getUnqueFilename(filename, n + 1);
+    }
+    return filename;
 }
 
 function initIPC() {
@@ -61,7 +69,7 @@ function initIPC() {
         const taskId = data.taskId;
 
         const dl = new DownloaderHelper(data.fileurl, config.target, {
-            fileName: data.filename
+            fileName: getUnqueFilename(data.filename)
         });
 
         dl.on("end", (info) => {
