@@ -3,6 +3,10 @@
 This is a TikTok/Douyin downloader built with Electron. Download the video without watermark by pasting the share link in the clipboard.
 
 ### Install
+- Download the Win/Mac installation package  
+https://github.com/Tairraos/TikDown/releases/latest
+- Or download the portable version to use directly, which is the package with "portable" in the name.
+- The application is only available for Mac and Win. If you want to use it under Linux, please clone this repository and build it yourself.
 - Install with brew
 ```
 brew tap Tairraos/tikdown && brew install --cask tikdown
@@ -11,9 +15,6 @@ brew tap Tairraos/tikdown && brew install --cask tikdown
 ```
 brew livecheck tikdown
 ```
-- Download the Win/Mac installation package  
-https://github.com/Tairraos/TikDown/releases/latest
-- The application is only available for Mac and Win. If you want to use it under Linux, please clone this repository and build it yourself.
 - The Homebrew tap is maintained here  
 https://github.com/Tairraos/homebrew-tikdown
 
@@ -51,7 +52,11 @@ https://github.com/Tairraos/homebrew-tikdown
 基于Electron构建的 TikTok/抖音 下载器。通过粘帖剪贴板里的分享链接下载无水印的视频。
 
 ### 安装
-- 用brew安装：
+- 下载 Win/Mac 安装包：  
+https://github.com/Tairraos/TikDown/releases/latest
+- 也可以下载便携版直接使用，即文件名里带 "portable" 字样的。
+- 仅提供 Mac 和 Win 的 App，如果你需要在 Linux 下使用，请自己克隆仓库编译。
+- 或使用brew安装：
 ```
 brew tap Tairraos/tikdown && brew install --cask tikdown
 ```
@@ -59,9 +64,6 @@ brew tap Tairraos/tikdown && brew install --cask tikdown
 ```
 brew livecheck tikdown
 ```
-- 下载 Win/Mac 安装包：  
-https://github.com/Tairraos/TikDown/releases/latest
-- 仅提供 Mac 和 Win 的 App，如果你需要在 Linux 下使用，请自己克隆仓库编译。
 - Homebrew tap在这里维护：  
 https://github.com/Tairraos/homebrew-tikdown
 
