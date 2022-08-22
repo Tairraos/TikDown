@@ -14,7 +14,8 @@ div {
 
 button,
 select,
-button span {
+button span,
+.canopen {
     cursor: pointer;
 }
 
