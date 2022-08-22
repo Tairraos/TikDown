@@ -4,6 +4,7 @@ const path = require("path");
 const settings = require("electron-settings");
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const { DownloaderHelper } = require("node-downloader-helper");
+const config = {};
 
 /**
  * Add setting here
@@ -25,14 +26,14 @@ function createWindow() {
     });
 
     // open debug
-    // config.mainWindow.webContents.openDevTools();
+    config.mainWindow.webContents.openDevTools();
     config.mainWindow.loadFile("index.html");
 }
 
-function getUnqueFilename(filename, n = 1) {
-    if (fs.existsSync(path.join(config.target, filename))) {
-        filename = filename.replace(/\(\d+\)\.mp4$/, "") + `(${n}).mp4`;
-        return getUnqueFilename(filename, n + 1);
+function getUnqueFilename(filepath, filename, n = 1) {
+    if (fs.existsSync(path.join(filepath, filename + ".mp4"))) {
+        filename = filename.replace(/\(\d+\)$/, "") + `(${n})`;
+        return getUnqueFilename(filepath, filename, n + 1);
     }
     return filename;
 }
@@ -69,17 +70,17 @@ function initIPC() {
         const taskId = data.taskId;
 
         const dl = new DownloaderHelper(data.fileurl, config.target, {
-            fileName: getUnqueFilename(data.filename)
+            fileName: getUnqueFilename(config.target, data.filename) + ".mp4"
         });
 
         dl.on("end", (info) => {
-            config.mainWindow.send("downloadEnd", { taskId, isSuccess: !info.incomplete });
+            config.mainWindow.send("downloadEnd", { taskId, isSuccess: !info.incomplete, openpath: info.filePath });
         });
         dl.on("error", (info) => {
             config.mainWindow.send("downloadError", { taskId, message: info.message });
         });
         dl.on("download", (info) => {
-            config.mainWindow.send("downloadStart", { taskId, size: info.totalSize });
+            config.mainWindow.send("downloadStart", { taskId, size: info.totalSize, filename: info.fileName });
         });
         dl.on("progress", (info) => {
             config.mainWindow.send("downloadProgress", { taskId, progress: info.progress });

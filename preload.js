@@ -7,7 +7,7 @@ const utils = {
     //node bridge
     getVersion: () => package.version,
     openGithub: () => shell.openExternal("https://github.com/Tairraos/tiktok-downloader"),
-    openFolder: (target) => shell.openPath(target),
+    openFolder: (target) => shell.showItemInFolder(target),
     readClipboard: () => clipboard.readText(),
     existDir: (dir) => fs.existsSync(dir) && fs.statSync(dir).isDirectory(),
     existFile: (filepath) => fs.existsSync(filepath),

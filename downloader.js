@@ -1,11 +1,3 @@
-const STEP_PARSING = "Parsing...";
-const STEP_WAITING = "Waiting...";
-const STEP_DOWNLOADING = "Downloading...";
-const STEP_DOWNLOADED = "Downloaded";
-const STEP_FAILED = "Failed";
-const STAT_OK = "ok";
-const STAT_ERROR = "error";
-
 const taskQueue = {},
     preQueue = [],
     taskStore = {
@@ -112,7 +104,7 @@ async function manageTask() {
                 .trim()
                 .replace(/^(.{60}[\w]+.).*/, "$1") //truncate title to 60 chars + last word
                 .replace(/^(.{80}).*/, "$1"), //truncate title to 80 chars
-            filename = `${data.author} - ${data.date} - ${title || i18n.get("untitled")}.mp4`;
+            filename = `${data.author} - ${data.date} - ${title || i18n.get("untitled")}`;
         task.step = STEP_WAITING;
         updateTaskBoxUI(task.domId, {
             status: STEP_WAITING,
@@ -230,8 +222,10 @@ const downloadEventHandler = {
         taskQueue[data.taskId].step = STEP_DOWNLOADING;
         updateTaskBoxUI(taskQueue[data.taskId].domId, {
             status: STEP_DOWNLOADING,
+            title: data.filename,
             size: data.size
         });
+        taskQueue[data.taskId].filename = data.filename;
     },
 
     downloadProgress: function (data) {
@@ -254,7 +248,8 @@ const downloadEventHandler = {
         if (data.isSuccess) {
             taskQueue[data.taskId].step = STEP_DOWNLOADED;
             updateTaskBoxUI(taskQueue[data.taskId].domId, {
-                status: STEP_DOWNLOADED
+                status: STEP_DOWNLOADED,
+                openpath: data.openpath
             });
             config.record.push(taskQueue[data.taskId].videoId);
             utils.setSetting("record", config.record);
