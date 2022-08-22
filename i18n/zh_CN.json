@@ -17,6 +17,8 @@
     "Parsing...": "正在解析...",
     "Downloading...": "正在下载...",
     "Downloaded": "下载完成",
+    "Cancelled": "取消下载",
+    "Paused": "暂停下载",
     "Failed": "下载失败",
     "Github source": "开源地址",
     "You have added a new download task.": "你已经添加了一个新的下载任务。",

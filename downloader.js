@@ -1,9 +1,9 @@
-const taskQueue = {},
-    preQueue = [],
+const downloadQueue = {}, //parsed task, waiting for download, can be cancelled
+    parseQueue = [], //pasted string, waitting to parse
     taskStore = {
         newTaskId: 1,
-        queue: taskQueue,
-        preQueue: preQueue,
+        downloadQueue,
+        parseQueue,
         isParseBusy: false,
         isDownloadBusy: false,
         watchHandler: null,
@@ -15,11 +15,9 @@ function parseContent(urlStr) {
         /https?:\/\/(www\.tiktok\.com\/@[^/]+\/video\/(\d+)|vm\.tiktok\.com\/([^/]+)\/|www\.douyin\.com\/video\/(\d+)|v\.douyin\.com\/([^/]+)\/)/
     );
 
-    return parsed ? {
-        videoUrl: parsed[0],
-        type: parsed[1].replace(/((www|v|vm)\.(tiktok|douyin)).*/, "$1"),
-        shareId: parsed.slice(2).filter((n) => n)[0]
-    } : null;
+    return parsed
+        ? { videoUrl: parsed[0], type: parsed[1].replace(/((www|v|vm)\.(tiktok|douyin)).*/, "$1"), parsedId: parsed.slice(2).filter((n) => n)[0] }
+        : null;
 }
 
 function watchClipboard(toggle) {
@@ -36,44 +34,44 @@ function watchClipboard(toggle) {
     }
 }
 
-async function parseShareId(task) {
+async function parseVideoId(task) {
     if (task.type === "v.douyin" || task.type === "vm.tiktok") {
         let parsed = parseContent((await fetchURL(task.videoUrl))["url"]);
-        return parsed.shareId;
+        return parsed.parsedId;
     }
-    return task.shareId;
+    return task.parsedId;
 }
 
 async function manageClipboard(clipStr) {
     if (taskStore.lastClipboard === clipStr) {
         printFooterLog("The same task is already in the download list.");
-        flashPasteBtnUI(STAT_ERROR);
+        flashPasteBtnUI(STATE_ERROR);
         return;
     }
     taskStore.lastClipboard = clipStr;
-    preQueue.push(...clipStr.split("\n"));
+    parseQueue.push(...clipStr.split("\n"));
     manageTask();
 }
 
 async function manageTask() {
-    if (preQueue.length === 0 || taskStore.isParseBusy) {
+    if (parseQueue.length === 0 || taskStore.isParseBusy) {
         return;
     }
 
-    const parsed = parseContent(preQueue.shift());
+    const parsed = parseContent(parseQueue.shift());
     taskStore.isParseBusy = true;
     // step 1: parse clipboard to get
     if (!parsed) {
         printFooterLog("The content of the clipboard is not a valid TikTok/Douyin URL.");
         taskStore.isParseBusy = false;
-        return flashPasteBtnUI(STAT_ERROR);
+        return flashPasteBtnUI(STATE_ERROR);
     }
 
-    const shareId = parsed.shareId;
-    if ($(`.task-${parsed.shareId}`)) {
+    const parsedId = parsed.parsedId;
+    if ($(`.task-${parsed.parsedId}`)) {
         printFooterLog("The same task is already in the download list.");
         taskStore.isParseBusy = false;
-        return flashPasteBtnUI(STAT_ERROR);
+        return flashPasteBtnUI(STATE_ERROR);
     }
 
     const taskId = taskStore.newTaskId++,
@@ -81,18 +79,18 @@ async function manageTask() {
             taskId,
             videoUrl: parsed.videoUrl,
             type: parsed.type,
-            shareId: parsed.shareId,
-            domId: shareId
+            parsedId: parsed.parsedId,
+            domId: parsedId
         };
-    taskQueue[taskId] = task;
+    downloadQueue[taskId] = task;
     task.dom = createTaskUI(task);
     printFooterLog("You have added a new download task.");
-    flashPasteBtnUI(STAT_OK);
+    flashPasteBtnUI(STATE_OK);
 
-    // step 2: parse shareId to get videoId
-    task.step = STEP_PARSING;
-    updateTaskBoxUI(task.domId, { status: STEP_PARSING });
-    task.videoId = await parseShareId(task);
+    // step 2: parse parsedId to get videoId
+    task.step = STATE_PARSING;
+    updateTaskBoxUI(task.domId, { status: STATE_PARSING });
+    task.videoId = await parseVideoId(task);
 
     // step 3: parse videoId to get video info
     const data = await parseVideoInfo(task);
@@ -105,9 +103,9 @@ async function manageTask() {
                 .replace(/^(.{60}[\w]+.).*/, "$1") //truncate title to 60 chars + last word
                 .replace(/^(.{80}).*/, "$1"), //truncate title to 80 chars
             filename = `${data.author} - ${data.date} - ${title || i18n.get("untitled")}`;
-        task.step = STEP_WAITING;
+        task.step = STATE_WAITING;
         updateTaskBoxUI(task.domId, {
-            status: STEP_WAITING,
+            status: STATE_WAITING,
             title: filename,
             cover: data.cover
         });
@@ -116,9 +114,9 @@ async function manageTask() {
         task.videoCover = data.cover;
         downloadWaitingTask();
     } else {
-        task.step = STEP_FAILED;
+        task.step = STATE_FAILED;
         updateTaskBoxUI(task.domId, {
-            status: STEP_FAILED,
+            status: STATE_FAILED,
             title: data.resaon
         });
     }
@@ -144,8 +142,8 @@ function downloadWaitingTask() {
 
 function updateTaskCounter() {
     const result = {};
-    for (let key in taskQueue) {
-        let step = taskQueue[key].step.replace(/\.+$/, "");
+    for (let key in downloadQueue) {
+        let step = downloadQueue[key].step.replace(/\.+$/, "");
         result[step] = (result[step] || 0) + 1;
     }
     taskStore.counter = result;
@@ -153,9 +151,9 @@ function updateTaskCounter() {
 }
 
 function getWaitingTask() {
-    for (let key in taskQueue) {
-        if (taskQueue[key].step === STEP_WAITING) {
-            return taskQueue[key];
+    for (let key in downloadQueue) {
+        if (downloadQueue[key].step === STATE_WAITING) {
+            return downloadQueue[key];
         }
     }
 }
@@ -219,39 +217,39 @@ async function fetchURL(url) {
  */
 const downloadEventHandler = {
     downloadStart: function (data) {
-        taskQueue[data.taskId].step = STEP_DOWNLOADING;
-        updateTaskBoxUI(taskQueue[data.taskId].domId, {
-            status: STEP_DOWNLOADING,
+        downloadQueue[data.taskId].step = STATE_DOWNLOADING;
+        updateTaskBoxUI(downloadQueue[data.taskId].domId, {
+            status: STATE_DOWNLOADING,
             title: data.filename,
             size: data.size
         });
-        taskQueue[data.taskId].filename = data.filename;
+        downloadQueue[data.taskId].filename = data.filename;
     },
 
     downloadProgress: function (data) {
-        taskQueue[data.taskId].step = STEP_DOWNLOADING;
-        updateTaskBoxUI(taskQueue[data.taskId].domId, {
-            status: STEP_DOWNLOADING,
+        downloadQueue[data.taskId].step = STATE_DOWNLOADING;
+        updateTaskBoxUI(downloadQueue[data.taskId].domId, {
+            status: STATE_DOWNLOADING,
             progress: data.progress
         });
     },
 
     downloadError: function (data) {
-        taskQueue[data.taskId].step = STEP_FAILED;
-        updateTaskBoxUI(taskQueue[data.taskId].domId, {
-            status: STEP_FAILED,
+        downloadQueue[data.taskId].step = STATE_FAILED;
+        updateTaskBoxUI(downloadQueue[data.taskId].domId, {
+            status: STATE_FAILED,
             title: data.message
         });
     },
 
     downloadEnd: function (data) {
         if (data.isSuccess) {
-            taskQueue[data.taskId].step = STEP_DOWNLOADED;
-            updateTaskBoxUI(taskQueue[data.taskId].domId, {
-                status: STEP_DOWNLOADED,
+            downloadQueue[data.taskId].step = STATE_DOWNLOADED;
+            updateTaskBoxUI(downloadQueue[data.taskId].domId, {
+                status: STATE_DOWNLOADED,
                 openpath: data.openpath
             });
-            config.record.push(taskQueue[data.taskId].videoId);
+            config.record.push(downloadQueue[data.taskId].videoId);
             utils.setSetting("record", config.record);
         } else {
             onDownloadError(data);
