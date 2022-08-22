@@ -12,10 +12,13 @@
     "Open folder": "Open folder",
     "Change language": "Change language",
     "Exit": "Exit",
+    "Duplicated": "Duplicated",
     "Waiting...": "Waiting...",
     "Parsing...": "Parsing...",
     "Downloading...": "Downloading...",
     "Downloaded": "Downloaded",
+    "Cancelled": "Cancelled",
+    "Paused": "Paused",
     "Failed": "Failed",
     "Github source": "Github source",
     "You have added a new download task.": "You have added a new download task.",
@@ -23,5 +26,6 @@
     "You have changed the download folder.": "You have changed the download folder.",
     "You have changed the display language.": "You have changed the display language.",
     "The same task is already in the download list.": "The same task is already in the download list.",
-    "This video was once downloaded, requires a manual launch.": "This video was once downloaded, requires a manual launch."
+    "This video was once downloaded, requires a manual launch.": "This video was once downloaded, requires a manual launch.",
+    "untitled": "untitled"
 }

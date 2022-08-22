@@ -132,7 +132,7 @@ function updateTaskBoxUI(domId, data) {
         $container.className = `task-box task-${domId} ${data.status.toLowerCase().replace(/\.+$/, "")}`;
         $status.innerText = i18n.get(data.status);
         $status.setAttribute("data-i18n", `innerText%${data.status}`);
-        if (data.status === STEP_DOWNLOADED) {
+        if (data.status === STATE_DOWNLOADED) {
             $container.classList.add("canopen");
             $title.addEventListener("click", () => {
                 utils.openFolder(data.openpath);
