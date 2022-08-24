@@ -24,7 +24,7 @@ function createWindow() {
     });
 
     // open debug
-    config.mainWindow.webContents.openDevTools();
+    // config.mainWindow.webContents.openDevTools();
 
     config.mainWindow.loadFile("index.html");
 }
