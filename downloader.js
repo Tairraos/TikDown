@@ -96,7 +96,8 @@ async function manageTask() {
     const data = await parseVideoInfo(task);
     if (data.success) {
         const title = data.title
-                .replace(/[/\\:*?"<>|\n]/g, "") //remove invalid chars
+                .replace(/[/\|\n*"':<>()[\]{}.?!‘“’”：（）［］｛｝。？！]/g, " ") //replace invalid chars to space
+                .replace(/\s+/g, " ") //merge multi space as one
                 .replace(/&[^;]{3,5};/g, " ") //remove html entities
                 .replace(/#[^ ]+( |$)/g, "") //remove #tags
                 .trim()
