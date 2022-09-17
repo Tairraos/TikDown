@@ -173,12 +173,12 @@ async function parseVideoInfo(task) {
             break;
         case "vm.tiktok":
         case "www.tiktok":
-            apiurl = `https://api.tiktokv.com/aweme/v1/aweme/detail/?aweme_id=${task.videoId}`;
+            apiurl = `https://api-h2.tiktokv.com/aweme/v1/feed/?version_code=2613&aweme_id=${task.videoId}&device_type=Pixel%204`;
             result = await fetchURL(apiurl);
             if (result.status_code !== 0) {
                 return { success: false, reason: result.status_msg };
             }
-            rootInfo = result["aweme_detail"];
+            rootInfo = result["aweme_list"][0];
             rootInfo.fileurl = rootInfo["video"]["play_addr"]["url_list"][0];
             break;
         default:
