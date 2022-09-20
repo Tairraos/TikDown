@@ -27,6 +27,9 @@ function createWindow() {
 
     // open debug
     // config.mainWindow.webContents.openDevTools();
+
+    // setup user-agent
+    config.mainWindow.webContents.userAgent = "Mozilla/5.0 (iPad; CPU OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B206 Safari/7534.48.3";
     config.mainWindow.loadFile("index.html");
 }
 
@@ -124,6 +127,7 @@ app.on("ready", () => {
     }
 
     initIPC();
+
 });
 
 app.on("second-instance", () => config.mainWindow.show());

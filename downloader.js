@@ -174,7 +174,7 @@ async function parseVideoInfo(task) {
             break;
         case "vm.tiktok":
         case "www.tiktok":
-            apiurl = `https://api-h2.tiktokv.com/aweme/v1/feed/?version_code=2613&aweme_id=${task.videoId}&device_type=Pixel%204`;
+            apiurl = `https://api-h2.tiktokv.com/aweme/v1/feed/?version_code=2613&aweme_id=${task.videoId}&device_type=iPad`;
             result = await fetchURL(apiurl);
             if (result.status_code !== 0) {
                 return { success: false, reason: result.status_msg };
@@ -199,17 +199,14 @@ async function parseVideoInfo(task) {
 }
 
 async function fetchURL(url) {
-    const response = await fetch(url, {
-        headers: {
-            accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-            "cache-control": "no-cache",
-            pragma: "no-cache"
-        },
-        referrerPolicy: "strict-origin-when-cross-origin",
-        method: "GET",
-        mode: "cors"
-    });
-
+    let headers = new Headers();
+    headers.set("Referer", "no-referrer");
+    let requestOptions = {
+        method: "POST",
+        headers: headers,
+        redirect: "follow"
+    };
+    let response = await fetch(url, requestOptions);
     return response.redirected ? response : await response.json();
 }
 
