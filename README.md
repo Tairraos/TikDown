@@ -1,3 +1,6 @@
+Tiktok变更了API的使用规则，需要手机才能获取到视频地址。electron的fetch受webkit安全限制，无法通过js修改user-agent，所以暂时还无法下载。等我研究出解决方案会发布新版本。
+抖音没受影响。
+
 # TikDown App [点这里查看中文说明](#中文说明)
 
 This is a TikTok/Douyin downloader built with Electron. Download the video without watermark by pasting the share link in the clipboard.
