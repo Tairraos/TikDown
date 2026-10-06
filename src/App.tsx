@@ -50,6 +50,15 @@ export default function App() {
     refreshStatus();
   }, [refreshStatus]);
 
+  // 启动时把 localStorage 里的设置同步给后端——
+  // 探测与组件检测读的是后端副本，不同步则手动指定路径对它们无效（TD-CORE-001）
+  useEffect(() => {
+    // 仅启动时同步一次;保存走 saveSettings(此处刻意不带 settings 依赖)
+    invoke("set_settings", { newSettings: settings }).catch(() => {
+      /* 后端同步失败不阻塞界面,core_status 仍按默认探测 */
+    });
+  }, []);
+
   // 订阅下载事件：按 id 路由到对应任务
   useEffect(() => {
     const un = listen<TaskEventWrapper>("task://event", (e) => {
@@ -175,6 +184,7 @@ export default function App() {
   const saveSettings = (s: Settings) => {
     setSettings(s);
     localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
+    void invoke("set_settings", { newSettings: s });
   };
 
   const counts = {

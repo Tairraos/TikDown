@@ -13,7 +13,9 @@ use tauri::State;
 #[derive(Default)]
 struct Tasks(Mutex<HashMap<String, download::DownloadHandle>>);
 
-/// 用户设置。前端负责持久化，这里是内存副本。
+/// 用户设置。前端负责持久化，这里是后端内存副本；
+/// 前端在启动与保存时通过 set_settings 同步——探测、组件检测、下载三个入口
+/// 必须看到同一份设置（TD-CORE-001）。
 /// 必须能 Serialize —— 它同时也是 get_settings 命令的返回值。
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -25,16 +27,22 @@ pub struct Settings {
 }
 
 #[tauri::command]
-fn get_settings(settings: State<'_, Settings>) -> Settings {
-    settings.inner().clone()
+fn get_settings(settings: State<'_, Mutex<Settings>>) -> Settings {
+    settings.lock().unwrap().clone()
+}
+
+#[tauri::command]
+fn set_settings(settings: State<'_, Mutex<Settings>>, new_settings: Settings) {
+    *settings.lock().unwrap() = new_settings;
 }
 
 /// 一次性拿到两个组件的状态。前端启动时调一次。
 #[tauri::command]
-fn core_status(settings: State<'_, Settings>) -> Vec<binresolve::ComponentStatus> {
+fn core_status(settings: State<'_, Mutex<Settings>>) -> Vec<binresolve::ComponentStatus> {
+    let cfg = settings.lock().unwrap().clone();
     vec![
-        binresolve::detect_ytdlp(settings.ytdlp_path.as_deref()),
-        binresolve::detect_ffmpeg(settings.ffmpeg_path.as_deref()),
+        binresolve::detect_ytdlp(cfg.ytdlp_path.as_deref()),
+        binresolve::detect_ffmpeg(cfg.ffmpeg_path.as_deref()),
     ]
 }
 
@@ -42,10 +50,10 @@ fn core_status(settings: State<'_, Settings>) -> Vec<binresolve::ComponentStatus
 #[tauri::command]
 async fn probe_batch(
     urls: Vec<String>,
-    settings: State<'_, Settings>,
+    settings: State<'_, Mutex<Settings>>,
 ) -> Result<Vec<BatchResult>, String> {
     // async 命令里 State 只能借用一次，这里先取出可复用的副本。
-    let cfg = settings.inner().clone();
+    let cfg = settings.lock().unwrap().clone();
     let mut out = Vec::with_capacity(urls.len());
     for u in urls {
         let r = match probe_one(&u, &cfg) {
@@ -129,10 +137,11 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(Tasks::default())
-        .manage(Settings::default())
+        .manage(Mutex::new(Settings::default()))
         .invoke_handler(tauri::generate_handler![
             core_status,
             get_settings,
+            set_settings,
             probe_batch,
             start_download,
             cancel_download,
