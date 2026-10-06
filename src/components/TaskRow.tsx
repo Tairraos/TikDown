@@ -25,7 +25,8 @@ export default function TaskRow({
   onStart: () => void;
   onCancel: () => void;
 }) {
-  const showQ = task.status === "ready" && (task.info?.qualities.length ?? 0) > 1;
+  const qualities = task.status === "ready" ? (task.info?.qualities ?? []) : [];
+  const showQ = qualities.length > 1;
 
   return (
     <div className={`task ${task.status}`}>
@@ -66,7 +67,7 @@ export default function TaskRow({
             <button className={task.formatId === null ? "chip on" : "chip"} onClick={() => onFormat(null)}>
               最佳
             </button>
-            {task.info!.qualities.slice(0, 6).map((q) => (
+            {qualities.slice(0, 6).map((q) => (
               <button
                 key={q.formatId}
                 className={task.formatId === q.formatId ? "chip on" : "chip"}
