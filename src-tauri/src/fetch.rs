@@ -72,7 +72,10 @@ pub fn fetch(app: AppHandle, fetching: State<'_, Fetching>, name: String) -> Res
                 );
             }
             Err(e) => {
-                let _ = app.emit("core://progress", FetchProgress::Failed { name, message: e });
+                let _ = app.emit(
+                    "core://progress",
+                    FetchProgress::Failed { name, message: e },
+                );
             }
         }
     });
@@ -122,10 +125,7 @@ fn run(
 
 /// 下载后强制校验：能执行、能读出版本号、版本不低于门槛（TD-CORE-004）。
 /// 返回版本号供 Done 事件使用，避免二次执行 --version。
-fn verify(
-    spec: &binresolve::ComponentSpec,
-    exe_path: &Path,
-) -> Result<String, String> {
+fn verify(spec: &binresolve::ComponentSpec, exe_path: &Path) -> Result<String, String> {
     let out = Command::new(exe_path)
         .arg(spec.version_flag)
         .stdin(std::process::Stdio::null())
@@ -135,8 +135,7 @@ fn verify(
         return Err("下载的组件无法执行（文件损坏或与本机架构不符）".into());
     }
     let text = String::from_utf8_lossy(&out.stdout);
-    let ver = binresolve::extract_version(&text)
-        .ok_or("无法从组件输出中读取版本号")?;
+    let ver = binresolve::extract_version(&text).ok_or("无法从组件输出中读取版本号")?;
     if !binresolve::version_ge(&ver, spec.min_version) {
         return Err(format!(
             "{} 版本 {} 低于最低要求 {}",
@@ -148,8 +147,8 @@ fn verify(
 
 /// 在 dir 目录树里找到名为 exe 的可执行文件，移动到 dir 根目录（TD-CORE-003）。
 fn relocate_to_dir_root(dir: &Path, exe: String) -> Result<(), String> {
-    let found =
-        find_file(dir, &exe).ok_or_else(|| format!("解压后未找到 {exe}（分发目录结构与预期不符）"))?;
+    let found = find_file(dir, &exe)
+        .ok_or_else(|| format!("解压后未找到 {exe}（分发目录结构与预期不符）"))?;
     let target = dir.join(&exe);
     if found != target {
         std::fs::rename(&found, &target)
@@ -182,12 +181,12 @@ fn download(url: &str, dest: &Path, name: &str, app: &AppHandle) -> Result<(), S
         .timeout_connect(Duration::from_secs(20))
         .build();
     let resp = agent.get(url).call().map_err(|e| {
-            let hint = download_failure_hint(name);
-            match e {
-                ureq::Error::Status(code, _) => format!("下载失败（HTTP {code}）。{hint}"),
-                ureq::Error::Transport(t) => format!("网络错误：{t}。{hint}"),
-            }
-        })?;
+        let hint = download_failure_hint(name);
+        match e {
+            ureq::Error::Status(code, _) => format!("下载失败（HTTP {code}）。{hint}"),
+            ureq::Error::Transport(t) => format!("网络错误：{t}。{hint}"),
+        }
+    })?;
 
     let total: u64 = resp
         .header("Content-Length")
@@ -202,11 +201,14 @@ fn download(url: &str, dest: &Path, name: &str, app: &AppHandle) -> Result<(), S
     let mut last_bytes: u64 = 0;
 
     loop {
-        let n = reader.read(&mut buf).map_err(|e| format!("下载中断：{e}"))?;
+        let n = reader
+            .read(&mut buf)
+            .map_err(|e| format!("下载中断：{e}"))?;
         if n == 0 {
             break;
         }
-        file.write_all(&buf[..n]).map_err(|e| format!("写入失败: {e}"))?;
+        file.write_all(&buf[..n])
+            .map_err(|e| format!("写入失败: {e}"))?;
         received += n as u64;
 
         let elapsed = last.elapsed();

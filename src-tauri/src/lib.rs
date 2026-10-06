@@ -6,12 +6,12 @@ mod probe;
 use probe::RawJson;
 use std::collections::HashMap;
 use std::process::{Command, Stdio};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::State;
 
-/// 运行中的任务句柄表，用于取消。
-#[derive(Default)]
-struct Tasks(Mutex<HashMap<String, download::DownloadHandle>>);
+/// 运行中的任务句柄表，用于取消；任务终结时由等待线程回调清理（TD-DL-008）。
+#[derive(Clone, Default)]
+struct Tasks(Arc<Mutex<HashMap<String, download::DownloadHandle>>>);
 
 /// 用户设置。前端负责持久化，这里是后端内存副本；
 /// 前端在启动与保存时通过 set_settings 同步——探测、组件检测、下载三个入口
@@ -113,7 +113,12 @@ async fn start_download(
     id: String,
     opts: download::DownloadOptions,
 ) -> Result<(), String> {
-    let handle = download::start(app, id.clone(), opts)?;
+    // 任务终结（成败皆然）时从表中移除句柄，避免慢性泄漏（TD-DL-008）
+    let cleanup_tasks = tasks.inner().clone();
+    let cleanup_id = id.clone();
+    let handle = download::start(app, id.clone(), opts, move || {
+        cleanup_tasks.0.lock().unwrap().remove(&cleanup_id);
+    })?;
     tasks.0.lock().unwrap().insert(id, handle);
     Ok(())
 }
