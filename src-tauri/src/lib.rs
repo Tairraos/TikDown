@@ -41,8 +41,8 @@ fn set_settings(settings: State<'_, Mutex<Settings>>, new_settings: Settings) {
 fn core_status(settings: State<'_, Mutex<Settings>>) -> Vec<binresolve::ComponentStatus> {
     let cfg = settings.lock().unwrap().clone();
     vec![
-        binresolve::detect_ytdlp(cfg.ytdlp_path.as_deref()),
-        binresolve::detect_ffmpeg(cfg.ffmpeg_path.as_deref()),
+        binresolve::detect(&binresolve::YTDLP, cfg.ytdlp_path.as_deref()),
+        binresolve::detect(&binresolve::FFMPEG, cfg.ffmpeg_path.as_deref()),
     ]
 }
 

@@ -67,73 +67,69 @@ pub fn app_dir() -> PathBuf {
     PathBuf::from(home).join(".tikdown")
 }
 
-/// 检测 ffmpeg。缺失时不算致命错误——只要不下载 DASH 分片就能跑，
-/// 因此这里不返回 Err，由调用方决定是否降级。
-pub fn detect_ffmpeg(configured: Option<&str>) -> ComponentStatus {
-    let candidates = ordered_candidates("ffmpeg", configured);
-    let mut found_but_old = None;
-
-    for (path, source) in candidates {
-        let Some(ver) = probe_version(&path, "-version") else {
-            continue;
-        };
-        if version_ge(&ver, FFMPEG_MIN) {
-            return ok_status("ffmpeg", &path, &ver, source);
-        }
-        found_but_old = Some((path, ver));
-    }
-
-    match found_but_old {
-        Some((path, ver)) => ComponentStatus {
-            name: "ffmpeg".into(),
-            state: ComponentState::Outdated {
-                path: path.display().to_string(),
-                version: ver,
-                required: FFMPEG_MIN.into(),
-            },
-            download_size: Some(ffmpeg_download_size()),
-            hint: Some("ffmpeg 用于合并音视频分片，版本过旧会导致下载失败".into()),
-        },
-        None => ComponentStatus {
-            name: "ffmpeg".into(),
-            state: ComponentState::Missing,
-            download_size: Some(ffmpeg_download_size()),
-            hint: Some("ffmpeg 用于合并音视频分片。可在设置里指定系统已有版本".into()),
-        },
-    }
+/// 组件描述：把两个组件的全部差异收敛到一处，detect/ytdlp_path 共用（TD-CORE-007）。
+pub struct ComponentSpec {
+    pub name: &'static str,
+    pub min_version: &'static str,
+    /// yt-dlp 用 `--version`，ffmpeg 只认 `-version`
+    pub version_flag: &'static str,
+    pub download_size: fn() -> u64,
+    pub missing_hint: &'static str,
+    pub outdated_hint: &'static str,
 }
 
-/// 检测 yt-dlp。这是必需组件，缺失即无法工作。
-pub fn detect_ytdlp(configured: Option<&str>) -> ComponentStatus {
-    let candidates = ordered_candidates("yt-dlp", configured);
+/// yt-dlp：必需组件，缺失即无法工作。
+pub const YTDLP: ComponentSpec = ComponentSpec {
+    name: "yt-dlp",
+    min_version: YTDLP_MIN,
+    version_flag: "--version",
+    download_size: || YTDLP_DOWNLOAD_SIZE,
+    missing_hint: "粘贴链接即可下载，无需注册账号",
+    outdated_hint: "yt-dlp 负责解析平台接口，版本过旧会导致解析失败",
+};
+
+/// ffmpeg：缺失时不算致命错误——只要不下载 DASH 分片就能跑，
+/// 因此 detect 不返回 Err，由调用方决定是否降级。
+pub const FFMPEG: ComponentSpec = ComponentSpec {
+    name: "ffmpeg",
+    min_version: FFMPEG_MIN,
+    version_flag: "-version",
+    download_size: ffmpeg_download_size,
+    missing_hint: "ffmpeg 用于合并音视频分片。可在设置里指定系统已有版本",
+    outdated_hint: "ffmpeg 用于合并音视频分片，版本过旧会导致下载失败",
+};
+
+/// 按探测顺序检测组件：设置里的指定 > 应用管理的副本 > 系统 PATH，
+/// 每一级都要过版本门槛。返回首个达标项；全部不达标时给出 Outdated 或 Missing。
+pub fn detect(spec: &ComponentSpec, configured: Option<&str>) -> ComponentStatus {
     let mut found_but_old = None;
 
-    for (path, source) in candidates {
-        let Some(ver) = probe_version(&path, "--version") else {
+    for (path, source) in ordered_candidates(spec.name, configured) {
+        let Some(ver) = probe_version(&path, spec.version_flag) else {
             continue;
         };
-        if version_ge(&ver, YTDLP_MIN) {
-            return ok_status("yt-dlp", &path, &ver, source);
+        if version_ge(&ver, spec.min_version) {
+            return ok_status(spec.name, &path, &ver, source);
         }
         found_but_old = Some((path, ver));
     }
 
     match found_but_old {
         Some((path, ver)) => ComponentStatus {
-            name: "yt-dlp".into(),
+            name: spec.name.into(),
             state: ComponentState::Outdated {
                 path: path.display().to_string(),
                 version: ver,
-                required: YTDLP_MIN.into(),
+                required: spec.min_version.into(),
             },
-            download_size: Some(YTDLP_DOWNLOAD_SIZE),
-            hint: Some("yt-dlp 负责解析平台接口，版本过旧会导致解析失败".into()),
+            download_size: Some((spec.download_size)()),
+            hint: Some(spec.outdated_hint.into()),
         },
         None => ComponentStatus {
-            name: "yt-dlp".into(),
+            name: spec.name.into(),
             state: ComponentState::Missing,
-            download_size: Some(YTDLP_DOWNLOAD_SIZE),
-            hint: Some("粘贴链接即可下载，无需注册账号".into()),
+            download_size: Some((spec.download_size)()),
+            hint: Some(spec.missing_hint.into()),
         },
     }
 }
@@ -231,7 +227,8 @@ pub fn version_ge(a: &str, b: &str) -> bool {
     true
 }
 
-fn exe_name(stem: &str) -> String {
+/// 可执行文件名（Windows 加 .exe 后缀）。fetch.rs 下载组件时复用。
+pub(crate) fn exe_name(stem: &str) -> String {
     if cfg!(windows) {
         format!("{}.exe", stem)
     } else {
@@ -252,14 +249,19 @@ fn ffmpeg_download_size() -> u64 {
 
 // ============ 以下为实际执行时用的路径解析 ============
 
-/// 拿 yt-dlp 的可执行路径。必须在 detect_ytdlp 确认就绪之后调用。
-pub fn ytdlp_path(configured: Option<&str>) -> Result<PathBuf, String> {
-    for (path, _) in ordered_candidates("yt-dlp", configured) {
-        if probe_version(&path, "--version").is_some() {
+/// 拿组件的可执行路径（按探测顺序，每个候选都验证可执行并读取版本）。
+pub fn resolve_path(spec: &ComponentSpec, configured: Option<&str>) -> Result<PathBuf, String> {
+    for (path, _) in ordered_candidates(spec.name, configured) {
+        if probe_version(&path, spec.version_flag).is_some() {
             return Ok(path);
         }
     }
-    Err("yt-dlp 不可用".into())
+    Err(format!("{} 不可用", spec.name))
+}
+
+/// 拿 yt-dlp 的可执行路径。必须在 detect 确认就绪之后调用。
+pub fn ytdlp_path(configured: Option<&str>) -> Result<PathBuf, String> {
+    resolve_path(&YTDLP, configured)
 }
 
 /// 拿 ffmpeg 路径。返回 None 表示没有，调用方需要降级处理。

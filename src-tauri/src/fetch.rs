@@ -1,4 +1,5 @@
 use crate::binresolve;
+use crate::binresolve::exe_name;
 use serde::Serialize;
 use std::path::PathBuf;
 use std::process::Command;
@@ -99,14 +100,6 @@ fn run(
     // 下载完立刻验证一次：坏文件必须在这里被拦住，不能留到第一次下载任务时才发现
     let _ = Command::new(&final_path).arg("--version").output();
     Ok(final_path)
-}
-
-fn exe_name(stem: &str) -> String {
-    if cfg!(windows) {
-        format!("{}.exe", stem)
-    } else {
-        stem.to_string()
-    }
 }
 
 /// 用 curl 下载。系统自带、零依赖，且能给出实时进度。
