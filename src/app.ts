@@ -81,7 +81,12 @@ export function mount(root: HTMLElement) {
         () => settingsStore.targetDir,
         (d) => settingsStore.setTargetDir(d),
         (s) => settingsStore.save(s),
-        () => settingsModal?.container.remove(),
+        // 关闭必须连实例一起清掉:只 remove DOM 会让 openSettings 误判"已打开",
+        // 弹层从此再也打不开(TD-FE-009,E2E 发现)
+        () => {
+          settingsModal?.container.remove();
+          settingsModal = null;
+        },
         () => void taskStore.refreshStatus()
       );
     }
