@@ -6,13 +6,13 @@
 
 | 业务域 | 分数 | 依据（可复算） | 目标 | 差距与行动 |
 |---|---|---|---|---|
-| 下载域（download.rs + 队列） | 2 | P0×2（TD-DL-001 serde、TD-DL-002 cancel）；函数 185 行；0 测试 | 4 | 批次 4 修复 + 拆分 + 单测 |
-| 探测域（probe.rs + probe_batch） | 2 | 串行阻塞探测；cookie 闭环缺失；explain_error 优先级 bug；0 测试 | 4 | 批次 5 |
-| 组件管理域（binresolve/fetch/CorePanel） | 2 | 设置桥断裂 P0；ffmpeg 三平台两坏；进度路由失效；0 测试 | 4 | 批次 3 |
-| 前端域 | 3 | tsc strict 通过；但 God Component 300 行、busy 卡死、伪控件、React 框架对极简 UI 过重 | 4 | 批次 6 重构（vanilla TS）+ 单测 |
-| 工程化（门禁/CI/发布） | 1 | 0 测试、0 门禁、0 CI、无 bump 脚本 | 4 | 批次 2 建立；发布链路待 CI 三问 |
-| 文档体系 | 2 | 仅内部草稿 README + research；AGENTS/ARCHITECTURE 缺失 | 4 | 批次 1 本批建立 |
-| 安全 | 3 | 无硬编码密钥、命令行无拼接注入、npm audit 0；但 CSP null、组件下载无校验和 | 4 | 批次 3/6 加固 |
+| 下载域（download 模块 + 队列） | 4 | P0×2 修复+契约测试；args/progress 纯函数 15 测；并发调度有界并有 8 测 | 5 | 真实 yt-dlp 集成测试（需联网 fixture）待补 |
+| 探测域（probe.rs + probe_batch） | 4 | 有界并发；cookie 闭环；explain_error 修复+7 测 | 5 | 真实平台登录墙场景实测（需用户配合登录） |
+| 组件管理域（binresolve/fetch/CorePanel） | 4 | 设置桥统一；ureq 流式进度；三平台解压；强制校验 | 4.5 | Windows/Linux 平台打包实测（本机仅 macOS） |
+| 前端域 | 4 | vanilla TS 三层；keyed 增量渲染；store 28 测；浏览器 E2E 通过 | 4.5 | mock IPC 的 E2E 可选进 CI |
+| 工程化（门禁/CI/发布） | 3.5 | pre-commit/pre-push 全绿；覆盖率门禁实测拦截；版本 guard 本地生效 | 4.5 | GitHub CI 待 §3.3 三问（挂起中） |
+| 文档体系 | 4 | AGENTS/ARCHITECTURE/core-beliefs/规格/GATES/TESTING 齐备,链接门禁护航 | 4.5 | 文档园丁任务定期化(可选) |
+| 安全 | 4 | CSP 最小策略;下载强制校验;无注入面;npm audit 0 | 4.5 | 下载校验和(TD-SEC-002 余项) |
 
 ## 测量口径
 
@@ -27,3 +27,4 @@
 | 日期 | 下载 | 探测 | 组件 | 前端 | 工程化 | 文档 | 安全 | 备注 |
 |---|---|---|---|---|---|---|---|---|
 | 2026-10-06 | 2 | 2 | 2 | 3 | 1 | 2 | 3 | 改造基线 8dc303f |
+| 2026-10-06 | 4 | 4 | 4 | 4 | 3.5 | 4 | 4 | 五阶段完成(harnessing 分支,CI 挂起待三问) |

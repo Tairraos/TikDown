@@ -13,12 +13,14 @@
 
 ## 覆盖率
 
-- 前端：vitest + v8，统计范围 `src/lib/**`、`src/state/**`（DOM 渲染层不计）；门禁阈值随批次 7 测试补全设定并收紧。
-- Rust：以关键路径单测替代覆盖率门禁（豁免登记见 `GATES.md`）。
+- 前端：vitest + v8，统计范围 `src/lib/types.ts`、`src/state/**`（`lib/ipc.ts` 为环境胶水，由浏览器 E2E 覆盖，豁免见 GATES.md）；门禁阈值 statements 80 / branches 60 / functions 70 / lines 80，实测 83.8/78.9/78/88。
+- Rust：以关键路径单测替代覆盖率门禁（14 测,豁免登记见 `GATES.md`）。
 
 ## 反"假测试"约定
 
-- 新增测试必须经历"破坏实现→测试变红"验证（抽样）。
+- 新增测试必须经历"破坏实现→测试变红"验证。2026-10-06 实测 3 处注入
+  （probe is_image_only 翻转 / parse_progress 估算兜底移除 / done 事件误置 failed）
+  全部被拦截,还原后全绿（决策日志）。
 - serde 契约测试的 fixture 来自前端真实发送的 JSON 形状，不从 Rust 结构体反向生成。
 
 ## 防不稳定（flaky）
