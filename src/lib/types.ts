@@ -127,9 +127,9 @@ export function detectPlatform(url: string): string | null {
   return PLATFORMS.find((p) => p.hosts.some((h) => host === h || host.endsWith("." + h)))?.label ?? null;
 }
 
-/** 从一段可能混着文字的粘贴内容里抽出所有 http 链接 */
+/** 从一段可能混着文字的粘贴内容里抽出所有 http 链接（中文标点视为边界，TD-FE-006） */
 export function extractUrls(text: string): string[] {
-  const re = /https?:\/\/[^\s"'<>）)】\]]+/g;
+  const re = /https?:\/\/[^\s"'<>）)】\]。，、；：！？「」『』（）《》]+/g;
   return Array.from(new Set(text.match(re) ?? []));
 }
 
