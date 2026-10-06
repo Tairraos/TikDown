@@ -1,5 +1,5 @@
 //! `--progress-template` 输出的解析。tab 分隔机器格式，上游改文案不影响这里。
-use super::args::{PROGRESS_PREFIX, PROGRESS_TEMPLATE};
+use super::args::PROGRESS_PREFIX;
 use super::TaskEvent;
 
 /// 解析一行进度输出：
@@ -108,11 +108,5 @@ mod tests {
     fn non_progress_lines_are_ignored() {
         assert!(parse("[download] Destination: x").is_none());
         assert!(parse("download:finished\t1\t1\t1\t1\t1\tf.mp4").is_none());
-    }
-
-    /// 模板与解析的前缀必须一致——改了模板没改解析器时这里先红。
-    #[test]
-    fn template_starts_with_progress_prefix() {
-        assert!(PROGRESS_TEMPLATE.starts_with(PROGRESS_PREFIX));
     }
 }

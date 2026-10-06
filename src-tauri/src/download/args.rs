@@ -12,14 +12,14 @@ pub const PROGRESS_TEMPLATE: &str = "download:%(progress.status)s\t%(progress.do
 
 /// 组装 yt-dlp 参数（纯函数，可单测锁定参数契约，TD-DL-005）。
 pub fn yt_dlp_args(opts: &DownloadOptions, ffmpeg: Option<&Path>) -> Vec<String> {
-    let mut args: Vec<String> = Vec::new();
-
     // ---- 核心：只下视频 ----
     // vcodec=none 的条目（纯图文帖）在这里被过滤掉，不需要我们自己判断文件类型。
-    args.push("--match-filter".into());
-    args.push("vcodec!=none".into());
-    args.push("--no-write-thumbnail".into()); // 不额外下封面
-    args.push("--no-write-info-json".into()); // 不落 .info.json
+    let mut args: Vec<String> = vec![
+        "--match-filter".into(),
+        "vcodec!=none".into(),
+        "--no-write-thumbnail".into(), // 不额外下封面
+        "--no-write-info-json".into(), // 不落 .info.json
+    ];
 
     // 画质：不指定就用 bestvideo+bestaudio 兜底
     match &opts.format_id {
@@ -123,6 +123,12 @@ mod tests {
         let a = yt_dlp_args(&o, None);
         let i = a.iter().position(|s| s == "-f").unwrap();
         assert_eq!(a[i + 1], "137+b/best");
+    }
+
+    /// 模板与解析器的 PROGRESS_PREFIX 必须一致——改了模板没改解析器时这里先红。
+    #[test]
+    fn template_starts_with_progress_prefix() {
+        assert!(PROGRESS_TEMPLATE.starts_with(PROGRESS_PREFIX));
     }
 
     #[test]

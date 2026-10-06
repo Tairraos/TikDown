@@ -18,7 +18,7 @@
     "setup": "git config core.hooksPath .githooks",
     "gate:quick": "node scripts/check-file-size.mjs && node scripts/check-structure.mjs && node scripts/check-version.mjs && node scripts/check-docs.mjs",
     "gate:rust": "cd src-tauri && cargo fmt --all -- --check && cargo clippy --all-targets -- -D warnings && cargo test",
-    "gate": "npm run --silent lint && npx tsc --noEmit && npm test && npm run --silent gate:quick && npm run --silent gate:rust && npm audit"
+    "gate": "npm run --silent lint && npx tsc --noEmit && npm test && npm run --silent gate:quick && npm run --silent gate:rust && npm_config_allow_scripts= npm audit"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

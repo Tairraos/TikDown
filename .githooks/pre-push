@@ -9,5 +9,5 @@ cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 echo "[pre-push] cargo test ..."
 cargo test --manifest-path src-tauri/Cargo.toml
 echo "[pre-push] npm audit ..."
-npm audit --omit=dev
+npm_config_allow_scripts= npm audit --omit=dev
 echo "[pre-push] 全部通过 ✓"

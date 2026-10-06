@@ -1,7 +1,5 @@
 use crate::binresolve;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
-use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
@@ -11,7 +9,7 @@ use tauri::{AppHandle, Emitter};
 mod args;
 mod progress;
 
-use args::{build_command, PROGRESS_PREFIX};
+use args::build_command;
 
 /// 任务状态机。
 #[derive(Debug, Clone, Serialize)]
