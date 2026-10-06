@@ -5,7 +5,7 @@
 - 项目 / 仓库：TikDown（`github.com/Tairraos/TikDown`）——多平台社媒视频下载器，只下载视频
 - 分支：`harnessing`（改造专用；现行工作全部在 master 且未提交，见 TD-ENG-001）
 - 计划版本 / 日期：v1.0 / 2026-10-06
-- 状态：**已确认（执行中）**
+- 状态：**已完成**（阶段 1–5 全部通过；唯一未决项：§3.3 CI 三问待用户回答，未生成任何 workflows）
 - 规则依据：`docs/HARNESS-RULES.md`（五阶段流程 §5；框架判定 §3.2 已执行）
 - 用户已给定的两点输入：① README.md 是临时开发计划，阶段 2 产出正式文档体系后**以 docs/ 为准**开发维护；② React 升级到最新版本（TD-FE-003）；图标计划更换（TD-ENG-004 / D3）
 
@@ -200,3 +200,11 @@ main.tsx                               lib.rs（命令层 + 全局 State）
 |---|---|---|---|---|
 | 2026-10-06 | 阶段 1 | 全量扫描（框架判定= Tauri；三处版本对齐 2.0.0；npm audit 0 漏洞；tsc/cargo check 基线通过；TD-38 项登记，P0×4） | （待计划确认后随批次 0 归档提交） | ① 阶段 1 未修改任何业务代码，仅新增 `docs/CI.md`、`docs/exec-plans/*`、`prompr-history.txt` 与 `.gitignore` 追加一行（§6.3 会话纪律要求）。② TD-DL-001 的 serde 缺陷在 /tmp 临时工程实证（`missing field 'target_dir'`），未触碰仓库。③ 阶段 3 进入前将先执行 D1 三问与 D8 确认。 |
 | 2026-10-06 | 计划确认 | 用户确认计划，并给出决策：批次 0 基线提交（`tauri 改造初始提交`）；D2=`_legacy-electron/` 删除（暂存区清理、README 删除该节）；D3=图标先用占位图（遗留目录暂保留）；D4=TS 版本由智能体选最可靠、**允许破坏性重构、React 可弃用**（界面简单，维护性优先）；D6=探测支持 Cookie，需要时打开浏览器由用户登录，且须设计用户获取 Cookie 的方法；D7=并发上限进设置，默认 1、极限 4 | `8dc303f` | D1 三问按 §3.3 在阶段 3 执行；D5（minify）未答，由智能体按"维护性优先 + 发布体积"决策并记录；D8 暂缓（identifier 不阻塞 CI） |
+| 2026-10-06 | 批次 1 | 文档对齐:AGENTS/ARCHITECTURE/core-beliefs/产品规格(cookie 设计)/QUALITY_SCORE/索引;research 迁入 design-docs;README 重写对外版 | `d51c4e9` | 文档从此为开发维护唯一依据 |
+| 2026-10-06 | 批次 2 | 门禁体系:eslint(TS 6.0.3 决策:lint 生态上限 <6.1,弃 7.0.2)/vitest 5/结构·大小·版本·文档四脚本/pre-commit·pre-push/GATES.md/TESTING.md/bump 脚本;**§3.3 三问已发出未获回答 → CI 生成挂起(未碰 workflows)** | `3341d72` `a643fa7` | 首批测试即发现并修复 TD-FE-006;文档门禁当场拦截 2 个死链(实测第一例) |
+| 2026-10-06 | 批次 3 | 组件管理域:set_settings 桥(P0)/detect 参数化/ureq 流式进度/三平台解压/强制校验/重入防护/PowerShell 转义 | `28ae98c` `7fa30ac` `aa527f2` | 结构门禁拦下 probe→Settings 违规边,改散字段入参保持分层 |
+| 2026-10-06 | 批次 4 | 下载域:serde camelCase(P0,实证)/cancel 杀进程(P0)/假成功防护/模块拆分(自建 T1 门禁拦下 492 行)/stderr channel 化/Tasks 泄漏清理 | `11999c6` | 8 个 Rust 单测锁定参数与进度契约 |
+| 2026-10-06 | 批次 5 | 探测域:cookieMode 三模式闭环(探测与下载同源)/probe_batch 有界并发(4)/设置面板 Cookie 区块(规格 cookie-access.md) | `6eb9754` `beb54b1` | 用户决策 D6 落地;需要登录时由用户在浏览器完成 |
+| 2026-10-06 | 批次 6 | 前端重构:**弃用 React,vanilla TS 三层**(用户授权,维护性优先)/mock IPC 支持浏览器开发与 E2E/占位图标管线/CSP/幽灵配置清理/minify 决策/浏览器 E2E 发现并修复 3 处 UI 缺陷 | `c63ba00` `de7ccd6` `a7d998a` | React 19 升级任务(TD-FE-003)以移除取代;web-gui-tester 全流程实测通过 |
+| 2026-10-06 | 批次 7 | 测试补全:前端 49 测+Rust 14 测/契约 fixture 两侧共用/覆盖率门禁(80/60/70/80)/反假测试实测 3 处注入全红/TD-PROBE-004(explain_error 子串误报,单测发现)/队列拒绝补位修复 | `d7c4d31` | 阶段 5 验收达成 |
+| 2026-10-06 | 收官 | 台账收口(全部 TD 对齐 commit)/QUALITY_SCORE 复评/施工图归档 §14 | 见收官提交 | 唯一遗留:CI 三问、正式图标源图、遗留目录去留、Windows/Linux 打包实测 |
