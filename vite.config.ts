@@ -1,6 +1,13 @@
+import { readFileSync } from "node:fs";
 import { defineConfig } from "vite";
 
+const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
+
 export default defineConfig({
+  // 构建时注入 package.json 版本(顶栏品牌展示;出包前必 bump,故恒为最新)
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   clearScreen: false,
   server: {
     port: 1420,

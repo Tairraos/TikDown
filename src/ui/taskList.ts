@@ -68,7 +68,7 @@ export class TaskListView {
     if (tasks.length === 0) {
       this.container.querySelector(".empty")?.remove();
       this.container.append(
-        el("div", { class: "empty", text: "点击左上角「粘贴/下载」,或 Ctrl+V 直接粘贴链接。图文帖会自动跳过。" })
+        el("div", { class: "empty", text: "点击顶部中间「粘贴/下载」,或 Ctrl+V 直接粘贴链接。图文帖会自动跳过。" })
       );
       return;
     }

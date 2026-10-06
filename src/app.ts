@@ -20,16 +20,24 @@ export function mount(root: HTMLElement) {
   const app = el("div", { class: "app" });
   root.append(app);
 
-  // ---- 顶栏:左 = 大粘贴按钮(v1 标志元素);右 = 目录 + 设置 ----
+  // ---- 顶栏(TD-FE-016):40px 拖拽区;左品牌版本 / 中粘贴 / 右设置 ----
+  const brand = el("div", { class: "brand" }, "TikDown", el("span", { class: "ver", text: `v${__APP_VERSION__}` }));
   const pasteBtn = el(
     "button",
     { class: "paste-btn", title: "读取剪贴板并解析(支持一次多条链接)" },
-    icon("clipboard-paste", 30),
+    icon("clipboard-paste", 18),
     el("span", { class: "paste-label", text: "粘贴/下载" })
   );
   const settingsBtn = el("button", { class: "icon-btn", title: "设置", "aria-label": "设置" }, icon("settings", 17));
 
-  app.append(el("header", { class: "topbar" }, pasteBtn, el("div", { class: "spacer" }), settingsBtn));
+  const topbar = el(
+    "header",
+    { class: "topbar", "data-tauri-drag-region": true },
+    brand,
+    pasteBtn,
+    el("div", { class: "topbar-right" }, settingsBtn)
+  );
+  app.append(topbar);
 
   const coreContainer = el("div", { class: "core-panel" });
   app.append(coreContainer);
