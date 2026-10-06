@@ -56,28 +56,44 @@ fn core_status(settings: State<'_, Mutex<Settings>>) -> Vec<binresolve::Componen
 }
 
 /// 批量探测：逐条返回，失败的单独标错不中断整批。
+///
+/// 有界并发（4）+ spawn_blocking——原实现串行且在 async 上下文里直接跑阻塞 IO，
+/// 会卡住 tokio worker 且 N 条链接总延时为各条之和（TD-PROBE-002）。
 #[tauri::command]
 async fn probe_batch(
     urls: Vec<String>,
     settings: State<'_, Mutex<Settings>>,
 ) -> Result<Vec<BatchResult>, String> {
-    // async 命令里 State 只能借用一次，这里先取出可复用的副本。
     let cfg = settings.lock().unwrap().clone();
-    let mut out = Vec::with_capacity(urls.len());
+    let sem = Arc::new(tokio::sync::Semaphore::new(4));
+    let mut handles = Vec::with_capacity(urls.len());
     for u in urls {
-        let r = match probe_one(&u, &cfg) {
-            Ok(info) => BatchResult {
-                url: u,
-                info: Some(info),
-                error: None,
-            },
-            Err(e) => BatchResult {
-                url: u,
+        let permit = sem
+            .clone()
+            .acquire_owned()
+            .await
+            .map_err(|e| format!("并发信号量不可用：{e}"))?;
+        let cfg = cfg.clone();
+        handles.push(tokio::task::spawn_blocking(move || {
+            let r = match probe_one(&u, &cfg) {
+                Ok(info) => BatchResult { url: u.clone(), info: Some(info), error: None },
+                Err(e) => BatchResult { url: u.clone(), info: None, error: Some(e) },
+            };
+            drop(permit);
+            r
+        }));
+    }
+
+    let mut out = Vec::with_capacity(handles.len());
+    for h in handles {
+        match h.await {
+            Ok(r) => out.push(r),
+            Err(e) => out.push(BatchResult {
+                url: String::new(),
                 info: None,
-                error: Some(e),
-            },
-        };
-        out.push(r);
+                error: Some(format!("探测任务异常：{e}")),
+            }),
+        }
     }
     Ok(out)
 }
