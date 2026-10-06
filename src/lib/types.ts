@@ -24,7 +24,22 @@ export interface FetchDone {
 export interface Settings {
   ytdlpPath: string | null;
   ffmpegPath: string | null;
+  /** Cookie 模式（docs/product-specs/cookie-access.md）：探测与下载同源（TD-PROBE-001） */
+  cookieMode: "none" | "browser" | "file";
+  cookieBrowser: string;
+  cookieFile: string | null;
+  /** 并发下载上限（1–4，默认 1）——前端队列使用，不同步后端 */
+  maxConcurrent: number;
 }
+
+export const DEFAULT_SETTINGS: Settings = {
+  ytdlpPath: null,
+  ffmpegPath: null,
+  cookieMode: "none",
+  cookieBrowser: "chrome",
+  cookieFile: null,
+  maxConcurrent: 1,
+};
 
 export interface Quality {
   formatId: string;
@@ -61,8 +76,8 @@ export type DownloadOptions = {
   url: string;
   targetDir: string;
   formatId: string | null;
-  useCookies: boolean;
-  browser: string | null;
+  /** Cookie 等设置与后端 State 同源（set_settings 已同步），随任务携带一份保证原子性 */
+  settings: Settings;
 };
 
 /** 与 Rust 侧 TaskEvent 对应 */

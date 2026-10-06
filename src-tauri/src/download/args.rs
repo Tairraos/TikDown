@@ -1,5 +1,6 @@
 //! yt-dlp 命令行参数契约。纯函数，可单测锁定；改动前先想清楚对上游行为的依赖。
 use super::DownloadOptions;
+use crate::probe;
 use std::path::Path;
 use std::process::Command;
 
@@ -59,10 +60,14 @@ pub fn yt_dlp_args(opts: &DownloadOptions, ffmpeg: Option<&Path>) -> Vec<String>
     args.push("--concurrent-fragments".into());
     args.push("4".into());
 
-    if opts.use_cookies {
-        let browser = opts.browser.clone().unwrap_or_else(|| "chrome".into());
-        args.push("--cookies-from-browser".into());
-        args.push(browser);
+    // Cookie 与探测共用同一份设置（TD-PROBE-001），不再有独立的 useCookies 开关
+    let s = &opts.settings;
+    for a in probe::cookie_args(
+        s.cookie_mode.as_deref(),
+        s.cookie_browser.as_deref(),
+        s.cookie_file.as_deref(),
+    ) {
+        args.push(a);
     }
 
     // 文件名模板：作者 - 标题.80B，非法字符由 yt-dlp 处理
@@ -91,8 +96,6 @@ mod tests {
             url: "https://example.com/v".into(),
             target_dir: "/tmp/dl".into(),
             format_id: None,
-            use_cookies: false,
-            browser: None,
             settings: crate::Settings::default(),
         }
     }
@@ -120,14 +123,23 @@ mod tests {
     }
 
     #[test]
-    fn args_bake_cookies_when_enabled() {
+    fn cookie_args_come_from_settings_not_per_task_flags() {
+        // TD-PROBE-001: cookie 是设置级配置,探测与下载同源
         let mut o = opts();
-        o.use_cookies = true;
+        o.settings.cookie_mode = Some("browser".into());
+        o.settings.cookie_browser = Some("firefox".into());
         let a = yt_dlp_args(&o, None);
         let i = a.iter().position(|s| s == "--cookies-from-browser").unwrap();
-        assert_eq!(a[i + 1], "chrome");
+        assert_eq!(a[i + 1], "firefox");
+
         let mut o2 = opts();
-        o2.use_cookies = false;
-        assert!(!yt_dlp_args(&o2, None).contains(&"--cookies-from-browser".to_string()));
+        o2.settings.cookie_mode = Some("file".into());
+        o2.settings.cookie_file = Some("/tmp/cookies.txt".into());
+        let a2 = yt_dlp_args(&o2, None);
+        let j = a2.iter().position(|s| s == "--cookies").unwrap();
+        assert_eq!(a2[j + 1], "/tmp/cookies.txt");
+
+        // 默认(none)不携带 cookie 参数
+        assert!(!yt_dlp_args(&opts(), None).contains(&"--cookies-from-browser".to_string()));
     }
 }

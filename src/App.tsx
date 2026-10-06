@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
 import {
+  DEFAULT_SETTINGS,
   type ComponentStatus,
   type MediaInfo,
   type Settings,
@@ -22,19 +23,17 @@ const LS_SETTINGS = "tikdown.settings";
 function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(LS_SETTINGS);
-    if (raw) return { ytdlpPath: null, ffmpegPath: null, ...JSON.parse(raw) };
+    if (raw) return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
   } catch {
     /* 存储损坏就用默认值 */
   }
-  return { ytdlpPath: null, ffmpegPath: null };
+  return { ...DEFAULT_SETTINGS };
 }
 
 export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [input, setInput] = useState("");
   const [targetDir, setTargetDir] = useState("");
-  const [useCookies, setUseCookies] = useState(false);
-  const [browser, setBrowser] = useState("chrome");
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [statuses, setStatuses] = useState<ComponentStatus[]>([]);
   const [showSettings, setShowSettings] = useState(false);
@@ -156,8 +155,6 @@ export default function App() {
             url: task.url,
             targetDir,
             formatId: task.formatId,
-            useCookies,
-            browser,
             settings,
           },
         });
@@ -167,7 +164,7 @@ export default function App() {
         );
       }
     },
-    [targetDir, useCookies, browser, settings]
+    [targetDir, settings]
   );
 
   const startAll = useCallback(() => {
@@ -235,23 +232,7 @@ export default function App() {
           disabled={busy || !coreReady}
         />
         <div className="row">
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={useCookies}
-              onChange={(e) => setUseCookies(e.target.checked)}
-            />
-            读取本机浏览器登录态
-            {useCookies && (
-              <select value={browser} onChange={(e) => setBrowser(e.target.value)}>
-                <option value="chrome">Chrome</option>
-                <option value="safari">Safari</option>
-                <option value="firefox">Firefox</option>
-                <option value="edge">Edge</option>
-                <option value="brave">Brave</option>
-              </select>
-            )}
-          </label>
+          <span className="dim-hint">登录墙内容？在设置里配置 Cookie</span>
           <div className="spacer" />
           <button className="btn" disabled={busy || !coreReady} onClick={() => addUrls(input)}>
             {busy ? "解析中…" : "解析"}

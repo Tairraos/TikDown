@@ -144,13 +144,13 @@ pub fn explain_error(stderr: &str) -> String {
     let known: [(&str, &str); 8] = [
         (
             "sign in to confirm",
-            "该内容需要登录才能访问，请在设置里开启 Cookie 读取（读取本机浏览器登录态）。",
+            "该内容需要登录才能访问。请在设置里配置 Cookie：读取浏览器登录态，或导入 cookies.txt 文件。",
         ),
-        ("private", "这是私密内容，需要用对应账号的登录态访问。"),
-        ("age", "该内容有年龄限制，需要登录态验证。"),
+        ("private", "这是私密内容。请在设置里配置已登录对应账号的 Cookie。"),
+        ("age", "该内容有年龄限制。请在设置里配置已登录的 Cookie。"),
         (
             "login required",
-            "该平台要求登录后才能查看，请开启 Cookie 读取。",
+            "该平台要求登录后才能查看。请在设置里配置 Cookie（浏览器登录态或 cookies.txt 文件）。",
         ),
         ("geo", "该内容有地区限制，当前网络无法访问。"),
         (
@@ -170,14 +170,41 @@ pub fn explain_error(stderr: &str) -> String {
         }
     }
 
-    // 兜底：取 stderr 最后一行有效内容，避免整段堆栈糊到界面上
-    stderr
+    // 兜底：取 stderr 最后一行非空内容，剥掉 ERROR: 前缀，避免整段堆栈糊到界面上。
+    // （TD-PROBE-003：原条件 `!empty && !starts_with(ERROR) || len>12` 因优先级，
+    //   任何超过 12 字符的 ERROR 行都会原样透传，与意图相悖。）
+    let line = stderr
         .lines()
         .rev()
         .map(str::trim)
-        .find(|l| !l.is_empty() && !l.starts_with("ERROR:") || l.len() > 12)
-        .unwrap_or("解析失败，未知原因")
+        .find(|l| !l.is_empty())
+        .unwrap_or("解析失败，未知原因");
+    line.strip_prefix("ERROR:")
+        .unwrap_or(line)
+        .trim()
         .chars()
         .take(180)
         .collect()
+}
+
+/// 依据 Cookie 设置生成 yt-dlp 参数。
+///
+/// 刻意以散字段而非 Settings 结构体作入参——probe 保持对设置层的零依赖（T7 白名单）。
+/// 探测与下载共用同一份配置——登录墙内容在探测步就会失败，
+/// 只给下载加 Cookie 无法形成闭环（TD-PROBE-001，规格见 docs/product-specs/cookie-access.md）。
+pub fn cookie_args(
+    mode: Option<&str>,
+    browser: Option<&str>,
+    cookie_file: Option<&str>,
+) -> Vec<String> {
+    match mode {
+        Some("browser") => {
+            vec!["--cookies-from-browser".into(), browser.unwrap_or("chrome").to_string()]
+        }
+        Some("file") => match cookie_file {
+            Some(p) if !p.is_empty() => vec!["--cookies".into(), p.to_string()],
+            _ => vec![],
+        },
+        _ => vec![],
+    }
 }

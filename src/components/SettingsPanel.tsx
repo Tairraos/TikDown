@@ -28,12 +28,20 @@ export default function SettingsPanel({
     onRefresh();
   };
 
+  const pickCookieFile = async () => {
+    const picked = await open({ multiple: false });
+    if (!picked || Array.isArray(picked)) return;
+    onChange({ ...settings, cookieMode: "file", cookieFile: picked });
+  };
+
   const versionOf = (name: string) => {
     const s = statuses.find((x) => x.name === name);
     const st = s?.state;
     if (!s || !st) return "未检测到";
     return "version" in st ? st.version : "未安装";
   };
+
+  const setMode = (mode: Settings["cookieMode"]) => onChange({ ...settings, cookieMode: mode });
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -65,15 +73,80 @@ export default function SettingsPanel({
         </section>
 
         <section className="set-block">
-          <div className="set-label">下载选项</div>
+          <div className="set-label">
+            Cookie（登录墙内容）
+            <span className="set-note">
+              二选一即可：在常用浏览器里登录平台后选「浏览器登录态」；或用「Get cookies.txt
+              LOCALLY」扩展导出后选「文件」。读取失败时先完全退出浏览器再试（详见
+              docs/product-specs/cookie-access.md）
+            </span>
+          </div>
           <label className="check">
-            <input type="checkbox" defaultChecked />
-            读取本机浏览器登录态（应对小红书 / Instagram 登录墙）
+            <input
+              type="radio"
+              name="cookieMode"
+              checked={settings.cookieMode === "none"}
+              onChange={() => setMode("none")}
+            />
+            不使用 Cookie
           </label>
           <label className="check">
-            <input type="checkbox" defaultChecked />
-            尽量请求无水印版本
+            <input
+              type="radio"
+              name="cookieMode"
+              checked={settings.cookieMode === "browser"}
+              onChange={() => setMode("browser")}
+            />
+            读取浏览器登录态
+            {settings.cookieMode === "browser" && (
+              <select
+                value={settings.cookieBrowser}
+                onChange={(e) => onChange({ ...settings, cookieBrowser: e.target.value })}
+              >
+                <option value="chrome">Chrome</option>
+                <option value="firefox">Firefox</option>
+                <option value="edge">Edge</option>
+                <option value="brave">Brave</option>
+                <option value="safari">Safari（实验性）</option>
+              </select>
+            )}
           </label>
+          <label className="check">
+            <input
+              type="radio"
+              name="cookieMode"
+              checked={settings.cookieMode === "file"}
+              onChange={() => setMode("file")}
+            />
+            cookies.txt 文件
+            {settings.cookieMode === "file" && (
+              <span className="path-custom">
+                {settings.cookieFile ?? "未选择"}
+                <button className="btn tiny ghost" onClick={pickCookieFile}>
+                  选择…
+                </button>
+              </span>
+            )}
+          </label>
+        </section>
+
+        <section className="set-block">
+          <div className="set-label">
+            并发下载上限
+            <span className="set-note">同时进行的下载数（1–4），过高可能触发平台风控</span>
+          </div>
+          <input
+            type="number"
+            min={1}
+            max={4}
+            value={settings.maxConcurrent}
+            onChange={(e) =>
+              onChange({
+                ...settings,
+                maxConcurrent: Math.min(4, Math.max(1, Number(e.target.value) || 1)),
+              })
+            }
+          />
         </section>
 
         <div className="set-foot">

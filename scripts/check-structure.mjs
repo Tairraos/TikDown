@@ -15,7 +15,7 @@ let failures = [];
 const RUST_ALLOW = {
   "src-tauri/src/lib.rs": ["binresolve", "download", "fetch", "probe"],
   "src-tauri/src/download/mod.rs": ["binresolve", "probe"],
-  "src-tauri/src/download/args.rs": [],
+  "src-tauri/src/download/args.rs": ["probe"],
   "src-tauri/src/download/progress.rs": [],
   "src-tauri/src/fetch.rs": ["binresolve"],
   "src-tauri/src/probe.rs": [],

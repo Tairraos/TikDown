@@ -3626,6 +3626,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-shell",
  "thiserror 2.0.21",
+ "tokio",
  "ureq",
  "which",
 ]

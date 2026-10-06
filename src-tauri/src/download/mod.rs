@@ -45,11 +45,7 @@ pub struct DownloadOptions {
     pub target_dir: String,
     /// 指定画质对应的 format id；None 表示自动选最优
     pub format_id: Option<String>,
-    /// 读取本机浏览器登录态（应对登录墙）
-    pub use_cookies: bool,
-    /// 浏览器名：chrome / firefox / safari / edge / brave
-    pub browser: Option<String>,
-    /// 用户在设置里指定的组件路径
+    /// 用户在设置里指定的组件路径与 Cookie 配置（探测/下载同源，TD-PROBE-001）
     pub settings: crate::Settings,
 }
 
@@ -226,13 +222,16 @@ mod tests {
             "url": "https://example.com/v",
             "targetDir": "/tmp/dl",
             "formatId": null,
-            "useCookies": false,
-            "browser": "chrome",
-            "settings": { "ytdlpPath": null, "ffmpegPath": null }
+            "settings": {
+                "ytdlpPath": null,
+                "ffmpegPath": null,
+                "cookieMode": "browser",
+                "cookieBrowser": "chrome"
+            }
         }"#;
         let o: DownloadOptions =
             serde_json::from_str(PAYLOAD).expect("camelCase payload 必须可反序列化");
         assert_eq!(o.target_dir, "/tmp/dl");
-        assert_eq!(o.browser.as_deref(), Some("chrome"));
+        assert_eq!(o.settings.cookie_mode.as_deref(), Some("browser"));
     }
 }

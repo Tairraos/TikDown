@@ -24,6 +24,15 @@ pub struct Settings {
     pub ytdlp_path: Option<String>,
     /// 用户手动指定的 ffmpeg 路径（可选）
     pub ffmpeg_path: Option<String>,
+    /// Cookie 模式：none / browser / file（产品规格见 docs/product-specs/cookie-access.md）
+    #[serde(default)]
+    pub cookie_mode: Option<String>,
+    /// cookie_mode = browser 时使用的浏览器名
+    #[serde(default)]
+    pub cookie_browser: Option<String>,
+    /// cookie_mode = file 时的 cookies.txt 路径
+    #[serde(default)]
+    pub cookie_file: Option<String>,
 }
 
 #[tauri::command]
@@ -77,15 +86,22 @@ async fn probe_batch(
 fn probe_one(url: &str, settings: &Settings) -> Result<probe::MediaInfo, String> {
     let ytdlp = binresolve::ytdlp_path(settings.ytdlp_path.as_deref())?;
 
-    let out = Command::new(&ytdlp)
-        .arg("--dump-single-json")
+    let mut cmd = Command::new(&ytdlp);
+    cmd.arg("--dump-single-json")
         .arg("--flat-playlist")
         .arg("--no-playlist")
-        .arg("--no-warnings")
-        .arg(url)
-        .stdin(Stdio::null())
-        .output()
-        .map_err(|e| format!("无法启动 yt-dlp：{}", e))?;
+        .arg("--no-warnings");
+    // 登录墙闭环（TD-PROBE-001）：探测与下载吃同一份 Cookie 设置
+    for a in probe::cookie_args(
+        settings.cookie_mode.as_deref(),
+        settings.cookie_browser.as_deref(),
+        settings.cookie_file.as_deref(),
+    ) {
+        cmd.arg(a);
+    }
+    cmd.arg(url).stdin(Stdio::null());
+
+    let out = cmd.output().map_err(|e| format!("无法启动 yt-dlp：{}", e))?;
 
     if !out.status.success() {
         let err = String::from_utf8_lossy(&out.stderr);
