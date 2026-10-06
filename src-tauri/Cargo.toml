@@ -1,0 +1,30 @@
+[package]
+name = "tikdown"
+version = "2.0.0"
+description = "多平台社媒视频下载器，只下载视频"
+edition = "2021"
+rust-version = "1.84"
+
+# 二进制与库同名会让 main.rs 里的 crate 引用指向自己，这里显式区分。
+# Tauri 约定：库名 + _lib 作为库 crate 名。
+[lib]
+name = "tikdown_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+which = "7"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

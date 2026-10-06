@@ -1,3 +1,20 @@
+# Node
 node_modules
-.prettierrc.js
 dist/
+
+# Tauri / Rust 构建产物(target-dir 已配置到仓库根 target/)
+src-tauri/target/
+target/
+src-tauri/gen/schemas/
+
+# 会话纪律(§6.3):用户提示词记录,仅本地保留,不入库
+prompr-history.txt
+
+# 工具会话数据
+.workbuddy/
+
+# 组件下载临时文件
+*.download
+
+# 系统
+.DS_Store

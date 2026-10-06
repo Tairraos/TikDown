@@ -1,88 +1,30 @@
 {
-  "name": "tiktok-downloader",
-  "productName": "TikDown",
-  "description": "Electron version downloader to download TikTok/Douyin video.",
-  "keywords": [
-    "TikTok",
-    "Douyin",
-    "video",
-    "downloader"
-  ],
-  "main": "./main.js",
-  "version": "1.2.2",
-  "author": "Tairraos",
-  "license": "MIT",
+  "name": "tikdown",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
   "scripts": {
-    "start": "electron ./main.js",
-    "debug": "electron --inspect=8888 ./main.js",
-    "buildsvg": "node tool/buildSvgSymbol.js",
-    "buildicon": "electron-icon-builder --input=./build/favicon.png --output=build --flatten",
-    "buildbackground": "tiffutil -cathidpicheck build/background.png build/background@2x.png -out build/background.tiff",
-    "shasum": "shasum -a 256 dist/TikDown-*.dmg",
-    "build:mac": "electron-builder --mac",
-    "build:win": "electron-builder --win"
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "app:dev": "tauri dev",
+    "app:build": "tauri build"
   },
   "dependencies": {
-    "electron-settings": "^4.0.2",
-    "node-downloader-helper": "^2.1.3"
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-shell": "^2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "cheerio": "^1.0.0-rc.11",
-    "electron": "19.0.1",
-    "electron-builder": "^23.0.3",
-    "electron-icon-builder": "^2.0.1"
-  },
-  "build": {
-    "appId": "com.tairraos.tikdown",
-    "productName": "TikDown",
-    "copyright": "Copyright © 2022 Tairraos",
-    "compression": "maximum",
-    "directories": {
-      "buildResources": "build",
-      "output": "dist"
-    },
-    "asar": true,
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "category": "public.app-category.utilities"
-    },
-    "dmg": {
-      "icon": "build/icon.icns",
-      "iconSize": 128,
-      "background": "build/background.tiff",
-      "contents": [
-        {
-          "x": 134,
-          "y": 289,
-          "type": "file"
-        },
-        {
-          "x": 405,
-          "y": 289,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ],
-      "window": {
-        "width": 540,
-        "height": 490
-      }
-    },
-    "win": {
-      "target": [
-        "portable",
-        "nsis"
-      ],
-      "icon": "build/icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "language": "2052",
-      "perMachine": true,
-      "allowToChangeInstallationDirectory": true
-    }
+    "@tauri-apps/cli": "^2",
+    "@tauri-apps/plugin-shell": "^2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
   }
 }
