@@ -1,4 +1,3 @@
-import { open } from "@tauri-apps/plugin-dialog";
 import { SettingsStore } from "./state/settings";
 import { TaskStore } from "./state/tasks";
 import { readClipboard } from "./lib/ipc";
@@ -28,18 +27,9 @@ export function mount(root: HTMLElement) {
     icon("clipboard-paste", 30),
     el("span", { class: "paste-label", text: "粘贴/下载" })
   );
-  const dirInput = el("input", {
-    class: "dir-input",
-    readonly: true,
-    title: "下载目录(点击修改)",
-    placeholder: "选择下载目录",
-  }) as HTMLInputElement;
-  const folderBtn = el("button", { class: "icon-btn", title: "选择下载目录", "aria-label": "选择下载目录" }, icon("folder-open", 17));
   const settingsBtn = el("button", { class: "icon-btn", title: "设置", "aria-label": "设置" }, icon("settings", 17));
 
-  app.append(
-    el("header", { class: "topbar" }, pasteBtn, el("div", { class: "spacer" }), dirInput, folderBtn, settingsBtn)
-  );
+  app.append(el("header", { class: "topbar" }, pasteBtn, el("div", { class: "spacer" }), settingsBtn));
 
   const coreContainer = el("div", { class: "core-panel" });
   app.append(coreContainer);
@@ -100,16 +90,6 @@ export function mount(root: HTMLElement) {
   const coreView = new CorePanelView(coreContainer, () => void taskStore.refreshStatus(), openSettings);
   settingsBtn.onclick = openSettings;
 
-  const pickDir = async () => {
-    const d = await open({ directory: true });
-    if (d && typeof d === "string") {
-      settingsStore.setTargetDir(d);
-      setMsg(`下载目录已设为 ${d}`);
-    }
-  };
-  folderBtn.onclick = () => void pickDir();
-  dirInput.onclick = () => void pickDir();
-
   // v1 交互:大按钮读取剪贴板 → 解析(支持多行批量)
   const paste = async () => {
     const text = await readClipboard();
@@ -126,7 +106,6 @@ export function mount(root: HTMLElement) {
 
   // ---- 渲染循环(store → view) ----
   function render() {
-    dirInput.value = settingsStore.targetDir;
     pasteBtn.disabled = taskStore.busy || !taskStore.coreReady;
     pasteBtn.classList.toggle("disabled", taskStore.busy || !taskStore.coreReady);
 

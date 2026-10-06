@@ -156,6 +156,15 @@ export class TaskStore {
   /** 手动单条启动（也作为失败后的重试入口） */
   startOne(task: Task) {
     if (!task.info?.hasVideo) return;
+    const dir = this.targetDir();
+    if (!dir) {
+      // 默认目录解析失败且用户未设置时,明确提示而不是向文件系统根写文件
+      this.tasks = this.tasks.map((t) =>
+        t.id === task.id ? { ...t, status: "failed", error: "请先在设置里选择下载目录" } : t
+      );
+      this.emit();
+      return;
+    }
     if (this.running.size >= Math.max(1, Math.min(4, this.settings().maxConcurrent))) {
       // 超出并发上限:置回 ready 让调度器排队
       return;
@@ -169,7 +178,7 @@ export class TaskStore {
       id: task.id,
       opts: {
         url: task.url,
-        targetDir: this.targetDir(),
+        targetDir: dir,
         formatId: task.formatId,
         settings: this.settings(),
       },

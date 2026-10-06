@@ -1,5 +1,5 @@
 import { DEFAULT_SETTINGS, type Settings } from "../lib/types";
-import { invoke } from "../lib/ipc";
+import { defaultDownloadDir, invoke } from "../lib/ipc";
 
 const LS_SETTINGS = "tikdown.settings";
 const LS_TARGET_DIR = "tikdown.targetDir";
@@ -33,6 +33,16 @@ export class SettingsStore {
     this.targetDir = loadTargetDir();
     // 启动即同步后端；失败不阻塞界面
     void invoke("set_settings", { newSettings: this.settings }).catch(() => {});
+    // 主界面不再有目录选择:未持久化过目录时,默认落到系统下载目录(TD-FE-008)
+    if (!this.targetDir) void this.initDefaultDir();
+  }
+
+  private async initDefaultDir() {
+    const dir = await defaultDownloadDir();
+    if (dir && !localStorage.getItem(LS_TARGET_DIR)) {
+      this.targetDir = dir;
+      this.emit();
+    }
   }
 
   onChange(fn: Listener): () => void {

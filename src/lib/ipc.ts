@@ -176,3 +176,16 @@ export async function readClipboard(): Promise<string> {
     return "https://v.douyin.com/mock-paste/";
   }
 }
+
+/** 默认下载目录:Tauri 下取系统下载目录;浏览器 mock 返回临时目录。 */
+export async function defaultDownloadDir(): Promise<string> {
+  if (isTauri) {
+    try {
+      const { downloadDir } = await import("@tauri-apps/api/path");
+      return await downloadDir();
+    } catch {
+      return "";
+    }
+  }
+  return "/tmp/tikdown-mock";
+}

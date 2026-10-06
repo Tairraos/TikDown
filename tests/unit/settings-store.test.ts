@@ -11,6 +11,7 @@ vi.mock("../../src/lib/ipc", () => ({
     return Promise.resolve(null);
   },
   listen: () => Promise.resolve(() => {}),
+  defaultDownloadDir: () => Promise.resolve("/tmp/mock-downloads"),
 }));
 
 function raw(): Settings {
@@ -56,6 +57,13 @@ describe("SettingsStore", () => {
     store.setTargetDir("/tmp/downloads");
     expect(localStorage.getItem("tikdown.targetDir")).toBe("/tmp/downloads");
     expect(seen).toEqual(["/tmp/downloads"]);
+  });
+
+  it("未持久化目录时自动解析默认下载目录(TD-FE-008)", async () => {
+    const store = new SettingsStore();
+    await vi.waitFor(() => expect(store.targetDir).toBe("/tmp/mock-downloads"));
+    // 默认目录不写入 localStorage:下次启动重新解析,用户显式设置过的才持久化
+    expect(localStorage.getItem("tikdown.targetDir")).toBeNull();
   });
 
   it("重启后从 localStorage 恢复设置与目录", () => {

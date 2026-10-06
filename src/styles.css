@@ -67,21 +67,6 @@ body {
 .paste-btn.disabled, .paste-btn:disabled { opacity: 0.45; cursor: default; }
 .paste-label { font-weight: 500; }
 
-.dir-input {
-  width: 250px;
-  max-width: 32vw;
-  padding: 6px 9px;
-  font: ui-monospace, monospace;
-  font-size: 12px;
-  color: var(--text);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  outline: none;
-  cursor: pointer;
-  text-overflow: ellipsis;
-}
-
 .icon-btn {
   display: inline-flex;
   align-items: center;
