@@ -1,0 +1,16 @@
+#!/bin/sh
+# pre-commit 快速门禁:明显问题不进仓库。全量门禁(prepush/CI):npm run gate
+set -e
+cd "$(git rev-parse --show-toplevel)"
+echo "[pre-commit] eslint ..."
+npm run --silent lint
+echo "[pre-commit] tsc ..."
+npx tsc --noEmit
+echo "[pre-commit] vitest ..."
+npx vitest run --reporter=dot 1>&2
+echo "[pre-commit] 结构/版本/文档 ..."
+node scripts/check-file-size.mjs
+node scripts/check-structure.mjs
+node scripts/check-version.mjs
+node scripts/check-docs.mjs
+echo "[pre-commit] 全部通过 ✓"

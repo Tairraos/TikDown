@@ -1,0 +1,5 @@
+[build]
+# 构建产物统一定位到仓库根 target/(§10.2)。
+# 注意:cargo 配置按 CWD 向上发现——从仓库根用 --manifest-path 跑时读不到本文件,
+# 脚本内需显式 export CARGO_TARGET_DIR="$PWD/target" 兜底。
+target-dir = "../target"

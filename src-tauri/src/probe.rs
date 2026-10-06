@@ -72,20 +72,22 @@ pub fn parse(raw: RawJson, url: &str) -> MediaInfo {
     let extractor = raw.extractor.clone().unwrap_or_else(|| "generic".into());
 
     // playlist / 多条目：取第一个含视频的条目
-    let chosen = if raw.formats.is_empty() && raw.entries.is_some() {
-        raw.entries
-            .unwrap()
-            .into_iter()
-            .find(|e| has_video_stream(e))
-            .unwrap_or_else(|| RawJson {
-                title: raw.title.clone(),
-                uploader: raw.uploader.clone(),
-                duration: raw.duration,
-                thumbnail: raw.thumbnail.clone(),
-                extractor: raw.extractor.clone(),
-                formats: vec![],
-                entries: None,
-            })
+    let chosen = if raw.formats.is_empty() {
+        match raw.entries {
+            Some(entries) => entries
+                .into_iter()
+                .find(has_video_stream)
+                .unwrap_or_else(|| RawJson {
+                    title: raw.title.clone(),
+                    uploader: raw.uploader.clone(),
+                    duration: raw.duration,
+                    thumbnail: raw.thumbnail.clone(),
+                    extractor: raw.extractor.clone(),
+                    formats: vec![],
+                    entries: None,
+                }),
+            None => raw,
+        }
     } else {
         raw
     };
@@ -144,30 +146,18 @@ pub fn explain_error(stderr: &str) -> String {
             "sign in to confirm",
             "该内容需要登录才能访问，请在设置里开启 Cookie 读取（读取本机浏览器登录态）。",
         ),
-        (
-            "private",
-            "这是私密内容，需要用对应账号的登录态访问。",
-        ),
-        (
-            "age",
-            "该内容有年龄限制，需要登录态验证。",
-        ),
+        ("private", "这是私密内容，需要用对应账号的登录态访问。"),
+        ("age", "该内容有年龄限制，需要登录态验证。"),
         (
             "login required",
             "该平台要求登录后才能查看，请开启 Cookie 读取。",
         ),
-        (
-            "geo",
-            "该内容有地区限制，当前网络无法访问。",
-        ),
+        ("geo", "该内容有地区限制，当前网络无法访问。"),
         (
             "unsupported url",
             "这个链接 yt-dlp 还不认识，可能需要升级 yt-dlp 版本。",
         ),
-        (
-            "404",
-            "内容不存在或已被删除。",
-        ),
+        ("404", "内容不存在或已被删除。"),
         (
             "http error 403",
             "被平台拒绝访问（403）。通常是登录态失效或触发了风控，稍后重试或降低频率。",

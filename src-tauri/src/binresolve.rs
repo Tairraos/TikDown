@@ -16,11 +16,19 @@ pub const FFMPEG_MIN: &str = "5.0";
 #[serde(tag = "state", rename_all = "camelCase")]
 pub enum ComponentState {
     /// 就绪，且是用应用自己下载的副本
-    Ready { path: String, version: String, source: Source },
+    Ready {
+        path: String,
+        version: String,
+        source: Source,
+    },
     /// 就绪，但用的是用户自己的，且版本比内置要求高
     ReadyExternal { path: String, version: String },
     /// 找到了但版本太旧，需要升级
-    Outdated { path: String, version: String, required: String },
+    Outdated {
+        path: String,
+        version: String,
+        required: String,
+    },
     /// 没找到，需要用户点击下载
     Missing,
 }
@@ -201,7 +209,11 @@ pub fn extract_version(text: &str) -> Option<String> {
         .take_while(|c| c.is_ascii_digit() || *c == '.')
         .collect();
     let v = v.trim_end_matches('.').to_string();
-    if v.is_empty() { None } else { Some(v) }
+    if v.is_empty() {
+        None
+    } else {
+        Some(v)
+    }
 }
 
 /// 版本比较：a >= b。段数不等时按缺 0 处理（7.1 == 7.1.0）。
@@ -231,9 +243,7 @@ fn exe_name(stem: &str) -> String {
 pub const YTDLP_DOWNLOAD_SIZE: u64 = 35 * 1024 * 1024;
 
 fn ffmpeg_download_size() -> u64 {
-    if cfg!(windows) {
-        25 * 1024 * 1024
-    } else if cfg!(target_os = "macos") {
+    if cfg!(windows) || cfg!(target_os = "macos") {
         25 * 1024 * 1024
     } else {
         40 * 1024 * 1024
@@ -254,10 +264,8 @@ pub fn ytdlp_path(configured: Option<&str>) -> Result<PathBuf, String> {
 
 /// 拿 ffmpeg 路径。返回 None 表示没有，调用方需要降级处理。
 pub fn ffmpeg_path(configured: Option<&str>) -> Option<PathBuf> {
-    for (path, _) in ordered_candidates("ffmpeg", configured) {
-        if path.exists() {
-            return Some(path);
-        }
-    }
-    None
+    ordered_candidates("ffmpeg", configured)
+        .into_iter()
+        .map(|(path, _)| path)
+        .find(|path| path.exists())
 }

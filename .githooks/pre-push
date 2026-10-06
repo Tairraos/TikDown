@@ -1,0 +1,13 @@
+#!/bin/sh
+# pre-push 全量门禁(与 CI 同集):Rust 侧检查 + 依赖漏洞扫描。
+set -e
+cd "$(git rev-parse --show-toplevel)"
+echo "[pre-push] cargo fmt ..."
+cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+echo "[pre-push] cargo clippy ..."
+cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+echo "[pre-push] cargo test ..."
+cargo test --manifest-path src-tauri/Cargo.toml
+echo "[pre-push] npm audit ..."
+npm audit --omit=dev
+echo "[pre-push] 全部通过 ✓"

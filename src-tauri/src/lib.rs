@@ -49,8 +49,16 @@ async fn probe_batch(
     let mut out = Vec::with_capacity(urls.len());
     for u in urls {
         let r = match probe_one(&u, &cfg) {
-            Ok(info) => BatchResult { url: u, info: Some(info), error: None },
-            Err(e) => BatchResult { url: u, info: None, error: Some(e) },
+            Ok(info) => BatchResult {
+                url: u,
+                info: Some(info),
+                error: None,
+            },
+            Err(e) => BatchResult {
+                url: u,
+                info: None,
+                error: Some(e),
+            },
         };
         out.push(r);
     }
@@ -76,8 +84,8 @@ fn probe_one(url: &str, settings: &Settings) -> Result<probe::MediaInfo, String>
         return Err(probe::explain_error(&err));
     }
 
-    let raw: RawJson = serde_json::from_slice(&out.stdout)
-        .map_err(|e| format!("解析 yt-dlp 输出失败：{}", e))?;
+    let raw: RawJson =
+        serde_json::from_slice(&out.stdout).map_err(|e| format!("解析 yt-dlp 输出失败：{}", e))?;
 
     Ok(probe::parse(raw, url))
 }

@@ -13,7 +13,9 @@ pub enum FetchProgress {
         total: u64,
         speed_mbps: f64,
     },
-    Failed { message: String },
+    Failed {
+        message: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -39,7 +41,7 @@ pub fn fetch(app: AppHandle, name: String) -> Result<(), String> {
     let emit = app.clone();
     let nm = name.clone();
     std::thread::spawn(move || {
-        match run(&url, zip, &exe, &emit, &nm) {
+        match run(&url, zip, exe, &emit, &nm) {
             Ok(path) => {
                 // 回读版本号，前端要拿它二次确认门槛已过
                 let version = Command::new(&path)
@@ -114,12 +116,16 @@ fn exe_name(stem: &str) -> String {
 fn download(url: &str, dest: &PathBuf, app: &AppHandle, name: &str) -> Result<(), String> {
     let mut cmd = Command::new("curl");
     cmd.arg("-fL")
-        .arg("--retry").arg("3")
-        .arg("--connect-timeout").arg("20")
-        .arg("-o").arg(dest)
+        .arg("--retry")
+        .arg("3")
+        .arg("--connect-timeout")
+        .arg("20")
+        .arg("-o")
+        .arg(dest)
         // 每秒输出一次进度，字段用 tab 分隔便于解析
         .arg("--progress-bar")
-        .arg("-w").arg("__PROGRESS__\t%{size_download}\t%{speed_download}\n")
+        .arg("-w")
+        .arg("__PROGRESS__\t%{size_download}\t%{speed_download}\n")
         .arg(url);
 
     let mut child = cmd
@@ -155,9 +161,7 @@ fn download(url: &str, dest: &PathBuf, app: &AppHandle, name: &str) -> Result<()
         });
     }
 
-    let status = child
-        .wait()
-        .map_err(|e| format!("下载中断: {}", e))?;
+    let status = child.wait().map_err(|e| format!("下载中断: {}", e))?;
 
     if !status.success() {
         let _ = std::fs::remove_file(dest);
@@ -199,8 +203,10 @@ fn unzip(archive: &PathBuf, dest: &PathBuf) -> Result<(), String> {
 fn unzip(archive: &PathBuf, dest: &PathBuf) -> Result<(), String> {
     use std::process::Stdio;
     let out = Command::new("unzip")
-        .arg("-o").arg(archive)
-        .arg("-d").arg(dest)
+        .arg("-o")
+        .arg(archive)
+        .arg("-d")
+        .arg(dest)
         .stdin(Stdio::null())
         .output()
         .map_err(|e| format!("无法解压: {}", e))?;
@@ -232,7 +238,8 @@ fn ffmpeg_url() -> String {
     if cfg!(target_os = "macos") {
         "https://evermeet.cx/ffmpeg/getrelease/ffmpeg-9.0.2.zip".into()
     } else if cfg!(windows) {
-        "https://github.com/GyanD/codexffmpeg/releases/latest/download/ffmpeg-release-full.zip".into()
+        "https://github.com/GyanD/codexffmpeg/releases/latest/download/ffmpeg-release-full.zip"
+            .into()
     } else {
         "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz".into()
     }

@@ -20,8 +20,12 @@ pub enum TaskEvent {
         filename: String,
     },
     Merging,
-    Done { path: String },
-    Failed { message: String },
+    Done {
+        path: String,
+    },
+    Failed {
+        message: String,
+    },
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -123,15 +127,15 @@ pub fn start(app: AppHandle, id: String, opts: DownloadOptions) -> Result<Downlo
         cmd.creation_flags(0x08000000);
     }
 
-    let mut child = cmd
-        .spawn()
-        .map_err(|e| format!("无法启动 yt-dlp：{}", e))?;
+    let mut child = cmd.spawn().map_err(|e| format!("无法启动 yt-dlp：{}", e))?;
 
     let stdout = child.stdout.take().ok_or("无法读取 yt-dlp 输出")?;
     let stderr = child.stderr.take().ok_or("无法读取 yt-dlp 错误输出")?;
 
     let cancel = Arc::new(AtomicBool::new(false));
-    let handle = DownloadHandle { cancel: cancel.clone() };
+    let handle = DownloadHandle {
+        cancel: cancel.clone(),
+    };
 
     let emit = app.clone();
     let ev_id = id.clone();
@@ -139,7 +143,10 @@ pub fn start(app: AppHandle, id: String, opts: DownloadOptions) -> Result<Downlo
     // 开跑先报一声，前端立即把任务置为「下载中」而不是停在「待下载」
     let _ = emit.emit(
         "task://event",
-        TaskEventWrapper { id: ev_id.clone(), event: TaskEvent::Starting },
+        TaskEventWrapper {
+            id: ev_id.clone(),
+            event: TaskEvent::Starting,
+        },
     );
 
     // 两个线程各持一份 cancel 的 Arc：进度线程用来提前退出，
@@ -164,7 +171,10 @@ pub fn start(app: AppHandle, id: String, opts: DownloadOptions) -> Result<Downlo
             if let Some(evt) = parse_progress(&line) {
                 let _ = emit.emit(
                     "task://event",
-                    TaskEventWrapper { id: ev_id.clone(), event: evt },
+                    TaskEventWrapper {
+                        id: ev_id.clone(),
+                        event: evt,
+                    },
                 );
             }
         }
@@ -186,7 +196,10 @@ pub fn start(app: AppHandle, id: String, opts: DownloadOptions) -> Result<Downlo
             if line.contains("[Merger]") || line.contains("Merging formats") {
                 let _ = emit_err.emit(
                     "task://event",
-                    TaskEventWrapper { id: ev_id_err.clone(), event: TaskEvent::Merging },
+                    TaskEventWrapper {
+                        id: ev_id_err.clone(),
+                        event: TaskEvent::Merging,
+                    },
                 );
             }
             eb.lock().unwrap().push_str(&line);
@@ -208,7 +221,12 @@ pub fn start(app: AppHandle, id: String, opts: DownloadOptions) -> Result<Downlo
         if cancel2.load(Ordering::Relaxed) {
             let _ = app2.emit(
                 "task://event",
-                TaskEventWrapper { id: id2, event: TaskEvent::Failed { message: "已取消".into() } },
+                TaskEventWrapper {
+                    id: id2,
+                    event: TaskEvent::Failed {
+                        message: "已取消".into(),
+                    },
+                },
             );
             return;
         }
@@ -228,7 +246,10 @@ pub fn start(app: AppHandle, id: String, opts: DownloadOptions) -> Result<Downlo
                 let msg = crate::probe::explain_error(&err_text);
                 let _ = app2.emit(
                     "task://event",
-                    TaskEventWrapper { id: id2, event: TaskEvent::Failed { message: msg } },
+                    TaskEventWrapper {
+                        id: id2,
+                        event: TaskEvent::Failed { message: msg },
+                    },
                 );
             }
         }
@@ -263,7 +284,11 @@ fn parse_progress(line: &str) -> Option<TaskEvent> {
     // total 缺失时退到估算值，两者都没有才算真的不知道总量
     let total = {
         let t = num(f[2]);
-        if t > 0 { t } else { num(f[3]) }
+        if t > 0 {
+            t
+        } else {
+            num(f[3])
+        }
     };
 
     let speed_bps: f64 = f[4].parse().unwrap_or(0.0);
@@ -278,12 +303,27 @@ fn parse_progress(line: &str) -> Option<TaskEvent> {
         .ok()
         .map(|s| {
             let m = s / 60;
-            if m > 0 { format!("{}分{}秒", m, s % 60) } else { format!("{}秒", s) }
+            if m > 0 {
+                format!("{}分{}秒", m, s % 60)
+            } else {
+                format!("{}秒", s)
+            }
         })
         .unwrap_or_default();
 
     let filename = f[6].rsplit('/').next().unwrap_or("").to_string();
-    let percent = if total > 0 { downloaded as f64 / total as f64 * 100.0 } else { 0.0 };
+    let percent = if total > 0 {
+        downloaded as f64 / total as f64 * 100.0
+    } else {
+        0.0
+    };
 
-    Some(TaskEvent::Progress { percent, downloaded, total, speed, eta, filename })
+    Some(TaskEvent::Progress {
+        percent,
+        downloaded,
+        total,
+        speed,
+        eta,
+        filename,
+    })
 }

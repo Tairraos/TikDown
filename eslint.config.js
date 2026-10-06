@@ -4,7 +4,7 @@ import globals from "globals";
 
 export default tseslint.config(
   // tool/ 是 Electron 时代遗留脚本(待处置),不参与现行门禁
-  { ignores: ["dist/", "src-tauri/", "node_modules/", "tool/"] },
+  { ignores: ["dist/", "target/", "src-tauri/", "node_modules/", "tool/"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

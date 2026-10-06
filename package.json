@@ -14,7 +14,11 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "setup": "git config core.hooksPath .githooks",
+    "gate:quick": "node scripts/check-file-size.mjs && node scripts/check-structure.mjs && node scripts/check-version.mjs && node scripts/check-docs.mjs",
+    "gate:rust": "cd src-tauri && cargo fmt --all -- --check && cargo clippy --all-targets -- -D warnings && cargo test",
+    "gate": "npm run --silent lint && npx tsc --noEmit && npm test && npm run --silent gate:quick && npm run --silent gate:rust && npm audit"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
