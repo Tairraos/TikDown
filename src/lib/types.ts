@@ -165,3 +165,9 @@ export function formatDuration(sec: number | null): string {
   const s = Math.floor(sec % 60);
   return m > 0 ? `${m}:${String(s).padStart(2, "0")}` : `${s}s`;
 }
+/** 设置弹层的路径检测结果(Rust check_candidate,serde camelCase) */
+export interface CheckResult {
+  ok: boolean;
+  version: string | null;
+  message: string;
+}

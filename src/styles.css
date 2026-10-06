@@ -323,3 +323,30 @@ body {
 .count.accent { color: var(--accent); }
 .count.ok { color: var(--ok); }
 .count.err { color: var(--err); }
+
+/* ---- 设置弹层:手贴路径检测(TD-FE-010)与 Cookie 同行 ---- */
+.cookie-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.cookie-row .check { margin: 0; }
+
+.check-input {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 9px;
+  font: ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  outline: none;
+}
+.check-input:focus { border-color: var(--accent); }
+
+.path-row { flex-wrap: wrap; }
+.path-row .check-input { margin: 6px 0; }
+
+.check-msg { min-height: 16px; }
+.check-msg-text { font-size: 11px; }
+.check-msg-text.ok { color: var(--ok); }
+.check-msg-text.fail { color: var(--err); }
+.check-msg-text.dim { color: var(--dim); }

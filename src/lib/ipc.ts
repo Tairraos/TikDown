@@ -122,6 +122,23 @@ function mockInvoke(cmd: string, args: Record<string, unknown> | undefined): Pro
     }
     case "fetch_component":
       return Promise.resolve(null);
+    case "check_component": {
+      // mock 规则:路径含 "bad" 一律失败(供 E2E 测失败分支),其余成功
+      const p = String(args?.path ?? "");
+      const name = String(args?.name ?? "");
+      if (p.includes("bad")) {
+        return Promise.resolve({
+          ok: false,
+          version: null,
+          message: name === "download-dir" ? "目录不存在" : "无法执行该文件",
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        version: name === "download-dir" ? null : "2026.08.19",
+        message: name === "download-dir" ? "目录可用" : "版本 2026.08.19 合格",
+      });
+    }
     default:
       return Promise.reject(new Error(`mock IPC 未实现命令: ${cmd}`));
   }
