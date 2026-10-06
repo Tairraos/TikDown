@@ -39,7 +39,7 @@
 
 1. **探测（两趟制的第 1 趟）**：前端 `probe_batch(urls)` → Rust 逐条 spawn `yt-dlp --dump-single-json`（有界并发）→ `RawJson` 解析 → `MediaInfo`（含 is_image_only 判定）→ 前端建任务。**探测与下载都必须能带 Cookie**（登录墙闭环）。
 2. **下载（第 2 趟）**：前端 `start_download` → Rust spawn `yt-dlp`（`--progress-template` 机器可读进度）→ 三个读取线程 → 事件 `task://event`（starting/progress/merging/done/failed，按任务 id 路由）。取消 = kill 子进程。
-3. **组件管理**：`core_status`（探测顺序：用户指定 > ~/.tikdown 副本 > 系统 PATH，每级过版本门槛）→ `fetch_component`（下载到 ~/.tikdown，进行中拒绝重入，完成后强制 `--version` 校验）。事件 `core://progress` / `core://done` 均携带组件名。
+3. **组件管理**：`core_status`（探测顺序：用户指定 > 系统 PATH > ~/.tikdown 副本，每级过版本门槛——TD-CORE-008 用户决策 PATH 优先）→ `fetch_component`（下载到 ~/.tikdown，进行中拒绝重入，完成后强制 `--version` 校验）。事件 `core://progress` / `core://done` 均携带组件名。
 4. **设置**：前端持久化（localStorage）+ 启动时/保存时 `set_settings` 同步后端 `State<Settings>`——**所有命令吃到的设置必须一致**。
 
 ## 目录地图

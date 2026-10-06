@@ -134,11 +134,11 @@ pub fn detect(spec: &ComponentSpec, configured: Option<&str>) -> ComponentStatus
     }
 }
 
-/// 探测顺序：**设置里的指定 > 应用管理的副本 > 系统 PATH**。
+/// 探测顺序：**设置里的指定 > 系统 PATH > 应用管理的副本**（TD-CORE-008，用户决策）。
 ///
 /// 用户显式指定的优先级最高——这是他的明确意志，应用不该覆盖。
-/// 反过来「有就用」也不行：一个 2024 年的系统 yt-dlp 会让整个应用
-/// 静默失效，所以每级都要过版本门槛。
+/// 系统 PATH 提前：用户机器上已有版本合格的组件直接引用，避免重复下载；
+/// 但版本门槛每级不变——一个 2024 年的系统 yt-dlp 依然会被跳过，落到 ~/.tikdown 副本。
 fn ordered_candidates(stem: &str, configured: Option<&str>) -> Vec<(PathBuf, Source)> {
     let mut out: Vec<(PathBuf, Source)> = Vec::new();
     let exe = exe_name(stem);
@@ -146,10 +146,10 @@ fn ordered_candidates(stem: &str, configured: Option<&str>) -> Vec<(PathBuf, Sou
     if let Some(p) = configured {
         out.push((PathBuf::from(p), Source::Configured));
     }
-    out.push((app_dir().join(&exe), Source::Managed));
     if let Ok(p) = which::which(&exe) {
         out.push((p, Source::SystemPath));
     }
+    out.push((app_dir().join(&exe), Source::Managed));
     out
 }
 
