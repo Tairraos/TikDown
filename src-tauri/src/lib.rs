@@ -127,8 +127,12 @@ fn cancel_download(tasks: State<'_, Tasks>, id: String) {
 
 /// 下载缺失组件到 ~/.tikdown
 #[tauri::command]
-async fn fetch_component(app: tauri::AppHandle, name: String) -> Result<(), String> {
-    fetch::fetch(app, name)
+async fn fetch_component(
+    app: tauri::AppHandle,
+    fetching: State<'_, fetch::Fetching>,
+    name: String,
+) -> Result<(), String> {
+    fetch::fetch(app, fetching, name)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -138,6 +142,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(Tasks::default())
         .manage(Mutex::new(Settings::default()))
+        .manage(fetch::Fetching::default())
         .invoke_handler(tauri::generate_handler![
             core_status,
             get_settings,

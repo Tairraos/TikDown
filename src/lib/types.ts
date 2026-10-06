@@ -12,8 +12,8 @@ export interface ComponentStatus {
 }
 
 export type FetchEvent =
-  | { state: "running"; received: number; total: number; speedMbps: number }
-  | { state: "failed"; message: string };
+  | { state: "running"; name: string; received: number; total: number; speedMbps: number }
+  | { state: "failed"; name: string; message: string };
 
 export interface FetchDone {
   name: string;

@@ -21,13 +21,9 @@ export default function CorePanel({
   const [progress, setProgress] = useState<Record<string, FetchEvent>>({});
 
   useEffect(() => {
+    // 事件载荷自带组件名(Rust 侧 FetchProgress 携带 name),按 name 路由,无需脆弱的闭包跟踪
     const u1 = listen<FetchEvent>("core://progress", (e) => {
-      const st = e.payload.state;
-      if (st === "failed") return;
-      const target = currentTarget();
-      if (target) {
-        setProgress((p) => ({ ...p, [target]: e.payload as FetchEvent }));
-      }
+      setProgress((p) => ({ ...p, [e.payload.name]: e.payload }));
     });
     const u2 = listen<FetchDone>("core://done", (e) => {
       setProgress((p) => {
@@ -43,9 +39,6 @@ export default function CorePanel({
     };
   }, [onRefresh]);
 
-  // 下载中只有一个组件，记住当前是哪个
-  let currentTarget: () => string | null = () => null;
-
   const blocking = statuses.filter((s) => s.name === "yt-dlp").filter((s) => {
     const st = s.state.state;
     return st === "missing" || st === "outdated";
@@ -59,7 +52,6 @@ export default function CorePanel({
           status={s}
           progress={progress[s.name]}
           onDownload={() => {
-            currentTarget = () => s.name;
             invoke("fetch_component", { name: s.name });
           }}
           onOpenSettings={onOpenSettings}
@@ -107,9 +99,13 @@ function CoreRow({
 
       {downloading && progress.state === "running" && (
         <span className="core-prog">
-          {formatBytes(progress.received)} · {progress.speedMbps.toFixed(1)} MB/s
+          {formatBytes(progress.received)}
+          {progress.total > 0 && ` / ${formatBytes(progress.total)}`} ·{" "}
+          {progress.speedMbps.toFixed(1)} MB/s
         </span>
       )}
+
+      {progress?.state === "failed" && <div className="msg">{progress.message}</div>}
 
       <div className="core-ops">
         {(st === "missing" || st === "outdated") && !downloading && (
