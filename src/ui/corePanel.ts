@@ -4,11 +4,14 @@ import { formatBytes } from "../lib/types";
 import { clear, el } from "./dom";
 
 /**
- * 核心组件面板：组件状态徽标 + 按需下载入口 + 进度/失败提示。
- * 事件载荷自带组件名（FetchProgress.name），按 name 路由（TD-CORE-002）。
+ * 核心组件面板(用户要求极简,TD-FE-014):两个 tag——
+ * 就绪 = 绿框「yt-dlp 勾」;未安装/版本过旧 = 红框「名 叉」。
+ * 不显示版本号(见设置弹层)与常驻"指定"入口(在设置里)。
+ * 未就绪保留下载/更新入口;组件下载失败显示一行原因。
  */
 export class CorePanelView {
   private progress = new Map<string, FetchEvent>();
+  private rows: ComponentStatus[] = [];
 
   constructor(
     private container: HTMLElement,
@@ -29,8 +32,6 @@ export class CorePanelView {
     });
   }
 
-  private rows: ComponentStatus[] = [];
-
   render(statuses: ComponentStatus[]) {
     this.rows = statuses;
     this.renderCurrent();
@@ -39,64 +40,45 @@ export class CorePanelView {
   private renderCurrent() {
     clear(this.container);
     for (const s of this.rows) {
-      this.container.append(this.buildRow(s, this.progress.get(s.name)));
+      this.container.append(this.buildTag(s));
     }
-    const blocking = this.rows.filter((s) => s.name === "yt-dlp" && ["missing", "outdated"].includes(s.state.state));
-    if (blocking.length > 0) {
-      this.container.append(el("div", { class: "core-hint", text: `需要 ${blocking[0].name} 才能开始下载视频。` }));
+    // 未就绪组件的下载入口 + 失败原因(保留最小操作面)
+    for (const s of this.rows) {
+      const st = s.state.state;
+      const progress = this.progress.get(s.name);
+      if ((st === "missing" || st === "outdated") && progress?.state !== "running") {
+        this.container.append(
+          el(
+            "div",
+            { class: "core-ops-row" },
+            el("button", {
+              class: "btn tiny",
+              text: `下载 ${s.name}${s.downloadSize ? `(${formatBytes(s.downloadSize)})` : ""}`,
+              onclick: () => void invoke("fetch_component", { name: s.name }),
+            }),
+            el("button", { class: "btn tiny ghost", text: "手动指定路径…", onclick: this.onOpenSettings })
+          )
+        );
+      }
+      if (progress?.state === "running") {
+        this.container.append(
+          el("span", { class: "core-prog" }, `下载 ${s.name} ${formatBytes(progress.received)} · ${progress.speedMbps.toFixed(1)} MB/s`)
+        );
+      }
+      if (progress?.state === "failed") {
+        this.container.append(el("span", { class: "check-msg-text fail", text: progress.message }));
+      }
     }
   }
 
-  private buildRow(status: ComponentStatus, progress: FetchEvent | undefined): HTMLElement {
-    const st = status.state.state;
-    const badge =
-      st === "ready" || st === "readyExternal"
-        ? { cls: "ok", text: (status.state as { version: string }).version }
-        : st === "outdated"
-          ? {
-              cls: "warn",
-              text: `${(status.state as { version: string }).version} → 需 ${(status.state as { required: string }).required}`,
-            }
-          : { cls: "err", text: "未安装" };
-
-    const progSlot = el("div", { class: "core-prog-slot" });
-    const ops = el("div", { class: "core-ops" });
-    const row = el(
-      "div",
-      { class: "core-row" },
-      el(
-        "div",
-        { class: "core-name" },
-        el("span", { class: "dot" }),
-        el("span", { text: status.name })
-      ),
-      el("span", { class: `badge ${badge.cls}`, text: badge.text }),
-      progSlot,
-      ops,
-      status.hint ? el("div", { class: "core-note", text: status.hint }) : null
+  private buildTag(s: ComponentStatus): HTMLElement {
+    const st = s.state.state;
+    const ready = st === "ready" || st === "readyExternal";
+    return el(
+      "span",
+      { class: `core-tag ${ready ? "ok" : "err"}`, title: ready ? `${s.name} 就绪` : `${s.name} 未就绪(${st === "outdated" ? "版本过旧" : "未安装"})` },
+      s.name,
+      ready ? " ✓" : " ✗"
     );
-
-    if (progress?.state === "running") {
-      progSlot.append(
-        el("span", { class: "core-prog" }, `${formatBytes(progress.received)}${progress.total > 0 ? ` / ${formatBytes(progress.total)}` : ""} · ${progress.speedMbps.toFixed(1)} MB/s`)
-      );
-    }
-    if (progress?.state === "failed") {
-      progSlot.append(el("div", { class: "msg", text: progress.message }));
-    }
-
-    const downloadBtn =
-      (st === "missing" || st === "outdated") && progress?.state !== "running"
-        ? el("button", {
-            class: "btn tiny",
-            text: `${st === "missing" ? "下载" : "更新"}${status.downloadSize ? ` ${formatBytes(status.downloadSize)}` : ""}`,
-            onclick: () => void invoke("fetch_component", { name: status.name }),
-          })
-        : null;
-    if (downloadBtn) ops.append(downloadBtn);
-    ops.append(
-      el("button", { class: "btn tiny ghost", text: "指定", title: "手动指定路径", onclick: this.onOpenSettings })
-    );
-    return row;
   }
 }

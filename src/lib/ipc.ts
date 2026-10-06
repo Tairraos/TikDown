@@ -53,9 +53,9 @@ function mockCannedInfo(url: string) {
     qualities: isImage
       ? []
       : [
-          { formatId: "137", ext: "mp4", resolution: "1080p", height: 1080, vcodec: "avc1", filesize: 21_500_000, note: null },
-          { formatId: "136", ext: "mp4", resolution: "720p", height: 720, vcodec: "avc1", filesize: 11_200_000, note: null },
-          { formatId: "135", ext: "mp4", resolution: "480p", height: 480, vcodec: "avc1", filesize: 6_100_000, note: null },
+          { formatId: "137", ext: "mp4", resolution: "1080p", height: 1080, width: 1920, vcodec: "avc1", filesize: 21_500_000, note: null },
+          { formatId: "136", ext: "mp4", resolution: "720p", height: 720, width: 1280, vcodec: "avc1", filesize: 11_200_000, note: null },
+          { formatId: "135", ext: "mp4", resolution: "480p", height: 480, width: 854, vcodec: "avc1", filesize: 6_100_000, note: null },
         ],
   };
 }
@@ -102,6 +102,7 @@ function mockInvoke(cmd: string, args: Record<string, unknown> | undefined): Pro
             id,
             state: "done",
             path: `/mock/${id}.mp4`,
+            size: 21_500_000,
           });
         } else {
           busEmit("task://event", {
@@ -121,6 +122,9 @@ function mockInvoke(cmd: string, args: Record<string, unknown> | undefined): Pro
       return Promise.resolve(null);
     }
     case "fetch_component":
+      return Promise.resolve(null);
+    case "open_with_system":
+    case "reveal_in_manager":
       return Promise.resolve(null);
     case "check_component": {
       // mock 规则:路径含 "bad" 一律失败(供 E2E 测失败分支),其余成功

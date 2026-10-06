@@ -1,5 +1,6 @@
+import { invoke } from "../lib/ipc";
 import type { Task } from "../lib/types";
-import { formatBytes, formatDuration } from "../lib/types";
+import { formatBytes, formatDuration, qualityLabel } from "../lib/types";
 import { icon } from "../lib/icons";
 import { clear, el } from "./dom";
 
@@ -102,12 +103,12 @@ export class TaskListView {
     const titleSpan = el("span", { class: "title", text: t.info?.title ?? t.url });
     const row = el(
       "div",
-      { class: `task ${t.status}` },
+      { class: `task ${t.status}`, title: t.status === "done" ? "点击播放" : undefined },
       el(
         "div",
         { class: "thumb" },
         t.info?.thumbnail
-          ? el("img", { src: t.info.thumbnail, alt: "", loading: "lazy" })
+          ? el("img", { src: httpToHttps(t.info.thumbnail), alt: "", loading: "lazy" })
           : el("div", { class: "ph", text: platform ? platform[0] : "?" })
       ),
       el(
@@ -118,8 +119,10 @@ export class TaskListView {
         el(
           "div",
           { class: "meta" },
-          sizeSpan(t),
+          doneSizeSpan(t) ?? sizeSpan(t),
+          resolutionSpan(t),
           t.info?.duration ? el("span", { class: "dim", text: formatDuration(t.info.duration) }) : null,
+          t.doneElapsedSec ? el("span", { class: "dim", text: `用时 ${t.doneElapsedSec}秒` }) : null,
           msgSpan
         ),
         progressSlot,
@@ -127,12 +130,17 @@ export class TaskListView {
       ),
       ops
     );
+    if (t.status === "done" && t.donePath) {
+      row.onclick = () => void invoke("open_with_system", { path: t.donePath });
+    }
     this.updateRow(row, t, { progressSlot, qualitySlot, ops, stateSpan, msgSpan, titleSpan });
     return { row, parts: { progressSlot, qualitySlot, ops, stateSpan, msgSpan, titleSpan } };
   }
 
   private updateRow(row: HTMLElement, t: Task, parts: RowParts) {
     row.className = `task ${t.status}`;
+    // 下载完成:点击行用系统播放器播放(TD-FE-012)
+    row.onclick = t.status === "done" && t.donePath ? () => void invoke("open_with_system", { path: t.donePath }) : null;
     // 状态与错误信息随事件更新(E2E 发现的增量更新盲区)
     parts.stateSpan.replaceChildren(STATUS_LABEL[t.status]);
     parts.stateSpan.className = `state ${t.status}`;
@@ -143,8 +151,17 @@ export class TaskListView {
 
     clear(parts.progressSlot);
     if (t.status === "downloading" || t.status === "merging") {
+      // total 缺失(DASH 常见)时 percent 恒 0:进度条改为不确定动画,状态显示已下载 MB(TD-FE-013)
+      const indeterminate = t.percent <= 0;
       parts.progressSlot.append(
-        el("div", { class: "progress" }, el("div", { class: "bar", style: `width:${Math.min(100, t.percent)}%` }))
+        el(
+          "div",
+          { class: "progress" },
+          el("div", {
+            class: indeterminate ? "bar indeterminate" : "bar",
+            style: indeterminate ? undefined : `width:${Math.min(100, t.percent)}%`,
+          })
+        )
       );
     }
 
@@ -175,8 +192,12 @@ export class TaskListView {
     clear(parts.ops);
     // 右侧状态文字(v1:任务行右缘显示「下载完成」等),下载中带百分比
     parts.ops.append(parts.stateSpan);
-    if (t.status === "downloading" || t.status === "merging") {
-      parts.stateSpan.replaceChildren(`${STATUS_LABEL[t.status]} ${Math.round(t.percent)}%`);
+    if (t.status === "downloading") {
+      parts.stateSpan.replaceChildren(
+        t.percent > 0 ? `下载中 ${Math.round(t.percent)}%` : `下载中 ${formatBytes(t.downloaded)}`
+      );
+    } else if (t.status === "merging") {
+      parts.stateSpan.replaceChildren("合成中");
     }
     if (t.status === "ready") {
       parts.ops.append(el("button", { class: "btn small", text: "下载", onclick: () => this.cb.onStart(t) }));
@@ -190,7 +211,43 @@ export class TaskListView {
         el("button", { class: "icon-btn small", title: "取消", "aria-label": "取消", onclick: () => this.cb.onCancel(t.id) }, icon("x", 14))
       );
     }
+    if (t.status === "done" && t.donePath) {
+      parts.ops.append(
+        el("button", {
+          class: "btn small ghost",
+          text: "定位",
+          title: "在 Finder 中显示",
+          onclick: (e: Event) => {
+            e.stopPropagation(); // 不触发行点击播放
+            void invoke("reveal_in_manager", { path: t.donePath });
+          },
+        })
+      );
+    }
   }
+}
+
+/** 完成态尺寸:优先 stat 的真实大小,回退探测选中档(B 站 DASH 常无 filesize,TD-FE-012) */
+function doneSizeSpan(t: Task): HTMLElement | null {
+  const qs = t.info?.qualities ?? [];
+  const fallback = qs.length === 0 ? null : (t.formatId ? qs.find((q) => q.formatId === t.formatId) : undefined)?.filesize ?? qs[0]?.filesize ?? null;
+  const size = t.doneSize ?? fallback;
+  return size ? el("span", { class: "size", text: formatBytes(size) }) : null;
+}
+
+/** 分辨率:宽×高 + 最接近的常用档标签(TD-FE-012) */
+function resolutionSpan(t: Task): HTMLElement | null {
+  const qs = t.info?.qualities ?? [];
+  if (qs.length === 0) return null;
+  const q = (t.formatId ? qs.find((x) => x.formatId === t.formatId) : undefined) ?? qs[0];
+  if (!q?.height) return null;
+  const label = qualityLabel(q.height);
+  return el("span", { class: "dim", text: q.width ? `${q.width}×${q.height} ${label}` : label });
+}
+
+/** B 站等平台缩略图常为 http://,Tauri WebView 下升级 https(CSP img-src https:) */
+function httpToHttps(url: string): string {
+  return url.replace(/^http:\/\//, "https://");
 }
 
 /** 体积显示:选中画质优先,否则取最高档;探测失败不显示。 */

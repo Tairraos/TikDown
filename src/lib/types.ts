@@ -30,6 +30,28 @@ export interface Settings {
   cookieFile: string | null;
   /** 并发下载上限（1–4，默认 1）——前端队列使用，不同步后端 */
   maxConcurrent: number;
+  /** 优先下载分辨率:自动画质时按最接近该高度下载(TD-FE-015) */
+  preferredQuality: "原画" | "4K" | "1080P" | "720P";
+}
+
+/** 优先分辨率 → yt-dlp -S res:H 的高度;原画 = null(不限) */
+export const PREFERRED_HEIGHT: Record<Settings["preferredQuality"], number | null> = {
+  "原画": null,
+  "4K": 2160,
+  "1080P": 1080,
+  "720P": 720,
+};
+
+/** 高度 → 展示标签(取最接近的常用档,TD-FE-012) */
+export function qualityLabel(height: number | null): string {
+  if (!height) return "";
+  if (height >= 4320) return "8K";
+  if (height >= 2160) return "4K";
+  if (height >= 1440) return "2K";
+  if (height >= 1080) return "1080p";
+  if (height >= 720) return "720p";
+  if (height >= 480) return "480p";
+  return `${height}p`;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -39,6 +61,7 @@ export const DEFAULT_SETTINGS: Settings = {
   cookieBrowser: "chrome",
   cookieFile: null,
   maxConcurrent: 1,
+  preferredQuality: "原画",
 };
 
 export interface Quality {
@@ -46,6 +69,7 @@ export interface Quality {
   ext: string;
   resolution: string;
   height: number | null;
+  width: number | null;
   vcodec: string;
   filesize: number | null;
   note: string | null;
@@ -75,6 +99,8 @@ export type DownloadOptions = {
   url: string;
   targetDir: string;
   formatId: string | null;
+  /** 优先分辨率高度(原画 null);自动画质时经 -S res:H 生效 */
+  preferredHeight: number | null;
   /** Cookie 等设置与后端 State 同源（set_settings 已同步），随任务携带一份保证原子性 */
   settings: Settings;
 };
@@ -92,7 +118,7 @@ export type TaskEvent =
       filename: string;
     }
   | { state: "merging" }
-  | { state: "done"; path: string }
+  | { state: "done"; path: string; size: number | null }
   | { state: "failed"; message: string };
 
 export type TaskEventWrapper = TaskEvent & { id: string };
@@ -117,6 +143,14 @@ export interface Task {
   speed: string;
   eta: string;
   formatId: string | null;
+  /** 下载开始时间(用于计算耗时) */
+  startedAt: number | null;
+  /** 完成态:最终文件路径(点击播放)/真实尺寸(stat)/耗时秒 */
+  donePath: string | null;
+  doneSize: number | null;
+  doneElapsedSec: number | null;
+  /** 下载中最近一次已读字节(total 缺失时按 MB 展示,TD-FE-013) */
+  downloaded: number;
 }
 
 /** 平台识别：用于 UI 上打标签，让用户一眼知道这条是哪个平台的 */

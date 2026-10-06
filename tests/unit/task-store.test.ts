@@ -9,6 +9,7 @@ const settings: Settings = {
   cookieBrowser: "chrome",
   cookieFile: null,
   maxConcurrent: 1,
+  preferredQuality: "原画",
 };
 
 /** mock IPC 层:可编程的 probe_batch / start_download,驱动 store 的纯逻辑测试 */
@@ -163,6 +164,17 @@ describe("TaskStore 事件路由", () => {
       expect(store.tasks[0].status).toBe("done");
       expect(store.tasks[1].status).toBe("downloading"); // 补位
     });
+  });
+
+  it("done 事件记录真实尺寸与耗时", async () => {
+    const store = storeWith(1);
+    await store.addUrls("https://a.com/1");
+    store.startOne(store.tasks[0]);
+    expect(store.tasks[0].startedAt).not.toBeNull();
+    store.handleEvent({ id: "1", state: "done", path: "/x.mp4", size: 21_500_000 } as never);
+    expect(store.tasks[0].donePath).toBe("/x.mp4");
+    expect(store.tasks[0].doneSize).toBe(21_500_000);
+    expect(store.tasks[0].doneElapsedSec).toBeGreaterThanOrEqual(1);
   });
 
   it("failed 事件写入错误信息", async () => {

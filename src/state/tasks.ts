@@ -6,7 +6,7 @@ import type {
   Task,
   TaskEventWrapper,
 } from "../lib/types";
-import { extractUrls } from "../lib/types";
+import { extractUrls, PREFERRED_HEIGHT } from "../lib/types";
 
 type Listener = () => void;
 
@@ -102,37 +102,40 @@ export class TaskStore {
       ];
     } catch (e) {
       // 整批探测失败也要让用户看见,而不是输入框静默卡死
-      this.tasks = [
-        ...urls.map(
-          (url) =>
-            ({
-              id: this.nextId(),
-              url,
-              status: "failed",
-              info: null,
-              error: `解析失败：${String(e)}`,
-              percent: 0,
-              speed: "",
-              eta: "",
-              formatId: null,
-            }) satisfies Task
-        ),
-        ...this.tasks,
-      ];
+      this.tasks = [...urls.map((url) => this.errTask(url, `解析失败：${String(e)}`)), ...this.tasks];
     } finally {
       this.busy = false;
       this.emit();
     }
   }
 
+  /** 统一的失败任务构造 */
+  private errTask(url: string, error: string): Task {
+    return {
+      id: this.nextId(),
+      url,
+      status: "failed",
+      info: null,
+      error,
+      percent: 0,
+      speed: "",
+      eta: "",
+      formatId: null,
+      startedAt: null,
+      donePath: null,
+      doneSize: null,
+      doneElapsedSec: null,
+      downloaded: 0,
+    };
+  }
+
   private buildTask(r: BatchResult): Task {
-    const id = this.nextId();
     if (r.error) {
-      return { id, url: r.url, status: "failed", info: null, error: r.error, percent: 0, speed: "", eta: "", formatId: null };
+      return this.errTask(r.url, r.error);
     }
     const status = r.info?.isImageOnly ? "skipped" : "ready";
     return {
-      id,
+      id: this.nextId(),
       url: r.url,
       status,
       info: r.info,
@@ -141,6 +144,11 @@ export class TaskStore {
       speed: "",
       eta: "",
       formatId: null,
+      startedAt: null,
+      donePath: null,
+      doneSize: null,
+      doneElapsedSec: null,
+      downloaded: 0,
     };
   }
 
@@ -171,7 +179,9 @@ export class TaskStore {
     }
     this.running.add(task.id);
     this.tasks = this.tasks.map((t) =>
-      t.id === task.id ? { ...t, status: "downloading", percent: 0, error: null } : t
+      t.id === task.id
+        ? { ...t, status: "downloading", percent: 0, error: null, startedAt: Date.now() }
+        : t
     );
     this.emit();
     void invoke("start_download", {
@@ -180,6 +190,7 @@ export class TaskStore {
         url: task.url,
         targetDir: dir,
         formatId: task.formatId,
+        preferredHeight: PREFERRED_HEIGHT[this.settings().preferredQuality],
         settings: this.settings(),
       },
     }).catch((e) => {
@@ -225,13 +236,29 @@ function applyEvent(task: Task, evt: Record<string, unknown>): Task {
     case "starting":
       return { ...task, status: "downloading", percent: 0 };
     case "progress": {
-      const p = evt as unknown as { percent: number; speed: string; eta: string };
-      return { ...task, status: "downloading", percent: p.percent, speed: p.speed, eta: p.eta };
+      const p = evt as unknown as { percent: number; downloaded: number; speed: string; eta: string };
+      return {
+        ...task,
+        status: "downloading",
+        percent: p.percent,
+        speed: p.speed,
+        eta: p.eta,
+        downloaded: p.downloaded,
+      } as Task;
     }
     case "merging":
       return { ...task, status: "merging" };
-    case "done":
-      return { ...task, status: "done", percent: 100 };
+    case "done": {
+      const startedAt = task.startedAt;
+      return {
+        ...task,
+        status: "done",
+        percent: 100,
+        donePath: String(evt.path ?? ""),
+        doneSize: typeof evt.size === "number" ? evt.size : null,
+        doneElapsedSec: startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 1000)) : null,
+      };
+    }
     case "failed":
       return { ...task, status: "failed", error: String(evt.message ?? "下载失败") };
     default:

@@ -324,6 +324,37 @@ body {
 .count.ok { color: var(--ok); }
 .count.err { color: var(--err); }
 
+/* ---- 组件 tag(绿勾/红叉,TD-FE-014) ---- */
+.core-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1.5px solid;
+}
+.core-tag.ok { color: var(--ok); border-color: var(--ok); background: rgba(47, 158, 68, 0.07); }
+.core-tag.err { color: var(--err); border-color: var(--err); background: rgba(214, 69, 69, 0.06); }
+.core-ops-row { display: inline-flex; align-items: center; gap: 6px; padding-top: 2px; }
+
+/* total 缺失时的不确定进度条(TD-FE-013) */
+.bar.indeterminate {
+  width: 100%;
+  background: linear-gradient(90deg, rgba(47, 158, 68, 0.25) 0%, var(--accent) 50%, rgba(47, 158, 68, 0.25) 100%);
+  background-size: 200% 100%;
+  animation: bar-slide 1.2s linear infinite;
+}
+@keyframes bar-slide {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+/* 完成任务行可点击播放 */
+.task.done { cursor: pointer; }
+.task.done:hover { border-color: var(--accent); }
+
 /* ---- 设置弹层:手贴路径检测(TD-FE-010)与 Cookie 同行 ---- */
 .cookie-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .cookie-row .check { margin: 0; }

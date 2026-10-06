@@ -167,6 +167,27 @@ export class SettingsPanelView {
       )
     );
 
+    // ---- 优先分辨率(TD-FE-015) ----
+    const qualityRow = el("div", { class: "cookie-row" });
+    for (const q of ["原画", "4K", "1080P", "720P"] as const) {
+      qualityRow.append(
+        this.radio(q, s.preferredQuality === q, () => this.set({ ...s, preferredQuality: q }))
+      );
+    }
+    sheet.append(
+      el(
+        "section",
+        { class: "set-block" },
+        el(
+          "div",
+          { class: "set-label" },
+          "优先下载分辨率",
+          el("span", { class: "set-note", text: "画质可选的源按最接近此高度下载;任务里手动选过画质则以手动为准" })
+        ),
+        qualityRow
+      )
+    );
+
     // ---- 并发上限 ----
     const num = el("input", { type: "number", min: "1", max: "4" }) as HTMLInputElement;
     num.value = String(s.maxConcurrent);
