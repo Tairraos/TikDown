@@ -47,16 +47,26 @@
 
 | 问题 | 用户回答 | 时间 |
 |---|---|---|
-| 是否生成 GitHub CI 配置 | **待回答**（2026-10-06 已通过交互问卷逐条询问，未获回答；按 §3.3 硬性约束，未回答前不生成/不修改任何 `.github/workflows/` 文件，也不得预设默认） | 2026-10-06 |
-| 目标平台（多选）windows / mac / ubuntu | 待回答（仅当问 1 = 是时有效） | 2026-10-06 |
-| Release 发布方式：直接发布 / 先出 draft | 待回答（仅当问 1 = 是时有效） | 2026-10-06 |
+| 是否生成 GitHub CI 配置 | **是** | 2026-10-06（二次询问获得回答） |
+| 目标平台（多选）windows / mac / ubuntu | **三平台全选**：mac（arm64 + x86_64 双架构）+ windows + ubuntu | 2026-10-06 |
+| Release 发布方式：直接发布 / 先出 draft | **先出 draft**（CI 建 draft 并传产物，用户在 GitHub 网页检查后手动发布；**无自动转正兜底**） | 2026-10-06 |
+| 触发时机（用户补充） | **不自动 trigger tag**：用户合并到 master 后自行打 tag 触发；harnessing 分支保留至稳定再合并 | 2026-10-06 |
 
 ## 4. 落地说明
 
-（待阶段 3 依据三问答案回填：workflow 文件、触发条件、matrix 与平台对应、releaseDraft 说明、与现有配置的关系。）
+- workflow 文件：`.github/workflows/ci.yml`（Verify）+ `.github/workflows/release.yml`（Release）
+- 触发条件：
+  - Verify：分支 push 与 PR（`branches: ["**"]` 排除 tag，避免与 Release 双重编译）；frontend（ubuntu，lint/tsc/vitest/gate:quick/build）+ native（macOS，fmt/clippy/cargo test）双 job
+  - Release：push `v*` tag；guard job 校验 tag==package.json 版本（不一致即红，修复指引指向 `_bump_version.py`）并预建 **draft** Release；build matrix `fail-fast: false`
+- matrix 与平台对应：mac 双架构（`--target aarch64-apple-darwin` / `x86_64-apple-darwin`，macos-latest）+ windows（windows-latest）+ ubuntu（**ubuntu-22.04**，装 libwebkit2gtk-4.1 等 Tauri v2 依赖）
+- 与发布方式的对应：`tauri-action` 设 **releaseDraft: true**；**未添加** `gh release edit --draft=false` 自动转正兜底（用户选 draft，§3.3 明令禁止）
+- 与现有配置的关系：全新生成（此前无任何 CI）
+- 触发方式：用户合并 master 后手动 `git tag v2.0.0 && git push origin v2.0.0`（不提供删 tag 重打的 release 脚本——用户明确要求手动控制触发）
+- 构建失败排障：notify-failure job 输出 `::error::` 注解（无认证可读）；常见原因清单在 GATES.md
 
 ## 5. 变更历史
 
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-10-06 | 创建本文件；完成框架判定（Tauri）与现状盘点 | Harness 改造阶段 1（HARNESS-RULES §3.2 / §5） |
+| 2026-10-06 | §3.3 三问获得回答并落地 ci.yml + release.yml | 用户确认:三平台 / draft / 手动打 tag |

@@ -1,0 +1,105 @@
+name: Release
+
+# 触发:推送 v* tag(用户合并到 master 后手动打 tag,不自动触发)
+on:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: guard (tag 版本校验 + 预建 draft Release)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 校验 tag 与 package.json 版本一致(§6.1)
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          echo "tag=$TAG_VERSION package.json=$PKG_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::tag 版本($TAG_VERSION)与 package.json($PKG_VERSION)不一致。修复:python3 scripts/_bump_version.py <版本> 后重新打 tag"
+            exit 1
+          fi
+      # 用户选择「先出 draft」:guard 只预建草稿(保留 generate-notes),
+      # 严禁加 gh release edit --draft=false 自动转正兜底(§3.3 / §10.1)
+      - name: 预建 draft Release(已存在则跳过)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 && {
+            echo "Release 已存在,跳过创建"
+            exit 0
+          }
+          gh release create "$GITHUB_REF_NAME" --draft --generate-notes --title "TikDown $GITHUB_REF_NAME"
+
+  build:
+    name: build (${{ matrix.label }})
+    needs: guard
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: mac (arm64)
+            platform: macos-latest
+            target: aarch64-apple-darwin
+            args: --target aarch64-apple-darwin
+          - label: mac (x86_64)
+            platform: macos-latest
+            target: x86_64-apple-darwin
+            args: --target x86_64-apple-darwin
+          - label: windows
+            platform: windows-latest
+            target: ""
+            args: ""
+          - label: ubuntu
+            platform: ubuntu-22.04
+            target: ""
+            args: ""
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: 安装 Linux 依赖(ubuntu-22.04 包名,§10.1)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - run: npm ci
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "TikDown ${{ github.ref_name }}"
+          releaseBody: "多平台社媒视频下载器。资产附 SHA-256 校验值见 Release 说明;macOS 首次运行需右键打开以绕过 Gatekeeper。"
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+
+  # 构建失败时把日志尾部写成 check-run 注解——无管理员权限时 API 拉日志 403,
+  # 注解是无认证可读的唯一排障通道(§10.1)
+  notify-failure:
+    name: 构建失败注解
+    needs: [guard, build]
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+      - name: 标注失败的 matrix 作业
+        run: |
+          echo "::error::Release 构建失败:在 Actions 页查看失败的 matrix 作业日志(mac arm64 / mac x86_64 / windows / ubuntu)。常见原因见 docs/CI.md 与 GATES.md。"

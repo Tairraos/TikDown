@@ -1,0 +1,51 @@
+name: Verify
+
+# 触发:分支 push 与 PR;tag 推送不跑 Verify,避免与 Release 双重编译(§10.1)
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: frontend (lint / tsc / test / build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Unit tests (with coverage gate)
+        run: npm test
+      - name: Structure / version / docs gates
+        run: npm run gate:quick
+      - name: Build
+        run: npm run build
+
+  native:
+    name: native (fmt / clippy / test)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Format
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+      - name: Clippy
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+      - name: Tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml
