@@ -21,7 +21,8 @@ pub fn yt_dlp_args(opts: &DownloadOptions, ffmpeg: Option<&Path>) -> Vec<String>
         "--no-write-info-json".into(), // 不落 .info.json
     ];
 
-    // 画质：不指定就用 bestvideo+bestaudio 兜底
+    // 画质：任务级 format_id 显式指定时优先;否则按设置的优先分辨率排序
+    //（-S res:H 让 yt-dlp 选最接近目标高度的组合,TD-FE-015）
     match &opts.format_id {
         Some(f) => {
             args.push("-f".into());
@@ -30,6 +31,10 @@ pub fn yt_dlp_args(opts: &DownloadOptions, ffmpeg: Option<&Path>) -> Vec<String>
         None => {
             args.push("-f".into());
             args.push("bv*+ba/b".into());
+            if let Some(h) = opts.preferred_height.filter(|h| *h > 0) {
+                args.push("-S".into());
+                args.push(format!("res:{h}"));
+            }
         }
     }
 
@@ -99,8 +104,26 @@ mod tests {
             url: "https://example.com/v".into(),
             target_dir: "/tmp/dl".into(),
             format_id: None,
+            preferred_height: None,
             settings: crate::Settings::default(),
         }
+    }
+
+    #[test]
+    fn preferred_height_bakes_res_sort_when_auto_quality() {
+        // TD-FE-015: 自动画质时按设置优先分辨率排序(-S res:H 选最接近)
+        let mut o = opts();
+        o.preferred_height = Some(720);
+        let a = yt_dlp_args(&o, None);
+        let i = a.iter().position(|s| s == "-S").expect("应有 -S 排序参数");
+        assert_eq!(a[i + 1], "res:720");
+        // 原画(None)不带 -S
+        assert!(!yt_dlp_args(&opts(), None).contains(&"-S".to_string()));
+        // 任务级 format_id 显式指定时不加 -S(用户选择优先)
+        let mut o2 = opts();
+        o2.format_id = Some("137".into());
+        o2.preferred_height = Some(720);
+        assert!(!yt_dlp_args(&o2, None).contains(&"-S".to_string()));
     }
 
     #[test]

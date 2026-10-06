@@ -24,6 +24,7 @@ pub struct Quality {
     pub ext: String,
     pub resolution: String,
     pub height: Option<i64>,
+    pub width: Option<i64>,
     pub vcodec: String,
     pub filesize: Option<i64>,
     pub note: Option<String>,
@@ -55,6 +56,8 @@ struct RawFormat {
     ext: Option<String>,
     #[serde(default)]
     height: Option<i64>,
+    #[serde(default)]
+    width: Option<i64>,
     #[serde(default)]
     vcodec: Option<String>,
     #[serde(default)]
@@ -103,6 +106,7 @@ pub fn parse(raw: RawJson, url: &str) -> MediaInfo {
                 .map(|h| format!("{}p", h))
                 .unwrap_or_else(|| "audio only".into()),
             height: f.height,
+            width: f.width,
             vcodec: f.vcodec.clone().unwrap_or_default(),
             filesize: f.filesize,
             note: f.format_note.clone(),
@@ -235,6 +239,7 @@ mod tests {
             format_id: Some("f1".into()),
             ext: Some("mp4".into()),
             height: Some(720),
+            width: Some(1280),
             vcodec: Some(vcodec.into()),
             filesize: None,
             format_note: None,

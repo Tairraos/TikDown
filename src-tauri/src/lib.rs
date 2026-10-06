@@ -173,6 +173,42 @@ fn cancel_download(tasks: State<'_, Tasks>, id: String) {
     }
 }
 
+/// 用系统默认程序打开文件(完成的视频交系统播放器,TD-FE-012)
+#[tauri::command]
+fn open_with_system(path: String) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    let result = Command::new("open").arg(&path).spawn();
+    #[cfg(target_os = "windows")]
+    let result = Command::new("explorer").arg(&path).spawn();
+    #[cfg(target_os = "linux")]
+    let result = Command::new("xdg-open").arg(&path).spawn();
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    let result = Err("不支持的平台".into());
+    result.map(|_| ()).map_err(|e| format!("无法打开: {e}"))
+}
+
+/// 在系统文件管理器中定位文件(Finder「显示原身」,TD-FE-012)
+#[tauri::command]
+fn reveal_in_manager(path: String) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    let result = Command::new("open").args(["-R", &path]).spawn();
+    #[cfg(target_os = "windows")]
+    let result = Command::new("explorer")
+        .arg(format!("/select,{path}"))
+        .spawn();
+    #[cfg(target_os = "linux")]
+    let result = match std::path::Path::new(&path).parent() {
+        Some(dir) => Command::new("xdg-open").arg(dir).spawn(),
+        None => Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "无父目录",
+        )),
+    };
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    let result = Err("不支持的平台".into());
+    result.map(|_| ()).map_err(|e| format!("无法定位: {e}"))
+}
+
 /// 设置弹层的路径检测：手贴的组件路径/下载目录，存在 + 版本合适才通过（TD-FE-010）
 #[tauri::command]
 fn check_component(name: String, path: String) -> pathcheck::CheckResult {
@@ -205,7 +241,9 @@ pub fn run() {
             start_download,
             cancel_download,
             fetch_component,
-            check_component
+            check_component,
+            open_with_system,
+            reveal_in_manager
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

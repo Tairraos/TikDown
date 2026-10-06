@@ -28,6 +28,8 @@ pub enum TaskEvent {
     Merging,
     Done {
         path: String,
+        /// 最终文件真实大小(字节;stat 失败为 null)
+        size: Option<u64>,
     },
     Failed {
         message: String,
@@ -43,6 +45,9 @@ pub struct DownloadOptions {
     pub target_dir: String,
     /// 指定画质对应的 format id；None 表示自动选最优
     pub format_id: Option<String>,
+    /// 设置里的优先分辨率高度(如 2160/1080/720;None=原画即不限),自动画质时经 -S res:H 生效
+    #[serde(default)]
+    pub preferred_height: Option<u32>,
     /// 用户在设置里指定的组件路径与 Cookie 配置（探测/下载同源，TD-PROBE-001）
     pub settings: crate::Settings,
 }
@@ -186,7 +191,15 @@ pub fn start(
         } else {
             match status {
                 Ok(s) if s.success() && !final_path.is_empty() => {
-                    let _ = emit_event(&emit_w, &id_w, TaskEvent::Done { path: final_path });
+                    let size = std::fs::metadata(&final_path).ok().map(|m| m.len());
+                    let _ = emit_event(
+                        &emit_w,
+                        &id_w,
+                        TaskEvent::Done {
+                            path: final_path,
+                            size,
+                        },
+                    );
                 }
                 Ok(s) if s.success() => {
                     // exit 0 但没有 after_move 路径 = match-filter 把条目全滤掉了（TD-DL-003），
