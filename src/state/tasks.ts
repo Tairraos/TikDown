@@ -44,19 +44,21 @@ export class TaskStore {
 
   /** 订阅下载事件：按 id 路由到对应任务 */
   private async watchEvents() {
-    await listen<TaskEventWrapper>("task://event", (evt) => {
-      const { id, ...event } = evt;
-      this.tasks = this.tasks.map((t) => (t.id !== id ? t : applyEvent(t, event)));
-      const task = this.tasks.find((t) => t.id === id);
-      if (task && isTerminal(task.status)) {
-        this.running.delete(id);
-        this.startNext();
-      }
-      this.emit();
-    });
-    await listen("core://progress", () => {
-      /* 组件下载进度由 CorePanel 自行订阅渲染 */
-    });
+    await listen<TaskEventWrapper>("task://event", (evt) => this.handleEvent(evt));
+  }
+
+  /**
+   * 任务事件处理（公开：便于测试与未来事件重放）。
+   * 终态任务从并发槽位移除并立即补位调度（TD-DL-004）。
+   */
+  handleEvent({ id, ...event }: TaskEventWrapper) {
+    this.tasks = this.tasks.map((t) => (t.id !== id ? t : applyEvent(t, event)));
+    const task = this.tasks.find((t) => t.id === id);
+    if (task && isTerminal(task.status)) {
+      this.running.delete(id);
+      this.startNext();
+    }
+    this.emit();
   }
 
   async refreshStatus() {
@@ -172,11 +174,13 @@ export class TaskStore {
         settings: this.settings(),
       },
     }).catch((e) => {
+      // 后端拒收(如 yt-dlp 不可用)同样是终态:释放槽位并补位,与 failed 事件路径一致
       this.running.delete(task.id);
       this.tasks = this.tasks.map((t) =>
         t.id === task.id ? { ...t, status: "failed", error: String(e) } : t
       );
       this.emit();
+      this.startNext();
     });
   }
 

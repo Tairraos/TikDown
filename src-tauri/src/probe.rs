@@ -139,13 +139,17 @@ fn has_video_stream(raw: &RawJson) -> bool {
 pub fn explain_error(stderr: &str) -> String {
     let s = stderr.to_lowercase();
 
-    let known: [(&str, &str); 8] = [
+    let known: [(&str, &str); 9] = [
         (
             "sign in to confirm",
             "该内容需要登录才能访问。请在设置里配置 Cookie：读取浏览器登录态，或导入 cookies.txt 文件。",
         ),
         ("private", "这是私密内容。请在设置里配置已登录对应账号的 Cookie。"),
-        ("age", "该内容有年龄限制。请在设置里配置已登录的 Cookie。"),
+        // 注意:不能用裸 "age" 作关键词——"message"/"storage" 等词都含 "age",
+        // 会把任意错误误报成年龄限制(单测发现)。yt-dlp 的实际输出是:
+        // "Confirmed age restriction" / "Sign in to confirm your age"。
+        ("age restriction", "该内容有年龄限制。请在设置里配置已登录的 Cookie。"),
+        ("confirm your age", "该内容有年龄限制。请在设置里配置已登录的 Cookie。"),
         (
             "login required",
             "该平台要求登录后才能查看。请在设置里配置 Cookie（浏览器登录态或 cookies.txt 文件）。",
@@ -197,12 +201,100 @@ pub fn cookie_args(
 ) -> Vec<String> {
     match mode {
         Some("browser") => {
-            vec!["--cookies-from-browser".into(), browser.unwrap_or("chrome").to_string()]
+            vec![
+                "--cookies-from-browser".into(),
+                browser.unwrap_or("chrome").to_string(),
+            ]
         }
         Some("file") => match cookie_file {
             Some(p) if !p.is_empty() => vec!["--cookies".into(), p.to_string()],
             _ => vec![],
         },
         _ => vec![],
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn raw(formats: Vec<RawFormat>) -> RawJson {
+        RawJson {
+            title: Some("测试视频".into()),
+            uploader: Some("up".into()),
+            duration: Some(60.0),
+            thumbnail: None,
+            extractor: Some("mock".into()),
+            formats,
+            entries: None,
+        }
+    }
+
+    fn fmt(vcodec: &str) -> RawFormat {
+        RawFormat {
+            format_id: Some("f1".into()),
+            ext: Some("mp4".into()),
+            height: Some(720),
+            vcodec: Some(vcodec.into()),
+            filesize: None,
+            format_note: None,
+            url: Some("https://x/f.mp4".into()),
+        }
+    }
+
+    #[test]
+    fn parse_marks_image_only_when_all_codecs_are_none() {
+        let info = parse(raw(vec![fmt("none")]), "https://a.com/1");
+        assert!(!info.has_video);
+        assert!(info.is_image_only);
+        assert!(info.qualities.is_empty());
+    }
+
+    #[test]
+    fn parse_keeps_video_entry_and_filters_audio_only_formats() {
+        let info = parse(raw(vec![fmt("none"), fmt("avc1")]), "https://a.com/1");
+        assert!(info.has_video);
+        assert!(!info.is_image_only);
+        assert_eq!(info.qualities.len(), 1); // vcodec=none 的格式不进画质列表
+    }
+
+    #[test]
+    fn parse_picks_first_video_entry_from_playlist() {
+        let mut playlist = raw(vec![]);
+        playlist.entries = Some(vec![raw(vec![fmt("none")]), raw(vec![fmt("avc1")])]);
+        let info = parse(playlist, "https://a.com/pl");
+        assert!(info.has_video, "应选中第一个含视频流的条目");
+    }
+
+    #[test]
+    fn explain_error_maps_login_wall() {
+        let msg = explain_error("ERROR: Sign in to confirm you're not a bot");
+        assert!(msg.contains("Cookie"), "登录墙应指向 Cookie 配置: {msg}");
+    }
+
+    #[test]
+    fn explain_error_fallback_strips_error_prefix() {
+        let msg = explain_error("WARNING: x\nERROR: some long failure message here");
+        assert!(
+            !msg.starts_with("ERROR:"),
+            "兜底行应剥掉 ERROR: 前缀: {msg}"
+        );
+        assert!(msg.contains("some long failure"));
+    }
+
+    #[test]
+    fn cookie_args_modes() {
+        assert!(cookie_args(None, None, None).is_empty());
+
+        assert_eq!(
+            cookie_args(Some("browser"), None, None),
+            vec!["--cookies-from-browser".to_string(), "chrome".to_string()]
+        );
+        assert_eq!(
+            cookie_args(Some("file"), None, Some("/tmp/c.txt")),
+            vec!["--cookies".to_string(), "/tmp/c.txt".to_string()]
+        );
+        // file 模式但未选文件 → 不带参数(而非报错)
+        assert!(cookie_args(Some("file"), None, None).is_empty());
     }
 }

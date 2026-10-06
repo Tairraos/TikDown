@@ -96,7 +96,10 @@ pub fn start(
 
     let cancel_flag = Arc::new(AtomicBool::new(false));
     let child_slot: Arc<Mutex<Option<std::process::Child>>> = Arc::new(Mutex::new(Some(child)));
-    let handle = DownloadHandle { cancel_flag: cancel_flag.clone(), child: child_slot.clone() };
+    let handle = DownloadHandle {
+        cancel_flag: cancel_flag.clone(),
+        child: child_slot.clone(),
+    };
 
     // 开跑先报一声，前端立即把任务置为「下载中」而不是停在「待下载」
     let _ = emit_event(&app, &id, TaskEvent::Starting);
@@ -155,7 +158,10 @@ pub fn start(
                     Some(c) => c.try_wait(),
                     // 槽位为空 = 子进程已被 cancel 取走并 kill
                     None => {
-                        break Err(std::io::Error::new(std::io::ErrorKind::NotFound, "cancelled"))
+                        break Err(std::io::Error::new(
+                            std::io::ErrorKind::NotFound,
+                            "cancelled",
+                        ))
                     }
                 }
             };
@@ -166,11 +172,19 @@ pub fn start(
             }
         };
         // 子进程已终止，stderr 管道会很快 EOF；限时等待兜底而非固定 sleep
-        let err_text = err_rx.recv_timeout(Duration::from_secs(2)).unwrap_or_default();
+        let err_text = err_rx
+            .recv_timeout(Duration::from_secs(2))
+            .unwrap_or_default();
         let final_path = final_rx.try_recv().unwrap_or_default();
 
         if cancel_wait.load(Ordering::Relaxed) {
-            let _ = emit_event(&emit_w, &id_w, TaskEvent::Failed { message: "已取消".into() });
+            let _ = emit_event(
+                &emit_w,
+                &id_w,
+                TaskEvent::Failed {
+                    message: "已取消".into(),
+                },
+            );
         } else {
             match status {
                 Ok(s) if s.success() && !final_path.is_empty() => {
@@ -200,7 +214,13 @@ pub fn start(
 }
 
 fn emit_event(app: &AppHandle, id: &str, event: TaskEvent) -> Result<(), tauri::Error> {
-    app.emit("task://event", TaskEventWrapper { id: id.to_string(), event })
+    app.emit(
+        "task://event",
+        TaskEventWrapper {
+            id: id.to_string(),
+            event,
+        },
+    )
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -214,24 +234,20 @@ struct TaskEventWrapper {
 mod tests {
     use super::*;
 
-    /// 契约测试（TD-DL-001）：前端 invoke 发送的 JSON 形状必须能反序列化。
-    /// 形状以 src/lib/types.ts 的 DownloadOptions 为准。
+    /// 契约测试（TD-DL-001 / TD-ARCH-001）：与前端共用同一 fixture
+    /// （tests/fixtures/ipc-contract.json），单侧改字段会同时红两侧。
     #[test]
     fn download_options_accepts_frontend_payload() {
-        const PAYLOAD: &str = r#"{
-            "url": "https://example.com/v",
-            "targetDir": "/tmp/dl",
-            "formatId": null,
-            "settings": {
-                "ytdlpPath": null,
-                "ffmpegPath": null,
-                "cookieMode": "browser",
-                "cookieBrowser": "chrome"
-            }
-        }"#;
+        const FIXTURE: &str = include_str!("../../../tests/fixtures/ipc-contract.json");
+        let v: serde_json::Value = serde_json::from_str(FIXTURE).expect("fixture 必须是合法 JSON");
+        let payload = v
+            .get("startDownloadOpts")
+            .expect("fixture 必须含 startDownloadOpts")
+            .to_string();
         let o: DownloadOptions =
-            serde_json::from_str(PAYLOAD).expect("camelCase payload 必须可反序列化");
+            serde_json::from_str(&payload).expect("前端真实 payload 形状必须可反序列化");
         assert_eq!(o.target_dir, "/tmp/dl");
         assert_eq!(o.settings.cookie_mode.as_deref(), Some("browser"));
+        assert_eq!(o.settings.cookie_browser.as_deref(), Some("chrome"));
     }
 }

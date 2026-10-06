@@ -69,3 +69,4 @@
 | ID | 标题 | 位置 | 类别 | 严重度 | 证据 | 修复建议 | 业务行为影响 | 关联批次 | 验收方式 | 状态 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | TD-FE-006 | `extractUrls` 不把中文标点当 URL 边界:从聊天窗口粘贴"链接。"会把句号带进 URL 导致探测/下载失败 | `src/lib/types.ts:132`;由批次 2a 首批单元测试发现 | 前端 | P2 | 复现:`extractUrls("https://b23.tv/xyz。")` 返回含 `。` 的 URL | 字符类补全中文标点;回归测试锁定 | **修复 bug**（单独提交） | 批次 2a | 单元测试通过 | 已完成（批次 2a） |
+| TD-PROBE-004 | `explain_error` 用裸 `"age"` 作关键词:任何含 "age" 子串的词(message/storage)都会误报"年龄限制" | `src-tauri/src/probe.rs`;由批次 7 单测发现 | 复杂度 | P2 | 测试复现:`explain_error("ERROR: some long failure message here")` 返回年龄限制文案 | 改为 "age restriction" / "confirm your age" 两个精确匹配 | **修复 bug**(单独提交) | 批次 7 | 单元测试通过 | 已完成（批次 7） |

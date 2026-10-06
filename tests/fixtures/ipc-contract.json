@@ -1,0 +1,15 @@
+{
+  "description": "IPC 契约 fixture:前端 invoke('start_download') 发送的 opts 形状。Rust 侧 download::tests 与前端 contract 测试共用,禁止单侧修改。",
+  "startDownloadOpts": {
+    "url": "https://example.com/v",
+    "targetDir": "/tmp/dl",
+    "formatId": null,
+    "settings": {
+      "ytdlpPath": null,
+      "ffmpegPath": null,
+      "cookieMode": "browser",
+      "cookieBrowser": "chrome",
+      "cookieFile": null
+    }
+  }
+}

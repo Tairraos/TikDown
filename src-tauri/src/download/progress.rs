@@ -19,7 +19,11 @@ pub fn parse(line: &str) -> Option<TaskEvent> {
     // total 缺失时退到估算值，两者都没有才算真的不知道总量
     let total = {
         let t = num(f[2]);
-        if t > 0 { t } else { num(f[3]) }
+        if t > 0 {
+            t
+        } else {
+            num(f[3])
+        }
     };
 
     let speed_bps: f64 = f[4].parse().unwrap_or(0.0);
@@ -34,14 +38,29 @@ pub fn parse(line: &str) -> Option<TaskEvent> {
         .ok()
         .map(|s| {
             let m = s / 60;
-            if m > 0 { format!("{}分{}秒", m, s % 60) } else { format!("{}秒", s) }
+            if m > 0 {
+                format!("{}分{}秒", m, s % 60)
+            } else {
+                format!("{}秒", s)
+            }
         })
         .unwrap_or_default();
 
     let filename = f[6].rsplit('/').next().unwrap_or("").to_string();
-    let percent = if total > 0 { downloaded as f64 / total as f64 * 100.0 } else { 0.0 };
+    let percent = if total > 0 {
+        downloaded as f64 / total as f64 * 100.0
+    } else {
+        0.0
+    };
 
-    Some(TaskEvent::Progress { percent, downloaded, total, speed, eta, filename })
+    Some(TaskEvent::Progress {
+        percent,
+        downloaded,
+        total,
+        speed,
+        eta,
+        filename,
+    })
 }
 
 #[cfg(test)]
@@ -52,7 +71,14 @@ mod tests {
     fn parses_tab_separated_fields() {
         let line = "download:downloading\t1048576\t10485760\t10485760\t2097152\t5\thttps://x/f.mp4";
         match parse(line) {
-            Some(TaskEvent::Progress { percent, downloaded, total, speed, eta, filename }) => {
+            Some(TaskEvent::Progress {
+                percent,
+                downloaded,
+                total,
+                speed,
+                eta,
+                filename,
+            }) => {
                 assert!((percent - 10.0).abs() < 0.01);
                 assert_eq!(downloaded, 1_048_576);
                 assert_eq!(total, 10_485_760);
@@ -68,7 +94,9 @@ mod tests {
     fn total_falls_back_to_estimate() {
         let line = "download:downloading\tNA\tNA\t200\tNA\tNA\tf.mp4";
         match parse(line) {
-            Some(TaskEvent::Progress { downloaded, total, .. }) => {
+            Some(TaskEvent::Progress {
+                downloaded, total, ..
+            }) => {
                 assert_eq!(downloaded, 0); // NA 解析失败按 0 处理
                 assert_eq!(total, 200); // 估算值兜底
             }

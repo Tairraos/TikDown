@@ -76,8 +76,16 @@ async fn probe_batch(
         let cfg = cfg.clone();
         handles.push(tokio::task::spawn_blocking(move || {
             let r = match probe_one(&u, &cfg) {
-                Ok(info) => BatchResult { url: u.clone(), info: Some(info), error: None },
-                Err(e) => BatchResult { url: u.clone(), info: None, error: Some(e) },
+                Ok(info) => BatchResult {
+                    url: u.clone(),
+                    info: Some(info),
+                    error: None,
+                },
+                Err(e) => BatchResult {
+                    url: u.clone(),
+                    info: None,
+                    error: Some(e),
+                },
             };
             drop(permit);
             r
@@ -117,7 +125,9 @@ fn probe_one(url: &str, settings: &Settings) -> Result<probe::MediaInfo, String>
     }
     cmd.arg(url).stdin(Stdio::null());
 
-    let out = cmd.output().map_err(|e| format!("无法启动 yt-dlp：{}", e))?;
+    let out = cmd
+        .output()
+        .map_err(|e| format!("无法启动 yt-dlp：{}", e))?;
 
     if !out.status.success() {
         let err = String::from_utf8_lossy(&out.stderr);

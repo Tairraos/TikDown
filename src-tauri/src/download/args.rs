@@ -72,7 +72,10 @@ pub fn yt_dlp_args(opts: &DownloadOptions, ffmpeg: Option<&Path>) -> Vec<String>
 
     // 文件名模板：作者 - 标题.80B，非法字符由 yt-dlp 处理
     args.push("-o".into());
-    args.push(format!("{}/%(uploader)s - %(title).80B.%(ext)s", opts.target_dir));
+    args.push(format!(
+        "{}/%(uploader)s - %(title).80B.%(ext)s",
+        opts.target_dir
+    ));
     args.push(opts.url.clone());
     args
 }
@@ -129,7 +132,10 @@ mod tests {
         o.settings.cookie_mode = Some("browser".into());
         o.settings.cookie_browser = Some("firefox".into());
         let a = yt_dlp_args(&o, None);
-        let i = a.iter().position(|s| s == "--cookies-from-browser").unwrap();
+        let i = a
+            .iter()
+            .position(|s| s == "--cookies-from-browser")
+            .unwrap();
         assert_eq!(a[i + 1], "firefox");
 
         let mut o2 = opts();
