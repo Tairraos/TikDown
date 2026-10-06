@@ -149,6 +149,14 @@ fn ordered_candidates(stem: &str, configured: Option<&str>) -> Vec<(PathBuf, Sou
     if let Ok(p) = which::which(&exe) {
         out.push((p, Source::SystemPath));
     }
+    // macOS GUI 应用继承不到 shell 配置的 PATH（如 /opt/homebrew/bin），按用户
+    // 环境补齐候选（TD-CORE-009）：进程 PATH 命中不了时，zsh 配置目录逐个尝试。
+    for dir in system_path_dirs() {
+        let cand = dir.join(&exe);
+        if cand.exists() && !out.iter().any(|(p, _)| *p == cand) {
+            out.push((cand, Source::SystemPath));
+        }
+    }
     out.push((app_dir().join(&exe), Source::Managed));
     out
 }
@@ -177,7 +185,7 @@ fn ok_status(name: &str, path: &Path, version: &str, source: Source) -> Componen
 ///
 /// ffmpeg 的 `-version` 第一行是 `ffmpeg version 7.1.1 Copyright...`，
 /// 而 `--version` 只对 yt-dlp 有意义，所以参数要分开传。
-fn probe_version(path: &Path, flag: &str) -> Option<String> {
+pub fn probe_version(path: &Path, flag: &str) -> Option<String> {
     let out = Command::new(path)
         .arg(flag)
         .stdin(std::process::Stdio::null())
@@ -270,4 +278,122 @@ pub fn ffmpeg_path(configured: Option<&str>) -> Option<PathBuf> {
         .into_iter()
         .map(|(path, _)| path)
         .find(|path| path.exists())
+}
+
+/// GUI 应用继承的进程 PATH 很窄（macOS 上常只有 /usr/bin:/bin:/usr/sbin:/sbin），
+/// 用户在 .zshrc 里配置的目录（如 /opt/homebrew/bin）不在其中。
+/// 解析 zsh 配置提取 PATH 目录，外加 homebrew 标准位置兜底（TD-CORE-009）。
+#[cfg(target_os = "macos")]
+fn system_path_dirs() -> Vec<PathBuf> {
+    let Ok(home) = std::env::var("HOME") else {
+        return vec![];
+    };
+    if home.is_empty() {
+        return vec![];
+    }
+    let mut dirs = shell_path_dirs(Path::new(&home));
+    for std_dir in ["/opt/homebrew/bin", "/usr/local/bin"] {
+        let d = PathBuf::from(std_dir);
+        if !dirs.contains(&d) {
+            dirs.push(d);
+        }
+    }
+    dirs
+}
+
+#[cfg(not(target_os = "macos"))]
+fn system_path_dirs() -> Vec<PathBuf> {
+    vec![]
+}
+
+/// 解析 ~/.zshrc 与 ~/.zprofile 里的 PATH 赋值行，提取目录列表。
+/// 支持 `export PATH="a:b"` / `PATH=a:b`；展开 `~` 与 `$HOME` 前缀，
+/// 跳过 `$PATH`/`${PATH}` 这类对旧值的引用段与注释行，按出现顺序去重。
+#[cfg(target_os = "macos")]
+fn shell_path_dirs(home: &Path) -> Vec<PathBuf> {
+    let mut dirs: Vec<PathBuf> = Vec::new();
+    for file in [".zshrc", ".zprofile"] {
+        let Ok(text) = std::fs::read_to_string(home.join(file)) else {
+            continue;
+        };
+        for line in text.lines() {
+            let line = line.trim();
+            if line.starts_with('#') {
+                continue;
+            }
+            let body = line.strip_prefix("export ").unwrap_or(line);
+            let Some(value) = body.strip_prefix("PATH=") else {
+                continue;
+            };
+            let value = value.trim_matches('"').trim_matches('\'');
+            for seg in value.split(':') {
+                let seg = seg.trim();
+                if seg.is_empty() || seg.starts_with("${") {
+                    continue;
+                }
+                let expanded = if seg == "~" {
+                    home.to_path_buf()
+                } else if let Some(rest) = seg.strip_prefix("~/") {
+                    home.join(rest)
+                } else if let Some(rest) = seg.strip_prefix("$HOME/") {
+                    home.join(rest)
+                } else if seg.starts_with('$') {
+                    // $PATH 等对旧值的引用：GUI 进程 PATH 里没有这些，跳过
+                    continue;
+                } else {
+                    PathBuf::from(seg)
+                };
+                if !dirs.contains(&expanded) {
+                    dirs.push(expanded);
+                }
+            }
+        }
+    }
+    dirs
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+        #[cfg(target_os = "macos")]
+        #[test]
+        fn shell_path_dirs_parses_zsh_configs() {
+            let tmp = std::env::temp_dir().join(format!("tikdown-home-{}", std::process::id()));
+            std::fs::create_dir_all(&tmp).unwrap();
+            std::fs::write(
+                tmp.join(".zshrc"),
+                "export PATH=\"/opt/tools/bin:$PATH\"\nexport PATH=$HOME/bin:$PATH\n# export PATH=/commented:/out\nPATH=/opt/late/bin:$PATH\n",
+            )
+            .unwrap();
+            std::fs::write(
+                tmp.join(".zprofile"),
+                "PATH=${PATH}:/opt/late/bin:~/localbin\n",
+            )
+            .unwrap();
+
+            let dirs = shell_path_dirs(&tmp);
+            assert!(dirs.contains(&PathBuf::from("/opt/tools/bin")), "{dirs:?}");
+            assert!(
+                dirs.contains(&tmp.join("bin")),
+                "$HOME/bin 应展开: {dirs:?}"
+            );
+            assert!(dirs.contains(&PathBuf::from("/opt/late/bin")));
+            assert!(
+                dirs.contains(&tmp.join("localbin")),
+                "~/localbin 应展开: {dirs:?}"
+            );
+            assert!(
+                !dirs.iter().any(|d| d == &PathBuf::from("/commented")),
+                "注释行应跳过"
+            );
+            // 去重:zprofile 里的 /opt/late/bin 不应出现两次
+            assert_eq!(
+                dirs.iter()
+                    .filter(|d| *d == &PathBuf::from("/opt/late/bin"))
+                    .count(),
+                1
+            );
+            std::fs::remove_dir_all(&tmp).ok();
+        }
 }

@@ -1,6 +1,7 @@
 mod binresolve;
 mod download;
 mod fetch;
+mod pathcheck;
 mod probe;
 
 use probe::RawJson;
@@ -172,6 +173,12 @@ fn cancel_download(tasks: State<'_, Tasks>, id: String) {
     }
 }
 
+/// 设置弹层的路径检测：手贴的组件路径/下载目录，存在 + 版本合适才通过（TD-FE-010）
+#[tauri::command]
+fn check_component(name: String, path: String) -> pathcheck::CheckResult {
+    pathcheck::check_candidate(&name, std::path::Path::new(&path))
+}
+
 /// 下载缺失组件到 ~/.tikdown
 #[tauri::command]
 async fn fetch_component(
@@ -197,7 +204,8 @@ pub fn run() {
             probe_batch,
             start_download,
             cancel_download,
-            fetch_component
+            fetch_component,
+            check_component
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
