@@ -33,4 +33,4 @@
 | [exec-plans/tech-debt-tracker.md](exec-plans/tech-debt-tracker.md) | 技术债台账 | 常驻 |
 | [exec-plans/active/](exec-plans/active/) | 进行中的执行计划 | 计划 |
 | [exec-plans/completed/](exec-plans/completed/) | 已完成计划与归档 | 计划 |
-| [HARNESS-RULES.md](HARNESS-RULES.md) | 本次改造的施工图（竣工后按 §14 归档） | 施工期 |
+| [exec-plans/completed/harness-2026-10-06.md](exec-plans/completed/harness-2026-10-06.md) | Harness 改造施工图（已竣工归档，长效契约在常驻文档） | 归档 |
