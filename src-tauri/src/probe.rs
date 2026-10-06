@@ -15,8 +15,6 @@ pub struct MediaInfo {
     /// 该条目是否为纯图文
     pub is_image_only: bool,
     pub qualities: Vec<Quality>,
-    /// 支持的字段：可能的原因（登录墙、地区限制、私密内容等）
-    pub restriction: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -121,10 +119,10 @@ pub fn parse(raw: RawJson, url: &str) -> MediaInfo {
         thumbnail: chosen.thumbnail,
         extractor,
         has_video,
-        // 明确区分「纯图文」和「探测失败」，UI 要给不同提示
+        // 探测失败走 Err 通道（explain_error 三分法提示）；
+        // 探测成功但无视频流 = 纯图文，UI 据此显示「已跳过」
         is_image_only: !has_video,
         qualities,
-        restriction: None,
     }
 }
 

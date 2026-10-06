@@ -63,7 +63,6 @@ export interface MediaInfo {
   /** 纯图文帖，无视频 */
   isImageOnly: boolean;
   qualities: Quality[];
-  restriction: string | null;
 }
 
 export interface BatchResult {

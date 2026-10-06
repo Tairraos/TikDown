@@ -1,8 +1,6 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
 
-export default defineConfig(async () => ({
-  plugins: [react()],
+export default defineConfig({
   clearScreen: false,
   server: {
     port: 1420,
@@ -11,7 +9,7 @@ export default defineConfig(async () => ({
   },
   build: {
     target: "safari15",
-    minify: false,
+    // minify 恢复默认压缩(D5 决策:发布体积优先;调试走 dev 模式,无需保留未压缩产物)
     sourcemap: false,
   },
-}));
+});
