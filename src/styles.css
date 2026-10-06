@@ -243,23 +243,24 @@ body {
 .btn.ghost:hover:not(:disabled) { background: rgba(0, 0, 0, 0.06); }
 .btn:disabled { opacity: 0.45; cursor: default; }
 
-/* ---- 设置弹层 ---- */
+/* ---- 设置弹层(视口内居中,绝不超出窗口) ---- */
 .overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.28);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  padding: 24px;
 }
 
 .sheet {
   width: 100%;
   max-width: 560px;
   background: var(--panel);
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
   padding: 18px 20px 16px;
-  max-height: 84vh;
+  max-height: calc(100vh - 48px);
   overflow-y: auto;
 }
 .sheet h2 { margin: 0 0 14px; font-size: 15px; font-weight: 500; }
