@@ -356,44 +356,44 @@ fn shell_path_dirs(home: &Path) -> Vec<PathBuf> {
 mod tests {
     use super::*;
 
-        #[cfg(target_os = "macos")]
-        #[test]
-        fn shell_path_dirs_parses_zsh_configs() {
-            let tmp = std::env::temp_dir().join(format!("tikdown-home-{}", std::process::id()));
-            std::fs::create_dir_all(&tmp).unwrap();
-            std::fs::write(
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn shell_path_dirs_parses_zsh_configs() {
+        let tmp = std::env::temp_dir().join(format!("tikdown-home-{}", std::process::id()));
+        std::fs::create_dir_all(&tmp).unwrap();
+        std::fs::write(
                 tmp.join(".zshrc"),
                 "export PATH=\"/opt/tools/bin:$PATH\"\nexport PATH=$HOME/bin:$PATH\n# export PATH=/commented:/out\nPATH=/opt/late/bin:$PATH\n",
             )
             .unwrap();
-            std::fs::write(
-                tmp.join(".zprofile"),
-                "PATH=${PATH}:/opt/late/bin:~/localbin\n",
-            )
-            .unwrap();
+        std::fs::write(
+            tmp.join(".zprofile"),
+            "PATH=${PATH}:/opt/late/bin:~/localbin\n",
+        )
+        .unwrap();
 
-            let dirs = shell_path_dirs(&tmp);
-            assert!(dirs.contains(&PathBuf::from("/opt/tools/bin")), "{dirs:?}");
-            assert!(
-                dirs.contains(&tmp.join("bin")),
-                "$HOME/bin 应展开: {dirs:?}"
-            );
-            assert!(dirs.contains(&PathBuf::from("/opt/late/bin")));
-            assert!(
-                dirs.contains(&tmp.join("localbin")),
-                "~/localbin 应展开: {dirs:?}"
-            );
-            assert!(
-                !dirs.iter().any(|d| d == &PathBuf::from("/commented")),
-                "注释行应跳过"
-            );
-            // 去重:zprofile 里的 /opt/late/bin 不应出现两次
-            assert_eq!(
-                dirs.iter()
-                    .filter(|d| *d == &PathBuf::from("/opt/late/bin"))
-                    .count(),
-                1
-            );
-            std::fs::remove_dir_all(&tmp).ok();
-        }
+        let dirs = shell_path_dirs(&tmp);
+        assert!(dirs.contains(&PathBuf::from("/opt/tools/bin")), "{dirs:?}");
+        assert!(
+            dirs.contains(&tmp.join("bin")),
+            "$HOME/bin 应展开: {dirs:?}"
+        );
+        assert!(dirs.contains(&PathBuf::from("/opt/late/bin")));
+        assert!(
+            dirs.contains(&tmp.join("localbin")),
+            "~/localbin 应展开: {dirs:?}"
+        );
+        assert!(
+            !dirs.iter().any(|d| d == &PathBuf::from("/commented")),
+            "注释行应跳过"
+        );
+        // 去重:zprofile 里的 /opt/late/bin 不应出现两次
+        assert_eq!(
+            dirs.iter()
+                .filter(|d| *d == &PathBuf::from("/opt/late/bin"))
+                .count(),
+            1
+        );
+        std::fs::remove_dir_all(&tmp).ok();
+    }
 }

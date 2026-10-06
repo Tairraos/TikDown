@@ -7,7 +7,6 @@ use std::path::Path;
 
 use crate::binresolve::{probe_version, version_ge, ComponentSpec, FFMPEG, YTDLP};
 
-
 /// 检测结果：设置弹层里手贴路径的校验输出（存在 + 版本合适才通过）。
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
