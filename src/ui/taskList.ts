@@ -17,6 +17,8 @@ type RowParts = {
   progressSlot: HTMLElement;
   qualitySlot: HTMLElement;
   ops: HTMLElement;
+  stateSpan: HTMLElement;
+  msgSpan: HTMLElement;
 };
 
 export interface TaskListCallbacks {
@@ -32,7 +34,7 @@ export interface TaskListCallbacks {
 export class TaskListView {
   private rows = new Map<string, HTMLElement>();
   /** 每行的可变子区引用,避免 querySelector 非空断言 */
-  private rowParts = new Map<string, { progressSlot: HTMLElement; qualitySlot: HTMLElement; ops: HTMLElement }>();
+  private rowParts = new Map<string, RowParts>();
 
   constructor(
     private container: HTMLElement,
@@ -72,7 +74,7 @@ export class TaskListView {
         this.rowParts.set(t.id, built.parts);
         row = built.row;
       } else {
-        this.updateRow(row, t, parts.progressSlot, parts.qualitySlot, parts.ops);
+        this.updateRow(row, t, parts);
       }
       this.container.insertBefore(row, ref);
       ref = row;
@@ -84,6 +86,8 @@ export class TaskListView {
     const progressSlot = el("div", { class: "progress-slot" });
     const qualitySlot = el("div", { class: "qualities-slot" });
     const ops = el("div", { class: "ops" });
+    const stateSpan = el("span", { class: `state ${t.status}`, text: STATUS_LABEL[t.status] });
+    const msgSpan = el("span", { class: "msg" });
     const row = el(
       "div",
       { class: `task ${t.status}` },
@@ -106,32 +110,30 @@ export class TaskListView {
         el(
           "div",
           { class: "line2" },
-          el("span", { class: `state ${t.status}`, text: STATUS_LABEL[t.status] }),
+          stateSpan,
           t.info?.uploader ? el("span", { class: "dim", text: t.info.uploader }) : null,
           t.info?.duration ? el("span", { class: "dim", text: formatDuration(t.info.duration) }) : null,
-          t.error ? el("span", { class: "msg", text: t.error }) : null
+          msgSpan
         ),
         progressSlot,
         qualitySlot
       ),
       ops
     );
-    this.updateRow(row, t, progressSlot, qualitySlot, ops);
-    return { row, parts: { progressSlot, qualitySlot, ops } };
+    this.updateRow(row, t, { progressSlot, qualitySlot, ops, stateSpan, msgSpan });
+    return { row, parts: { progressSlot, qualitySlot, ops, stateSpan, msgSpan } };
   }
 
-  private updateRow(
-    row: HTMLElement,
-    t: Task,
-    progressSlot: HTMLElement,
-    qualitySlot: HTMLElement,
-    ops: HTMLElement
-  ) {
+  private updateRow(row: HTMLElement, t: Task, parts: RowParts) {
     row.className = `task ${t.status}`;
+    // 状态与错误信息随事件更新(E2E 发现的增量更新盲区)
+    parts.stateSpan.textContent = STATUS_LABEL[t.status];
+    parts.stateSpan.className = `state ${t.status}`;
+    parts.msgSpan.textContent = t.error ?? "";
 
-    clear(progressSlot);
+    clear(parts.progressSlot);
     if (t.status === "downloading" || t.status === "merging") {
-      progressSlot.append(
+      parts.progressSlot.append(
         el(
           "div",
           { class: "progress" },
@@ -147,7 +149,7 @@ export class TaskListView {
       );
     }
 
-    clear(qualitySlot);
+    clear(parts.qualitySlot);
     const qualities = t.status === "ready" ? (t.info?.qualities ?? []) : [];
     if (qualities.length > 1) {
       const box = el("div", { class: "qualities" });
@@ -168,17 +170,17 @@ export class TaskListView {
           })
         );
       }
-      qualitySlot.append(box);
+      parts.qualitySlot.append(box);
     }
 
-    clear(ops);
+    clear(parts.ops);
     if (t.status === "ready") {
-      ops.append(el("button", { class: "btn small", text: "下载", onclick: () => this.cb.onStart(t) }));
+      parts.ops.append(el("button", { class: "btn small", text: "下载", onclick: () => this.cb.onStart(t) }));
     } else if (t.status === "failed") {
-      ops.append(el("button", { class: "btn small ghost", text: "重试", onclick: () => this.cb.onStart(t) }));
+      parts.ops.append(el("button", { class: "btn small ghost", text: "重试", onclick: () => this.cb.onStart(t) }));
     }
     if (t.status === "downloading" || t.status === "merging") {
-      ops.append(el("button", { class: "btn small ghost", text: "取消", onclick: () => this.cb.onCancel(t.id) }));
+      parts.ops.append(el("button", { class: "btn small ghost", text: "取消", onclick: () => this.cb.onCancel(t.id) }));
     }
   }
 }

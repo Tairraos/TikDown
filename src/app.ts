@@ -69,21 +69,22 @@ export function mount(root: HTMLElement) {
     onStart: (t) => taskStore.startOne(t),
     onCancel: (id) => taskStore.cancel(id),
   });
-  const coreView = new CorePanelView(coreContainer, () => void taskStore.refreshStatus(), () => {
+  // 设置弹层延迟到首次打开时构造——构造即挂载 overlay 会把整页蒙灰(E2E 发现)
+  let settingsModal: SettingsPanelView | null = null;
+  function openSettings() {
+    if (!settingsModal) {
+      settingsModal = new SettingsPanelView(
+        app,
+        () => taskStore.statuses,
+        () => settingsStore.settings,
+        (s) => settingsStore.save(s),
+        () => settingsModal?.container.remove(),
+        () => void taskStore.refreshStatus()
+      );
+    }
     settingsModal.render();
-  });
-  const settingsModal = new SettingsPanelView(
-    app,
-    () => taskStore.statuses,
-    () => settingsStore.settings,
-    (s) => settingsStore.save(s),
-    () => settingsModal.container.remove(),
-    () => void taskStore.refreshStatus()
-  );
-
-  const openSettings = () => {
-    settingsModal.render();
-  };
+  }
+  const coreView = new CorePanelView(coreContainer, () => void taskStore.refreshStatus(), openSettings);
   settingsBtn.onclick = openSettings;
 
   const pickDir = async () => {

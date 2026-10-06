@@ -13,6 +13,7 @@ export function el<K extends keyof HTMLElementTagNameMap>(
   for (const [k, v] of Object.entries(attrs)) {
     if (v === undefined || v === false) continue;
     if (k === "class") node.className = String(v);
+    else if (k === "text") node.textContent = String(v);
     else if (typeof v === "function") {
       // onclick → click, onchange → change …
       node.addEventListener(k.replace(/^on/, "").toLowerCase(), v as EventListener);
