@@ -1,32 +1,25 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "../lib/ipc";
 import type { CheckResult, ComponentStatus, Settings } from "../lib/types";
+import { initCheckState, type CheckState } from "./checkState";
+import { buildPathCheckRow, type PathCheckRowHandle } from "./pathCheckRow";
 import { clear, el } from "./dom";
 
-type CheckName = "ytdlp" | "ffmpeg" | "dir";
-
-type CheckState = {
-  /** 输入框当前值(空 = 自动模式) */
-  value: string;
-  /** empty:无值;pending:有值未验证;checking:检测中;ok/fail:已验证 */
-  status: "empty" | "pending" | "checking" | "ok" | "fail";
-  message: string;
-  /** 该行的「检测」按钮(verify 中禁用,防重复点击) */
-  checkBtn?: HTMLButtonElement;
-};
+type CheckName = "dir" | "ytdlp" | "ffmpeg";
 
 /**
- * 设置弹层（v1 交互 + 手贴路径门禁,TD-FE-010）:
+ * 设置弹层（v1 交互 + 手贴路径门禁,TD-FE-010/011）:
  * - yt-dlp/ffmpeg/下载目录都支持**手贴地址**（/opt 等 Finder 不可见路径）+ 检测按钮
+ * - **探测到的路径自动回填输入框**并标注来源;用户编辑后不再被覆盖,「清除」回到自动跟随
  * - **检测不通过不允许关闭**:点完成或点弹层外时,未验证的路径自动检测,
- *   任何失败都会把弹层留在屏幕上并显示原因
- * - 检测通过立即保存;清空 = 回落自动探测
- * - Cookie 三选项同一行（规格见 docs/product-specs/cookie-access.md）
- * - 并发上限默认 1、极限 4（用户决策）
+ *   任何失败都会把弹层留在屏幕上并显示原因;检测通过立即保存
+ * - Cookie 三选项同一行;并发上限默认 1、极限 4（用户决策）
  */
 export class SettingsPanelView {
   container: HTMLElement;
   private pathStates: Record<CheckName, CheckState>;
+  private rows: Partial<Record<CheckName, PathCheckRowHandle>> = {};
+  private doneBtn: HTMLButtonElement | null = null;
 
   constructor(
     parent: HTMLElement,
@@ -43,18 +36,53 @@ export class SettingsPanelView {
       if (e.target === this.container) void this.attemptClose();
     });
     this.pathStates = {
-      ytdlp: this.initState(settings().ytdlpPath ?? ""),
-      ffmpeg: this.initState(settings().ffmpegPath ?? ""),
-      dir: this.initState(targetDir()),
+      ytdlp: initCheckState(settings().ytdlpPath ?? ""),
+      ffmpeg: initCheckState(settings().ffmpegPath ?? ""),
+      dir: initCheckState(targetDir()),
     };
     parent.append(this.container);
   }
 
-  private initState(value: string): CheckState {
-    return { value, status: value === "" ? "empty" : "ok", message: "" };
+  /**
+   * 自动探测结果回填输入框（TD-FE-011）:组件被探测到（无论来源）就把实际使用的
+   * 路径写进输入框——它已经过 core_status 的版本门槛。用户编辑过（userTouched）
+   * 后不再覆盖;点「清除」重置 userTouched 即回到自动跟随。
+   * 注意:内部 key（ytdlp）与组件真名（yt-dlp）不同,查 statuses 必须经 apiName 映射。
+   */
+  private syncAutoState(name: Exclude<CheckName, "dir">) {
+    const st = this.pathStates[name];
+    if (st.userTouched) return;
+    const apiName = name === "ytdlp" ? "yt-dlp" : name;
+    const s = this.statuses().find((x) => x.name === apiName)?.state;
+    if (!s || s.state === "missing") {
+      st.value = "";
+      st.auto = true;
+      st.status = "empty";
+      st.message = "";
+      return;
+    }
+    if (s.state === "ready" || s.state === "readyExternal") {
+      const sourceCn =
+        "source" in s
+          ? ({ managed: "应用副本", configured: "手动指定", systemPath: "系统 PATH" } as Record<string, string>)[
+              s.source as string
+            ] ?? ""
+          : "";
+      st.value = s.path;
+      st.auto = true;
+      st.status = "ok";
+      st.message = `自动探测(来源:${sourceCn || "未知"})`;
+    } else if (s.state === "outdated") {
+      st.value = s.path;
+      st.auto = true;
+      st.status = "fail";
+      st.message = `系统版本 ${s.version} 低于要求 ${s.required},当前使用 ~/.tikdown 副本;如需强制使用请更换路径后点「检测」`;
+    }
   }
 
   render() {
+    this.syncAutoState("ytdlp");
+    this.syncAutoState("ffmpeg");
     const c = this.container;
     clear(c);
     const s = this.settings();
@@ -76,8 +104,8 @@ export class SettingsPanelView {
           "下载目录",
           el("span", { class: "set-note", text: "可直接粘贴地址（Finder 打不开的目录如 /opt 也可以）" })
         ),
-        this.buildCheckRow("dir", "位置", this.versionOfDir()),
-        this.checkMsgRow("dir")
+        this.buildRow("dir", "位置", this.targetDir() ? "已设置" : "未设置").row,
+        this.rows.dir?.msgRow ?? el("div")
       )
     );
 
@@ -92,10 +120,10 @@ export class SettingsPanelView {
           "核心组件",
           el("span", { class: "set-note", text: "留空则按 系统 PATH → ~/.tikdown 副本 自动查找；可粘贴地址后点「检测」" })
         ),
-        this.buildCheckRow("ytdlp", "yt-dlp", this.versionOf("yt-dlp"), true),
-        this.checkMsgRow("ytdlp"),
-        this.buildCheckRow("ffmpeg", "ffmpeg", this.versionOf("ffmpeg"), true),
-        this.checkMsgRow("ffmpeg")
+        this.buildRow("ytdlp", "yt-dlp", this.versionOf("yt-dlp"), true).row,
+        this.rows.ytdlp?.msgRow ?? el("div"),
+        this.buildRow("ffmpeg", "ffmpeg", this.versionOf("ffmpeg"), true).row,
+        this.rows.ffmpeg?.msgRow ?? el("div")
       )
     );
 
@@ -118,9 +146,7 @@ export class SettingsPanelView {
     cookieRow.append(browserRadio);
     const fileRadio = this.radio("cookies.txt", s.cookieMode === "file", () => this.set({ ...s, cookieMode: "file" }));
     if (s.cookieMode === "file") {
-      fileRadio.append(
-        el("button", { class: "btn tiny ghost", text: "选择文件…", onclick: () => void this.pickCookieFile() })
-      );
+      fileRadio.append(el("button", { class: "btn tiny ghost", text: "选择文件…", onclick: () => void this.pickCookieFile() }));
     }
     cookieRow.append(fileRadio);
     sheet.append(
@@ -164,120 +190,49 @@ export class SettingsPanelView {
     );
 
     // ---- 底部:完成 = 关闭门禁入口 ----
-    const doneBtn = el("button", { class: "btn", text: "完成", onclick: () => void this.attemptClose() });
-    this.doneBtn = doneBtn;
+    this.doneBtn = el("button", { class: "btn", text: "完成", onclick: () => void this.attemptClose() });
     sheet.append(
-      el("div", { class: "set-foot" }, el("span", { class: "set-path", text: "组件目录：~/.tikdown" }), doneBtn)
+      el("div", { class: "set-foot" }, el("span", { class: "set-path", text: "组件目录：~/.tikdown" }), this.doneBtn)
     );
   }
 
-  private doneBtn: HTMLButtonElement | null = null;
-
-  // ---- 路径检测行 ----
-
-  private buildCheckRow(name: CheckName, label: string, info: string, withFilePicker = false): HTMLElement {
-    const st = this.pathStates[name];
-    const input = el("input", {
-      class: "check-input",
-      placeholder: "粘贴完整路径,或点「选择…」",
-      spellcheck: "false",
-    }) as HTMLInputElement;
-    input.value = st.value;
-    input.oninput = () => {
-      st.value = input.value.trim();
-      st.status = st.value === "" ? "empty" : "pending";
-      st.message = "";
-      this.updateMsgRow(name);
-    };
-
-    const checkBtn = el("button", {
-      class: "btn tiny",
-      text: "检测",
-      onclick: () => void this.verify(name),
+  private buildRow(name: CheckName, label: string, info = "", withFilePicker = false): PathCheckRowHandle {
+    const handle = buildPathCheckRow({
+      name,
+      label,
+      info,
+      state: this.pathStates[name],
+      onInput: () => {},
+      onVerify: () => void this.verify(name),
+      onPickFile: withFilePicker ? () => void this.pickFile(name) : undefined,
+      onClear: () => {
+        this.pathStates[name] = initCheckState("");
+        this.saveChecked(name);
+        this.render(); // userTouched 重置,自动探测回显接管
+      },
     });
-    st.checkBtn = checkBtn;
-
-    const ops = el("div", { class: "path-ops" }, checkBtn);
-    if (withFilePicker) {
-      ops.append(
-        el("button", {
-          class: "btn tiny ghost",
-          text: "选择…",
-          onclick: () => void this.pickFile(name),
-        })
-      );
-    }
-
-    const row = el(
-      "div",
-      { class: "path-row" },
-      el(
-        "div",
-        { class: "path-info" },
-        el("span", { class: "path-name" }, label, el("span", { class: "path-ver", text: info ? ` · ${info}` : "" }))
-      ),
-      input,
-      ops
-    );
-    // 清除(检测通过后才出现清除,避免误触丢已验证配置)
-    if (st.value !== "" && st.status === "ok") {
-      ops.append(
-        el("button", {
-          class: "btn tiny ghost",
-          text: "清除",
-          onclick: () => {
-            st.value = "";
-            st.status = "empty";
-            st.message = "";
-            this.saveChecked(name);
-            this.render();
-          },
-        })
-      );
-    }
-    return row;
-  }
-
-  private msgRows: Partial<Record<CheckName, HTMLElement>> = {};
-
-  private checkMsgRow(name: CheckName): HTMLElement {
-    const row = el("div", { class: "check-msg" });
-    this.msgRows[name] = row;
-    this.updateMsgRow(name);
-    return row;
-  }
-
-  private updateMsgRow(name: CheckName) {
-    const row = this.msgRows[name];
-    if (!row) return;
-    const st = this.pathStates[name];
-    clear(row);
-    if (st.status === "empty") return;
-    const cls = st.status === "ok" ? "ok" : st.status === "fail" ? "fail" : "dim";
-    const text =
-      st.status === "pending"
-        ? "未检测——关闭前会自动检测"
-        : st.status === "checking"
-          ? "检测中…"
-          : st.message;
-    row.append(el("span", { class: `check-msg-text ${cls}`, text }));
+    this.rows[name] = handle;
+    return handle;
   }
 
   /** 检测一行:通过即保存,失败标红并阻止关闭。返回是否通过。 */
   private async verify(name: CheckName): Promise<boolean> {
     const st = this.pathStates[name];
+    st.auto = false; // 主动检测 = 接管该路径(不再被自动回显覆盖)
     if (st.value === "") {
       st.status = "empty";
       this.saveChecked(name);
+      this.rows[name]?.updateMsg();
       return true;
     }
     st.status = "checking";
     st.message = "";
-    this.updateMsgRow(name);
+    this.rows[name]?.updateMsg();
     if (st.checkBtn) st.checkBtn.disabled = true;
     this.setDoneBusy(true);
 
-    const apiName = name === "dir" ? "download-dir" : name;
+    // 内部 key（ytdlp/dir）与后端检测对象名（yt-dlp/download-dir）映射
+    const apiName = name === "dir" ? "download-dir" : name === "ytdlp" ? "yt-dlp" : name;
     let res: CheckResult;
     try {
       res = await invoke<CheckResult>("check_component", { name: apiName, path: st.value });
@@ -290,7 +245,7 @@ export class SettingsPanelView {
     st.status = res.ok ? "ok" : "fail";
     st.message = res.message;
     if (res.ok) this.saveChecked(name);
-    this.updateMsgRow(name);
+    this.rows[name]?.updateMsg();
     this.render(); // 通过后出现「清除」按钮
     return res.ok;
   }
@@ -320,7 +275,7 @@ export class SettingsPanelView {
     if (checking) return; // 已有检测在跑(理论不可达,防御)
     const failed = names.some((n) => {
       const st = this.pathStates[n];
-      return st.value !== "" && st.status !== "ok";
+      return st.value !== "" && st.status !== "ok" && !st.auto;
     });
     if (failed) {
       this.render();
@@ -360,11 +315,6 @@ export class SettingsPanelView {
     const st = this.statuses().find((x) => x.name === name)?.state;
     if (!st) return "未检测到";
     return "version" in st ? String(st.version) : "未安装";
-  }
-
-  private versionOfDir(): string {
-    const d = this.targetDir();
-    return d ? "已设置" : "未设置";
   }
 
   private radio(label: string, checked: boolean, onChange: () => void): HTMLElement {
