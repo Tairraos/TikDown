@@ -209,3 +209,5 @@ main.tsx                               lib.rs（命令层 + 全局 State）
 | 2026-10-06 | 批次 6 | 前端重构:**弃用 React,vanilla TS 三层**(用户授权,维护性优先)/mock IPC 支持浏览器开发与 E2E/占位图标管线/CSP/幽灵配置清理/minify 决策/浏览器 E2E 发现并修复 3 处 UI 缺陷 | `c63ba00` `de7ccd6` `a7d998a` | React 19 升级任务(TD-FE-003)以移除取代;web-gui-tester 全流程实测通过 |
 | 2026-10-06 | 批次 7 | 测试补全:前端 49 测+Rust 14 测/契约 fixture 两侧共用/覆盖率门禁(80/60/70/80)/反假测试实测 3 处注入全红/TD-PROBE-004(explain_error 子串误报,单测发现)/队列拒绝补位修复 | `d7c4d31` | 阶段 5 验收达成 |
 | 2026-10-06 | 收官 | 台账收口(全部 TD 对齐 commit)/QUALITY_SCORE 复评/施工图归档 §14 | 见收官提交 | 唯一遗留:CI 三问、正式图标源图、遗留目录去留、Windows/Linux 打包实测 |
+| 2026-10-06 | CI 三问落地 | 用户回答:生成 CI / 三平台(mac arm64+x86_64、windows、ubuntu) / 先出 draft / **合并 master 后手动打 tag 触发**,harnessing 保留至稳定再合并 | `cfb7160` | draft 模式按 §3.3 未加自动转正兜底;docs/CI.md §3/§4 回填 |
+| 2026-10-06 | UI 对齐 v1 | 用户反馈界面与 v1 差异过大,要求"尽可能和以前一样";确认:界面已弃用 React(用户此前授权)。落地:lucide-static 图标库 / 大粘贴按钮(剪贴板读取,tauri-plugin-clipboard-manager)/ 任务行 v1 布局 / 下载目录移入设置弹层 / 浏览器 E2E 复测通过 | 本轮提交 | mock 剪贴板回落规则:非 Tauri 环境剪贴板无链接时返回样例(保证 E2E 可重复);正式 app 图标仍待用户源图 |

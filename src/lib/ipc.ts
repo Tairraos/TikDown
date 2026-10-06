@@ -155,3 +155,24 @@ export function listen<T>(event: string, handler: (payload: T) => void): Promise
     current.delete(h);
   });
 }
+
+/** 读取系统剪贴板文本(v1 交互:大粘贴按钮的数据来源)。失败返回空串。 */
+export async function readClipboard(): Promise<string> {
+  if (isTauri) {
+    const { readText } = await import("@tauri-apps/plugin-clipboard-manager");
+    try {
+      return (await readText()) ?? "";
+    } catch {
+      return "";
+    }
+  }
+  // 浏览器环境(mock/开发):读取失败或为空时回落到样例链接,便于纯浏览器开发与 E2E;
+  // 打包进 Tauri 后走上面的真实分支,不受此影响
+  try {
+    const text = await navigator.clipboard.readText();
+    // 仅当剪贴板里确有链接时使用;否则回落样例,保证开发/E2E 可重复
+    return /https?:\/\//.test(text) ? text : "https://v.douyin.com/mock-paste/";
+  } catch {
+    return "https://v.douyin.com/mock-paste/";
+  }
+}

@@ -1,13 +1,15 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { SettingsStore } from "./state/settings";
 import { TaskStore } from "./state/tasks";
+import { readClipboard } from "./lib/ipc";
 import { detectPlatform, extractUrls } from "./lib/types";
+import { icon } from "./lib/icons";
 import { CorePanelView } from "./ui/corePanel";
 import { SettingsPanelView } from "./ui/settingsPanel";
 import { TaskListView } from "./ui/taskList";
 import { clear, el } from "./ui/dom";
 
-/** 应用装配：把 store 与 UI 视图接到静态壳上（结构复用原 React 版的 class 命名）。 */
+/** 应用装配(v1 视觉):左上大粘贴按钮 + 右上目录/设置工具条 + 任务列表 + 状态栏。 */
 export function mount(root: HTMLElement) {
   const settingsStore = new SettingsStore();
   const taskStore = new TaskStore(
@@ -15,53 +17,62 @@ export function mount(root: HTMLElement) {
     () => settingsStore.targetDir
   );
 
-  // ---- 静态壳 ----
   clear(root);
   const app = el("div", { class: "app" });
   root.append(app);
 
-  const dirBtn = el("button", { class: "btn ghost" });
-  const settingsBtn = el("button", { class: "btn ghost", text: "设置" });
+  // ---- 顶栏:左 = 大粘贴按钮(v1 标志元素);右 = 目录 + 设置 ----
+  const pasteBtn = el(
+    "button",
+    { class: "paste-btn", title: "读取剪贴板并解析(支持一次多条链接)" },
+    icon("clipboard-paste", 30),
+    el("span", { class: "paste-label", text: "粘贴/下载" })
+  );
+  const dirInput = el("input", {
+    class: "dir-input",
+    readonly: true,
+    title: "下载目录(点击修改)",
+    placeholder: "选择下载目录",
+  }) as HTMLInputElement;
+  const folderBtn = el("button", { class: "icon-btn", title: "选择下载目录", "aria-label": "选择下载目录" }, icon("folder-open", 17));
+  const settingsBtn = el("button", { class: "icon-btn", title: "设置", "aria-label": "设置" }, icon("settings", 17));
+
   app.append(
-    el(
-      "header",
-      { class: "topbar" },
-      el("div", { class: "brand", text: "TikDown" }),
-      el("div", { class: "actions" }, dirBtn, settingsBtn)
-    )
+    el("header", { class: "topbar" }, pasteBtn, el("div", { class: "spacer" }), dirInput, folderBtn, settingsBtn)
   );
 
   const coreContainer = el("div", { class: "core-panel" });
   app.append(coreContainer);
 
-  const textarea = el("textarea", {
-    rows: "3",
-    placeholder: "粘贴链接，支持多行批量（抖音 / TikTok / 小红书 / Instagram / Pinterest / X / B站 / YouTube）",
-  }) as HTMLTextAreaElement;
-  const parseBtn = el("button", { class: "btn", text: "解析" });
-  const downloadAllBtn = el("button", { class: "btn primary", text: "全部下载" });
-  const hint = el("span", { class: "dim-hint", text: "登录墙内容？在设置里配置 Cookie" });
-  app.append(
-    el(
-      "section",
-      { class: "input-panel" },
-      textarea,
-      el("div", { class: "row" }, hint, el("div", { class: "spacer" }), parseBtn, downloadAllBtn)
-    )
-  );
-
   const list = el("section", { class: "list" });
   app.append(list);
 
-  const statusbar = el(
-    "footer",
-    { class: "statusbar" },
-    el("span", { class: "total" }),
-    el("span", { class: "ok" }),
-    el("span", { class: "warn" }),
-    el("span", { class: "err" })
+  // ---- 状态栏:左 = 消息;右 = 彩色计数(v1 布局) ----
+  const msgSpan = el("span", { class: "status-msg" });
+  const counts = {
+    ready: el("span", { class: "count warn" }),
+    downloading: el("span", { class: "count accent" }),
+    done: el("span", { class: "count ok" }),
+    failed: el("span", { class: "count err" }),
+  };
+  const countItem = (ic: Parameters<typeof icon>[0], node: HTMLElement) =>
+    el("span", { class: "count-item" }, icon(ic, 13), node);
+  app.append(
+    el(
+      "footer",
+      { class: "statusbar" },
+      msgSpan,
+      el("div", { class: "spacer" }),
+      countItem("clock", counts.ready),
+      countItem("arrow-down", counts.downloading),
+      countItem("circle-check", counts.done),
+      countItem("circle-alert", counts.failed)
+    )
   );
-  app.append(statusbar);
+
+  const setMsg = (text: string) => {
+    msgSpan.textContent = text;
+  };
 
   // ---- 视图 ----
   const taskListView = new TaskListView(list, detectPlatform, {
@@ -77,6 +88,8 @@ export function mount(root: HTMLElement) {
         app,
         () => taskStore.statuses,
         () => settingsStore.settings,
+        () => settingsStore.targetDir,
+        (d) => settingsStore.setTargetDir(d),
         (s) => settingsStore.save(s),
         () => settingsModal?.container.remove(),
         () => void taskStore.refreshStatus()
@@ -89,47 +102,39 @@ export function mount(root: HTMLElement) {
 
   const pickDir = async () => {
     const d = await open({ directory: true });
-    if (d && typeof d === "string") settingsStore.setTargetDir(d);
-  };
-  dirBtn.onclick = () => void pickDir();
-
-  const submit = () => void taskStore.addUrls(textarea.value);
-  parseBtn.onclick = submit;
-  textarea.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
-  });
-  textarea.addEventListener("paste", (e) => {
-    const text = e.clipboardData?.getData("text") ?? "";
-    if (extractUrls(text).length > 0) {
-      e.preventDefault();
-      void taskStore.addUrls(text);
+    if (d && typeof d === "string") {
+      settingsStore.setTargetDir(d);
+      setMsg(`下载目录已设为 ${d}`);
     }
-  });
-  downloadAllBtn.onclick = () => taskStore.startAll();
+  };
+  folderBtn.onclick = () => void pickDir();
+  dirInput.onclick = () => void pickDir();
 
-  // ---- 渲染循环（store → view） ----
+  // v1 交互:大按钮读取剪贴板 → 解析(支持多行批量)
+  const paste = async () => {
+    const text = await readClipboard();
+    const urls = extractUrls(text);
+    if (urls.length === 0) {      setMsg("剪贴板里没有链接。复制视频链接后再点「粘贴/下载」。");
+      return;
+    }
+    const before = taskStore.tasks.length;
+    await taskStore.addUrls(text);
+    const added = taskStore.tasks.length - before;
+    setMsg(added > 0 ? `已添加 ${added} 个新任务,图文帖会自动跳过。` : "没有发现新链接(可能已添加过)。");
+  };
+  pasteBtn.onclick = () => void paste();
+
+  // ---- 渲染循环(store → view) ----
   function render() {
-    const dir = settingsStore.targetDir;
-    dirBtn.textContent = dir ? `目录：${shorten(dir)}` : "选择下载目录";
-
-    const ready = taskStore.coreReady;
-    textarea.disabled = taskStore.busy || !ready;
-    parseBtn.disabled = taskStore.busy || !ready;
-    textarea.placeholder = ready
-      ? "粘贴链接，支持多行批量（抖音 / TikTok / 小红书 / Instagram / Pinterest / X / B站 / YouTube）"
-      : "请先在下方安装 yt-dlp";
-    parseBtn.textContent = taskStore.busy ? "解析中…" : "解析";
+    dirInput.value = settingsStore.targetDir;
+    pasteBtn.disabled = taskStore.busy || !taskStore.coreReady;
+    pasteBtn.classList.toggle("disabled", taskStore.busy || !taskStore.coreReady);
 
     const c = taskStore.counts();
-    downloadAllBtn.disabled = !dir || c.ready === 0;
-    downloadAllBtn.title = !dir ? "先选择下载目录" : `下载 ${c.ready} 条`;
-    downloadAllBtn.textContent = c.ready > 0 ? `全部下载（${c.ready}）` : "全部下载";
-
-    const parts = statusbar.children;
-    (parts[0] as HTMLElement).textContent = `共 ${c.total}`;
-    (parts[1] as HTMLElement).textContent = `完成 ${c.done}`;
-    (parts[2] as HTMLElement).textContent = `跳过 ${c.skipped}`;
-    (parts[3] as HTMLElement).textContent = `失败 ${c.failed}`;
+    counts.ready.textContent = String(c.ready);
+    counts.downloading.textContent = String(taskStore.tasks.filter((t) => t.status === "downloading" || t.status === "merging").length);
+    counts.done.textContent = String(c.done);
+    counts.failed.textContent = String(c.failed);
 
     coreView.render(taskStore.statuses);
     taskListView.render(taskStore.tasks);
@@ -137,11 +142,8 @@ export function mount(root: HTMLElement) {
   taskStore.onChange(render);
   settingsStore.onChange(render);
 
-  void taskStore.refreshStatus();
+  void taskStore.refreshStatus().then(() => {
+    if (!taskStore.coreReady) setMsg("核心组件未就绪:请先在下方安装 yt-dlp。");
+  });
   render();
-}
-
-function shorten(p: string): string {
-  const parts = p.split("/");
-  return parts.length > 3 ? "…/" + parts.slice(-2).join("/") : p;
 }

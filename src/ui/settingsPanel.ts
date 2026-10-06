@@ -3,8 +3,8 @@ import type { ComponentStatus, Settings } from "../lib/types";
 import { clear, el } from "./dom";
 
 /**
- * 设置弹层：组件路径 / Cookie（规格见 docs/product-specs/cookie-access.md）/
- * 并发上限（默认 1，极限 4，用户决策）。
+ * 设置弹层（v1 交互对齐）：下载目录 / 组件路径 / Cookie（规格见
+ * docs/product-specs/cookie-access.md）/ 并发上限（默认 1，极限 4，用户决策）。
  */
 export class SettingsPanelView {
   container: HTMLElement;
@@ -13,6 +13,8 @@ export class SettingsPanelView {
     parent: HTMLElement,
     private statuses: () => ComponentStatus[],
     private settings: () => Settings,
+    private targetDir: () => string,
+    private onTargetDir: (d: string) => void,
     private onChange: (s: Settings) => void,
     private onClose: () => void,
     private onRefresh: () => void
@@ -34,6 +36,41 @@ export class SettingsPanelView {
     c.append(sheet);
 
     sheet.append(el("h2", { text: "设置" }));
+
+    // ---- 下载目录(v1 设置项回迁) ----
+    const dirRow = el(
+      "div",
+      { class: "path-row" },
+      el(
+        "div",
+        { class: "path-info" },
+        el("span", { class: "path-name", text: "下载目录" }),
+        el("span", { class: "path-custom", text: this.targetDir() || "未选择(点击右侧选择)" })
+      ),
+      el(
+        "div",
+        { class: "path-ops" },
+        el("button", {
+          class: "btn tiny ghost",
+          text: "选择…",
+          onclick: () => {
+            void (async () => {
+              const d = await open({ directory: true });
+              if (d && typeof d === "string") this.onTargetDir(d);
+              this.render();
+            })();
+          },
+        })
+      )
+    );
+    sheet.append(
+      el(
+        "section",
+        { class: "set-block" },
+        el("div", { class: "set-label" }, "下载目录"),
+        dirRow
+      )
+    );
 
     // ---- 核心组件 ----
     sheet.append(
