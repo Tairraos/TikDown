@@ -47,11 +47,12 @@
 | 路径 | 职责 |
 |---|---|
 | `src/` | 前端（UI 组件 / state / lib 三层，见白名单） |
-| `src-tauri/src/lib.rs` | Tauri 命令层：6 个命令 + 全局 State |
+| `src-tauri/src/lib.rs` | Tauri 命令层：命令 + 全局 State |
 | `src-tauri/src/probe.rs` | yt-dlp JSON 解析、图文判定、错误翻译（explain_error） |
 | `src-tauri/src/download.rs` | 下载子进程编排、进度解析（parse_progress）、取消 |
 | `src-tauri/src/fetch.rs` | yt-dlp/ffmpeg 按需下载（ureq）、解压、校验 |
 | `src-tauri/src/binresolve.rs` | 组件定位（探测顺序/版本门槛/路径解析） |
+| `src-tauri/src/disk.rs` | 下载目录所在卷剩余空间（fs4 statvfs，disk_free 命令） |
 | `scripts/` | 门禁脚本、版本 bump（`_bump_version.py`） |
 | `tests/` | 跨端共享契约 fixture |
 | `docs/` | 记录系统（见 docs/index.md） |

@@ -9,7 +9,7 @@
 | 下载域（download 模块 + 队列） | 4 | P0×2 修复+契约测试；args/progress 纯函数 15 测；并发调度有界并有 8 测 | 5 | 真实 yt-dlp 集成测试（需联网 fixture）待补 |
 | 探测域（probe.rs + probe_batch） | 4 | 有界并发；cookie 闭环；explain_error 修复+7 测 | 5 | 真实平台登录墙场景实测（需用户配合登录） |
 | 组件管理域（binresolve/fetch/CorePanel） | 4 | 设置桥统一；ureq 流式进度；三平台解压；强制校验 | 4.5 | Windows/Linux 平台打包实测（本机仅 macOS） |
-| 前端域 | 4 | vanilla TS 三层；keyed 增量渲染；store 28 测；浏览器 E2E 通过 | 4.5 | mock IPC 的 E2E 可选进 CI |
+| 前端域 | 4 | vanilla TS 三层；keyed 增量渲染；store/工具 74 测（含 i18n/stats/theme）；黑白双主题 + 中英双语 + 侧栏布局浏览器实测截图 | 4.5 | 真机打包后主题/语言/拖拽全链路复核 |
 | 工程化（门禁/CI/发布） | 3.5 | pre-commit/pre-push 全绿；覆盖率门禁实测拦截；版本 guard 本地生效 | 4.5 | GitHub CI 待 §3.3 三问（挂起中） |
 | 文档体系 | 4 | AGENTS/ARCHITECTURE/core-beliefs/规格/GATES/TESTING 齐备,链接门禁护航 | 4.5 | 文档园丁任务定期化(可选) |
 | 安全 | 4 | CSP 最小策略;下载强制校验;无注入面;npm audit 0 | 4.5 | 下载校验和(TD-SEC-002 余项) |
@@ -28,3 +28,4 @@
 |---|---|---|---|---|---|---|---|---|
 | 2026-10-06 | 2 | 2 | 2 | 3 | 1 | 2 | 3 | 改造基线 8dc303f |
 | 2026-10-06 | 4 | 4 | 4 | 4 | 3.5 | 4 | 4 | 五阶段完成(harnessing 分支,CI 挂起待三问) |
+| 2026-10-07 | 4 | 4 | 4 | 4 | 3.5 | 4 | 4 | UI 改版轮:侧栏布局/黑白主题/多语言/下载统计+disk_free(门禁全绿) |
