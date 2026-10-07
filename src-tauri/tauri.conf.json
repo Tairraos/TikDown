@@ -13,10 +13,10 @@
     "windows": [
       {
         "title": "TikDown",
-        "width": 900,
-        "height": 640,
-        "minWidth": 720,
-        "minHeight": 520,
+        "width": 980,
+        "height": 680,
+        "minWidth": 760,
+        "minHeight": 540,
         "resizable": true,
         "titleBarStyle": "Overlay",
         "hiddenTitle": true
