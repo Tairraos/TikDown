@@ -1,6 +1,6 @@
 [package]
 name = "tikdown"
-version = "2.2.1"
+version = "2.2.2"
 description = "多平台社媒视频下载器，只下载视频"
 edition = "2021"
 rust-version = "1.84"
