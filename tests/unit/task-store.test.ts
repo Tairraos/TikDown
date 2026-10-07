@@ -104,6 +104,52 @@ describe("TaskStore.addUrls", () => {
     await store.addUrls("https://a.com/1");
     expect(store.tasks).toHaveLength(1);
   });
+
+  it("粘贴后立即出现「解析中」占位任务,探测完成后原位替换(TD-FE-022)", async () => {
+    const store = storeWith(1);
+    const gate = deferred();
+    mock.probe = (urls: string[]) => gate.promise.then(() => defaultProbe(urls));
+    const pending = store.addUrls("https://a.com/1");
+    await vi.waitFor(() => {
+      expect(store.tasks).toHaveLength(1);
+      expect(store.tasks[0].status).toBe("probing");
+      expect(store.tasks[0].url).toBe("https://a.com/1");
+    });
+    gate.resolve();
+    const added = await pending;
+    expect(added).toBe(1);
+    expect(store.tasks[0].status).toBe("ready");
+    expect(store.tasks[0].id).toBe("1"); // 沿用占位 id
+    expect(store.busy).toBe(false);
+  });
+
+  it("重复粘贴直接返回 0,不再发起探测(TD-FE-022)", async () => {
+    const store = storeWith(1);
+    const first = await store.addUrls("https://a.com/1");
+    let probeCalls = 0;
+    mock.probe = (urls: string[]) => {
+      probeCalls++;
+      return defaultProbe(urls);
+    };
+    const second = await store.addUrls("https://a.com/1");
+    expect(first).toBe(1);
+    expect(second).toBe(0);
+    expect(probeCalls).toBe(0);
+    expect(store.tasks).toHaveLength(1);
+  });
+
+  it("占位任务可被移除,迟到的探测结果对已移除任务自动忽略(TD-FE-022)", async () => {
+    const store = storeWith(1);
+    const gate = deferred();
+    mock.probe = () => gate.promise;
+    const pending = store.addUrls("https://a.com/1");
+    await vi.waitFor(() => expect(store.tasks[0]?.status).toBe("probing"));
+    expect(store.remove("1")).toBe(true);
+    gate.resolve();
+    await pending;
+    expect(store.tasks).toHaveLength(0);
+    expect(store.busy).toBe(false);
+  });
 });
 
 function deferred() {

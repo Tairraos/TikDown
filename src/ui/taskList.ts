@@ -192,7 +192,8 @@ export class TaskListView {
     }
     if (running) {
       parts.ops.append(iconBtn("pause", tr("btnCancel"), () => this.cb.onCancel(t.id)));
-    } else if (t.status !== "probing") {
+    } else {
+      // 解析中/待下载/终态都可移除(TD-FE-022):探测结果回来时任务已不在,handleEvent 自动忽略
       parts.ops.append(iconBtn("x", tr("btnRemove"), () => this.cb.onRemove(t.id)));
     }
     parts.ops.append(parts.stateSpan);

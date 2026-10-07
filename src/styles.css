@@ -258,7 +258,7 @@ body {
 
 .msg { color: var(--err); font-weight: 600; }
 
-/* 进度条(参考图:圆头绿条,无边框轨道) */
+/* 进度条(参考图:圆头绿条,无边框轨道;填充带行走纹理,慢速推进时也有"在动"的反馈) */
 .progress {
   display: block;
   flex: 1 1 auto;
@@ -267,7 +267,43 @@ body {
   border-radius: 999px;
   overflow: hidden;
 }
-.bar { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width 200ms; }
+.bar {
+  display: block;
+  position: relative;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 200ms;
+}
+.bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.28) 0 7px,
+    transparent 7px 14px
+  );
+  background-size: 19.8px 100%;
+  animation: bar-stripes 0.7s linear infinite;
+}
+@keyframes bar-stripes {
+  to { background-position: 19.8px 0; }
+}
+
+/* 解析中的省略号动画(占位任务,TD-FE-022) */
+.state.probing::after {
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  content: "...";
+  animation: probing-dots 1.2s steps(4, end) infinite;
+}
+@keyframes probing-dots {
+  to { width: 1.2em; }
+}
 
 /* 画质选择 */
 .qualities { display: flex; gap: 5px; margin-top: 7px; flex-wrap: wrap; }
@@ -299,6 +335,8 @@ body {
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
 }
+/* 不确定条自身已流动,不再叠行走纹理 */
+.bar.indeterminate::after { display: none; }
 
 /* 完成任务行可点击播放 */
 .task.done { cursor: pointer; }

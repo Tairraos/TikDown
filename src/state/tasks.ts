@@ -101,25 +101,74 @@ export class TaskStore {
     return c;
   }
 
-  /** 解析粘贴内容并创建任务（try/finally 保证 busy 复位，TD-FE-002） */
-  async addUrls(raw: string) {
+  /**
+   * 解析粘贴内容并创建任务（try/finally 保证 busy 复位，TD-FE-002）。
+   * **先建占位任务再探测**（TD-FE-022）：列表立刻出现 URL 行 + 「解析中」，
+   * probe_batch 返回后原位替换为真实结果——用户粘贴后马上有反馈。
+   * 重复 URL 不再进探测（占位也不会建），返回值 = 新增任务数。
+   */
+  async addUrls(raw: string): Promise<number> {
     const urls = extractUrls(raw);
-    if (urls.length === 0) return;
+    const fresh = urls.filter((u) => !this.tasks.some((t) => t.url === u));
+    if (fresh.length === 0) return 0;
+    this.tasks = [...fresh.map((url) => this.probingTask(url)), ...this.tasks];
     this.busy = true;
     this.emit();
+    const freshSet = new Set(fresh);
     try {
-      const results = await invoke<BatchResult[]>("probe_batch", { urls });
+      const results = await invoke<BatchResult[]>("probe_batch", { urls: fresh });
+      // 占位行被同名 URL 的真实结果**原位替换**:沿用占位 id(事件路由/keyed 行复用稳定),
+      // 占位已被用户移除的迟到结果直接丢弃(TD-FE-022)
+      const placeholderId = new Map(
+        this.tasks.filter((p) => freshSet.has(p.url)).map((p) => [p.url, p.id])
+      );
       this.tasks = [
-        ...results.map((r) => this.buildTask(r)),
-        ...this.tasks.filter((p) => !results.some((r) => r.url === p.url)),
+        ...results
+          .filter((r) => placeholderId.has(r.url))
+          .map((r) => {
+            const task = this.buildTask(r);
+            const ph = placeholderId.get(r.url);
+            return ph ? { ...task, id: ph } : task;
+          }),
+        ...this.tasks.filter((p) => !freshSet.has(p.url)),
       ];
     } catch (e) {
-      // 整批探测失败也要让用户看见,而不是输入框静默卡死
-      this.tasks = [...urls.map((url) => this.errTask(url, `解析失败：${String(e)}`)), ...this.tasks];
+      // 整批探测失败也要让用户看见,而不是输入框静默卡死;同样沿用占位 id
+      const placeholderId = new Map(
+        this.tasks.filter((p) => freshSet.has(p.url)).map((p) => [p.url, p.id])
+      );
+      this.tasks = [
+        ...[...placeholderId.entries()].map(([url, id]) => ({
+          ...this.errTask(url, `解析失败：${String(e)}`),
+          id,
+        })),
+        ...this.tasks.filter((p) => !freshSet.has(p.url)),
+      ];
     } finally {
       this.busy = false;
       this.emit();
     }
+    return fresh.length;
+  }
+
+  /** 占位任务:等待 probe_batch 回填(TD-FE-022)。 */
+  private probingTask(url: string): Task {
+    return {
+      id: this.nextId(),
+      url,
+      status: "probing",
+      info: null,
+      error: null,
+      percent: 0,
+      speed: "",
+      eta: "",
+      formatId: null,
+      startedAt: null,
+      donePath: null,
+      doneSize: null,
+      doneElapsedSec: null,
+      downloaded: 0,
+    };
   }
 
   /** 统一的失败任务构造 */
