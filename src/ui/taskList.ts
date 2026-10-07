@@ -1,19 +1,11 @@
 import { invoke } from "../lib/ipc";
 import type { Task } from "../lib/types";
 import { formatBytes, formatDuration, qualityLabel } from "../lib/types";
+import { t as tr } from "../lib/i18n";
 import { icon } from "../lib/icons";
 import { clear, el } from "./dom";
 
-const STATUS_LABEL: Record<Task["status"], string> = {
-  pending: "等待",
-  probing: "解析中",
-  ready: "待下载",
-  downloading: "下载中",
-  merging: "合并中",
-  done: "下载完成",
-  failed: "失败",
-  skipped: "已跳过",
-};
+const statusLabel = (status: Task["status"]): string => tr(`status.${status}`);
 
 const STATUS_ICON: Record<Task["status"], Parameters<typeof icon>[0] | null> = {
   pending: "clock",
@@ -67,9 +59,7 @@ export class TaskListView {
 
     if (tasks.length === 0) {
       this.container.querySelector(".empty")?.remove();
-      this.container.append(
-        el("div", { class: "empty", text: "点击顶部中间「粘贴/下载」,或 Ctrl+V 直接粘贴链接。图文帖会自动跳过。" })
-      );
+      this.container.append(el("div", { class: "empty", text: tr("emptyHint") }));
       return;
     }
     this.container.querySelector(".empty")?.remove();
@@ -98,12 +88,12 @@ export class TaskListView {
     const progressSlot = el("div", { class: "progress-slot" });
     const qualitySlot = el("div", { class: "qualities-slot" });
     const ops = el("div", { class: "ops" });
-    const stateSpan = el("span", { class: `state ${t.status}` }, STATUS_LABEL[t.status]);
+    const stateSpan = el("span", { class: `state ${t.status}` }, statusLabel(t.status));
     const msgSpan = el("span", { class: "msg" });
     const titleSpan = el("span", { class: "title", text: t.info?.title ?? t.url });
     const row = el(
       "div",
-      { class: `task ${t.status}`, title: t.status === "done" ? "点击播放" : undefined },
+      { class: `task ${t.status}`, title: t.status === "done" ? tr("titlePlay") : undefined },
       el(
         "div",
         { class: "thumb" },
@@ -122,7 +112,7 @@ export class TaskListView {
           doneSizeSpan(t) ?? sizeSpan(t),
           resolutionSpan(t),
           t.info?.duration ? el("span", { class: "dim", text: formatDuration(t.info.duration) }) : null,
-          t.doneElapsedSec ? el("span", { class: "dim", text: `用时 ${t.doneElapsedSec}秒` }) : null,
+          t.doneElapsedSec ? el("span", { class: "dim", text: tr("elapsed", { n: t.doneElapsedSec }) }) : null,
           msgSpan
         ),
         progressSlot,
@@ -142,7 +132,7 @@ export class TaskListView {
     // 下载完成:点击行用系统播放器播放(TD-FE-012)
     row.onclick = t.status === "done" && t.donePath ? () => void invoke("open_with_system", { path: t.donePath }) : null;
     // 状态与错误信息随事件更新(E2E 发现的增量更新盲区)
-    parts.stateSpan.replaceChildren(STATUS_LABEL[t.status]);
+    parts.stateSpan.replaceChildren(statusLabel(t.status));
     parts.stateSpan.className = `state ${t.status}`;
     const st = STATUS_ICON[t.status];
     if (st) parts.stateSpan.prepend(icon(st, 13));
@@ -172,7 +162,7 @@ export class TaskListView {
       box.append(
         el("button", {
           class: t.formatId === null ? "chip on" : "chip",
-          text: "最佳",
+          text: tr("chipBest"),
           onclick: () => this.cb.onFormat(t.id, null),
         })
       );
@@ -190,33 +180,33 @@ export class TaskListView {
     }
 
     clear(parts.ops);
-    // 右侧状态文字(v1:任务行右缘显示「下载完成」等),下载中带百分比
+    // 右侧状态文字(任务行右缘),下载中带百分比
     parts.ops.append(parts.stateSpan);
     if (t.status === "downloading") {
       parts.stateSpan.replaceChildren(
-        t.percent > 0 ? `下载中 ${Math.round(t.percent)}%` : `下载中 ${formatBytes(t.downloaded)}`
+        t.percent > 0 ? `${statusLabel("downloading")} ${Math.round(t.percent)}%` : `${statusLabel("downloading")} ${formatBytes(t.downloaded)}`
       );
     } else if (t.status === "merging") {
-      parts.stateSpan.replaceChildren("合成中");
+      parts.stateSpan.replaceChildren(statusLabel("merging"));
     }
     if (t.status === "ready") {
-      parts.ops.append(el("button", { class: "btn small", text: "下载", onclick: () => this.cb.onStart(t) }));
+      parts.ops.append(el("button", { class: "btn small", text: tr("btnDownload"), onclick: () => this.cb.onStart(t) }));
     } else if (t.status === "failed") {
       parts.ops.append(
-        el("button", { class: "btn small ghost", text: "重试", title: "重新下载", onclick: () => this.cb.onStart(t) })
+        el("button", { class: "btn small ghost", text: tr("btnRetry"), title: tr("btnRetry"), onclick: () => this.cb.onStart(t) })
       );
     }
     if (t.status === "downloading" || t.status === "merging") {
       parts.ops.append(
-        el("button", { class: "icon-btn small", title: "取消", "aria-label": "取消", onclick: () => this.cb.onCancel(t.id) }, icon("x", 14))
+        el("button", { class: "icon-btn small", title: tr("btnCancel"), "aria-label": tr("btnCancel"), onclick: () => this.cb.onCancel(t.id) }, icon("x", 14))
       );
     }
     if (t.status === "done" && t.donePath) {
       parts.ops.append(
         el("button", {
           class: "btn small ghost",
-          text: "定位",
-          title: "在 Finder 中显示",
+          text: tr("btnLocate"),
+          title: tr("titleReveal"),
           onclick: (e: Event) => {
             e.stopPropagation(); // 不触发行点击播放
             void invoke("reveal_in_manager", { path: t.donePath });

@@ -126,6 +126,9 @@ function mockInvoke(cmd: string, args: Record<string, unknown> | undefined): Pro
     case "open_with_system":
     case "reveal_in_manager":
       return Promise.resolve(null);
+    case "disk_free":
+      // 固定 215.3 GiB,与参考图示意一致;真实值走 Tauri disk_free 命令
+      return Promise.resolve(231_211_000_000);
     case "check_component": {
       // mock 规则:路径含 "bad" 一律失败(供 E2E 测失败分支),其余成功
       const p = String(args?.path ?? "");

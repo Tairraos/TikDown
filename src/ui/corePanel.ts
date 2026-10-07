@@ -1,6 +1,7 @@
 import { invoke, listen } from "../lib/ipc";
 import type { ComponentStatus, FetchDone, FetchEvent } from "../lib/types";
 import { formatBytes } from "../lib/types";
+import { t } from "../lib/i18n";
 import { clear, el } from "./dom";
 
 /**
@@ -53,16 +54,16 @@ export class CorePanelView {
             { class: "core-ops-row" },
             el("button", {
               class: "btn tiny",
-              text: `下载 ${s.name}${s.downloadSize ? `(${formatBytes(s.downloadSize)})` : ""}`,
+              text: t("btnDownloadCore", { name: s.name, size: s.downloadSize ? `(${formatBytes(s.downloadSize)})` : "" }),
               onclick: () => void invoke("fetch_component", { name: s.name }),
             }),
-            el("button", { class: "btn tiny ghost", text: "手动指定路径…", onclick: this.onOpenSettings })
+            el("button", { class: "btn tiny ghost", text: t("btnSpecify"), onclick: this.onOpenSettings })
           )
         );
       }
       if (progress?.state === "running") {
         this.container.append(
-          el("span", { class: "core-prog" }, `下载 ${s.name} ${formatBytes(progress.received)} · ${progress.speedMbps.toFixed(1)} MB/s`)
+          el("span", { class: "core-prog" }, t("coreDownloading", { name: s.name, received: formatBytes(progress.received), speed: progress.speedMbps.toFixed(1) }))
         );
       }
       if (progress?.state === "failed") {
@@ -74,11 +75,9 @@ export class CorePanelView {
   private buildTag(s: ComponentStatus): HTMLElement {
     const st = s.state.state;
     const ready = st === "ready" || st === "readyExternal";
-    return el(
-      "span",
-      { class: `core-tag ${ready ? "ok" : "err"}`, title: ready ? `${s.name} 就绪` : `${s.name} 未就绪(${st === "outdated" ? "版本过旧" : "未安装"})` },
-      s.name,
-      ready ? " ✓" : " ✗"
-    );
+    const title = ready
+      ? t("ctagReady", { name: s.name })
+      : t(st === "outdated" ? "ctagOutdated" : "ctagMissing", { name: s.name });
+    return el("span", { class: `core-tag ${ready ? "ok" : "err"}`, title }, s.name, ready ? " ✓" : " ✗");
   }
 }

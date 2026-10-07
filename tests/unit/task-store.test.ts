@@ -10,6 +10,7 @@ const settings: Settings = {
   cookieFile: null,
   maxConcurrent: 1,
   preferredQuality: "原画",
+  language: "system",
 };
 
 /** mock IPC 层:可编程的 probe_batch / start_download,驱动 store 的纯逻辑测试 */
@@ -175,6 +176,32 @@ describe("TaskStore 事件路由", () => {
     expect(store.tasks[0].donePath).toBe("/x.mp4");
     expect(store.tasks[0].doneSize).toBe(21_500_000);
     expect(store.tasks[0].doneElapsedSec).toBeGreaterThanOrEqual(1);
+  });
+
+  it("onDone 只在 done 转变沿触发一次(进度/重复 done 不计,TD-FE-020)", async () => {
+    const store = storeWith(1);
+    await store.addUrls("https://a.com/1");
+    const doneIds: string[] = [];
+    store.onDone((task) => doneIds.push(task.id));
+
+    store.handleEvent({ id: "1", state: "progress", percent: 50, downloaded: 1, speed: "", eta: "", filename: "f" } as never);
+    store.handleEvent({ id: "1", state: "done", path: "/x.mp4" } as never);
+    store.handleEvent({ id: "1", state: "done", path: "/x.mp4" } as never);
+    expect(doneIds).toEqual(["1"]);
+
+    store.handleEvent({ id: "1", state: "failed", message: "x" } as never);
+    store.handleEvent({ id: "1", state: "done", path: "/x.mp4" } as never);
+    expect(doneIds).toEqual(["1", "1"]); // 重试成功再计一次
+  });
+
+  it("onDone 返回退订函数", async () => {
+    const store = storeWith(1);
+    await store.addUrls("https://a.com/1");
+    const doneIds: string[] = [];
+    const off = store.onDone((task) => doneIds.push(task.id));
+    off();
+    store.handleEvent({ id: "1", state: "done", path: "/x.mp4" } as never);
+    expect(doneIds).toEqual([]);
   });
 
   it("failed 事件写入错误信息", async () => {

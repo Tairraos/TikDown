@@ -27,7 +27,22 @@ describe("SettingsStore", () => {
   it("默认设置在构造时同步给后端(TD-CORE-001)", () => {
     new SettingsStore();
     expect(invoked[0]?.cmd).toBe("set_settings");
-    expect(invoked[0]?.args?.newSettings).toMatchObject({ cookieMode: "none", maxConcurrent: 1 });
+    expect(invoked[0]?.args?.newSettings).toMatchObject({ cookieMode: "none", maxConcurrent: 1, language: "system" });
+  });
+
+  it("语言设置默认跟随系统并可持久化(TD-FE-019)", () => {
+    const store = new SettingsStore();
+    expect(store.settings.language).toBe("system");
+    store.save({ ...raw(), language: "en" });
+    expect(JSON.parse(localStorage.getItem("tikdown.settings") ?? "{}").language).toBe("en");
+    const reloaded = new SettingsStore();
+    expect(reloaded.settings.language).toBe("en");
+  });
+
+  it("旧版本存储(无 language 字段)回落 system", () => {
+    localStorage.setItem("tikdown.settings", JSON.stringify({ maxConcurrent: 2 }));
+    const store = new SettingsStore();
+    expect(store.settings.language).toBe("system");
   });
 
   it("save 持久化 localStorage 并再次同步后端", () => {

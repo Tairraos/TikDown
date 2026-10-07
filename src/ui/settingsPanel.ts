@@ -1,6 +1,7 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "../lib/ipc";
-import type { CheckResult, ComponentStatus, Settings } from "../lib/types";
+import type { CheckResult, ComponentStatus, Language, Settings } from "../lib/types";
+import { t } from "../lib/i18n";
 import { initCheckState, type CheckState } from "./checkState";
 import { buildPathCheckRow, type PathCheckRowHandle } from "./pathCheckRow";
 import { clear, el } from "./dom";
@@ -14,6 +15,7 @@ type CheckName = "dir" | "ytdlp" | "ffmpeg";
  * - **检测不通过不允许关闭**:点完成或点弹层外时,未验证的路径自动检测,
  *   任何失败都会把弹层留在屏幕上并显示原因;检测通过立即保存
  * - Cookie 三选项同一行;并发上限默认 1、极限 4（用户决策）
+ * - 语言三选项（TD-FE-019）:跟随系统/中文/English,默认跟随系统
  */
 export class SettingsPanelView {
   container: HTMLElement;
@@ -62,21 +64,21 @@ export class SettingsPanelView {
       return;
     }
     if (s.state === "ready" || s.state === "readyExternal") {
-      const sourceCn =
+      const src =
         "source" in s
-          ? ({ managed: "应用副本", configured: "手动指定", systemPath: "系统 PATH" } as Record<string, string>)[
+          ? ({ managed: t("srcManaged"), configured: t("srcConfigured"), systemPath: t("srcSystemPath") } as Record<string, string>)[
               s.source as string
-            ] ?? ""
-          : "";
+            ] ?? t("srcUnknown")
+          : t("srcUnknown");
       st.value = s.path;
       st.auto = true;
       st.status = "ok";
-      st.message = `自动探测(来源:${sourceCn || "未知"})`;
+      st.message = t("autoDetectMsg", { src });
     } else if (s.state === "outdated") {
       st.value = s.path;
       st.auto = true;
       st.status = "fail";
-      st.message = `系统版本 ${s.version} 低于要求 ${s.required},当前使用 ~/.tikdown 副本;如需强制使用请更换路径后点「检测」`;
+      st.message = t("outdatedMsg", { v: s.version, r: s.required });
     }
   }
 
@@ -91,20 +93,15 @@ export class SettingsPanelView {
     sheet.addEventListener("click", (e) => e.stopPropagation());
     c.append(sheet);
 
-    sheet.append(el("h2", { text: "设置" }));
+    sheet.append(el("h2", { text: t("setTitle") }));
 
     // ---- 下载目录 ----
     sheet.append(
       el(
         "section",
         { class: "set-block" },
-        el(
-          "div",
-          { class: "set-label" },
-          "下载目录",
-          el("span", { class: "set-note", text: "可直接粘贴地址（Finder 打不开的目录如 /opt 也可以）" })
-        ),
-        this.buildRow("dir", "位置", this.targetDir() ? "已设置" : "未设置").row,
+        el("div", { class: "set-label" }, t("secDir"), el("span", { class: "set-note", text: t("dirNote") })),
+        this.buildRow("dir", t("locLabel"), this.targetDir() ? t("dirSet") : t("dirUnset")).row,
         this.rows.dir?.msgRow ?? el("div")
       )
     );
@@ -114,12 +111,7 @@ export class SettingsPanelView {
       el(
         "section",
         { class: "set-block" },
-        el(
-          "div",
-          { class: "set-label" },
-          "核心组件",
-          el("span", { class: "set-note", text: "留空则按 系统 PATH → ~/.tikdown 副本 自动查找；可粘贴地址后点「检测」" })
-        ),
+        el("div", { class: "set-label" }, t("secCore"), el("span", { class: "set-note", text: t("coreNote") })),
         this.buildRow("ytdlp", "yt-dlp", this.versionOf("yt-dlp"), true).row,
         this.rows.ytdlp?.msgRow ?? el("div"),
         this.buildRow("ffmpeg", "ffmpeg", this.versionOf("ffmpeg"), true).row,
@@ -129,8 +121,8 @@ export class SettingsPanelView {
 
     // ---- Cookie(三选项同一行,用户要求) ----
     const cookieRow = el("div", { class: "cookie-row" });
-    cookieRow.append(this.radio("不使用", s.cookieMode === "none", () => this.set({ ...s, cookieMode: "none" })));
-    const browserRadio = this.radio("浏览器登录态", s.cookieMode === "browser", () =>
+    cookieRow.append(this.radio("cookieMode", t("cookieNone"), s.cookieMode === "none", () => this.set({ ...s, cookieMode: "none" })));
+    const browserRadio = this.radio("cookieMode", t("cookieBrowser"), s.cookieMode === "browser", () =>
       this.set({ ...s, cookieMode: "browser" })
     );
     if (s.cookieMode === "browser") {
@@ -138,31 +130,22 @@ export class SettingsPanelView {
         onchange: (e: Event) => this.set({ ...s, cookieBrowser: (e.target as HTMLSelectElement).value }),
       }) as HTMLSelectElement;
       for (const b of ["chrome", "firefox", "edge", "brave", "safari"]) {
-        sel.append(el("option", { value: b, text: b === "safari" ? "Safari(实验)" : b[0].toUpperCase() + b.slice(1) }));
+        sel.append(el("option", { value: b, text: b === "safari" ? t("safariExp") : b[0].toUpperCase() + b.slice(1) }));
       }
       sel.value = s.cookieBrowser;
       browserRadio.append(sel);
     }
     cookieRow.append(browserRadio);
-    const fileRadio = this.radio("cookies.txt", s.cookieMode === "file", () => this.set({ ...s, cookieMode: "file" }));
+    const fileRadio = this.radio("cookieMode", "cookies.txt", s.cookieMode === "file", () => this.set({ ...s, cookieMode: "file" }));
     if (s.cookieMode === "file") {
-      fileRadio.append(el("button", { class: "btn tiny ghost", text: "选择文件…", onclick: () => void this.pickCookieFile() }));
+      fileRadio.append(el("button", { class: "btn tiny ghost", text: t("btnChooseFile"), onclick: () => void this.pickCookieFile() }));
     }
     cookieRow.append(fileRadio);
     sheet.append(
       el(
         "section",
         { class: "set-block" },
-        el(
-          "div",
-          { class: "set-label" },
-          "Cookie（登录墙内容）",
-          el(
-            "span",
-            { class: "set-note" },
-            "二选一:常用浏览器登录平台后选「浏览器登录态」;或用「Get cookies.txt LOCALLY」扩展导出后选文件。读取失败先完全退出浏览器再试。登录态只在本机与 yt-dlp 间传递,不保存不上传。"
-          )
-        ),
+        el("div", { class: "set-label" }, t("secCookie"), el("span", { class: "set-note", text: t("cookieNote") })),
         cookieRow
       )
     );
@@ -170,20 +153,14 @@ export class SettingsPanelView {
     // ---- 优先分辨率(TD-FE-015) ----
     const qualityRow = el("div", { class: "cookie-row" });
     for (const q of ["原画", "4K", "1080P", "720P"] as const) {
-      qualityRow.append(
-        this.radio(q, s.preferredQuality === q, () => this.set({ ...s, preferredQuality: q }))
-      );
+      // 设置值保持中文枚举(与后端 -S res 参数、已存 localStorage 兼容),文案仅"原画"需翻译
+      qualityRow.append(this.radio("preferredQuality", q === "原画" ? t("qOriginal") : q, s.preferredQuality === q, () => this.set({ ...s, preferredQuality: q })));
     }
     sheet.append(
       el(
         "section",
         { class: "set-block" },
-        el(
-          "div",
-          { class: "set-label" },
-          "优先下载分辨率",
-          el("span", { class: "set-note", text: "画质可选的源按最接近此高度下载;任务里手动选过画质则以手动为准" })
-        ),
+        el("div", { class: "set-label" }, t("secQuality"), el("span", { class: "set-note", text: t("qualityNote") })),
         qualityRow
       )
     );
@@ -200,21 +177,33 @@ export class SettingsPanelView {
       el(
         "section",
         { class: "set-block" },
-        el(
-          "div",
-          { class: "set-label" },
-          "并发下载上限",
-          el("span", { class: "set-note", text: "同时进行的下载数（1–4），过高可能触发平台风控" })
-        ),
+        el("div", { class: "set-label" }, t("secConcurrency"), el("span", { class: "set-note", text: t("concurrencyNote") })),
         num
       )
     );
 
-    // ---- 底部:完成 = 关闭门禁入口 ----
-    this.doneBtn = el("button", { class: "btn", text: "完成", onclick: () => void this.attemptClose() });
+    // ---- 语言(TD-FE-019):跟随系统/中文/English,默认跟随系统 ----
+    const langRow = el("div", { class: "cookie-row" });
+    const langs: { value: Language; label: string }[] = [
+      { value: "system", label: t("langSystem") },
+      { value: "zh", label: t("langZh") },
+      { value: "en", label: t("langEn") },
+    ];
+    for (const l of langs) {
+      langRow.append(this.radio("language", l.label, s.language === l.value, () => this.set({ ...s, language: l.value })));
+    }
     sheet.append(
-      el("div", { class: "set-foot" }, el("span", { class: "set-path", text: "组件目录：~/.tikdown" }), this.doneBtn)
+      el(
+        "section",
+        { class: "set-block" },
+        el("div", { class: "set-label" }, t("secLanguage"), el("span", { class: "set-note", text: t("langSystem") + " / zh / en" })),
+        langRow
+      )
     );
+
+    // ---- 底部:完成 = 关闭门禁入口 ----
+    this.doneBtn = el("button", { class: "btn", text: t("btnDone"), onclick: () => void this.attemptClose() });
+    sheet.append(el("div", { class: "set-foot" }, el("span", { class: "set-path", text: t("footComponents") }), this.doneBtn));
   }
 
   private buildRow(name: CheckName, label: string, info = "", withFilePicker = false): PathCheckRowHandle {
@@ -308,7 +297,7 @@ export class SettingsPanelView {
   private setDoneBusy(busy: boolean) {
     if (this.doneBtn) {
       this.doneBtn.disabled = busy;
-      this.doneBtn.textContent = busy ? "检测中…" : "完成";
+      this.doneBtn.textContent = busy ? t("btnChecking") : t("btnDone");
     }
   }
 
@@ -334,12 +323,12 @@ export class SettingsPanelView {
 
   private versionOf(name: string): string {
     const st = this.statuses().find((x) => x.name === name)?.state;
-    if (!st) return "未检测到";
-    return "version" in st ? String(st.version) : "未安装";
+    if (!st) return t("notDetected");
+    return "version" in st ? String(st.version) : t("notInstalled");
   }
 
-  private radio(label: string, checked: boolean, onChange: () => void): HTMLElement {
-    const r = el("input", { type: "radio", name: "cookieMode" });
+  private radio(name: string, label: string, checked: boolean, onChange: () => void): HTMLElement {
+    const r = el("input", { type: "radio", name });
     r.checked = checked;
     r.onchange = onChange;
     return el("label", { class: "check" }, r, label);

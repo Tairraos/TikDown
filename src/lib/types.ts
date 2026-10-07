@@ -32,7 +32,12 @@ export interface Settings {
   maxConcurrent: number;
   /** 优先下载分辨率:自动画质时按最接近该高度下载(TD-FE-015) */
   preferredQuality: "原画" | "4K" | "1080P" | "720P";
+  /** 界面语言:默认跟随系统(TD-FE-019)。仅前端使用——后端 Settings 无此字段(serde 忽略未知键) */
+  language: Language;
 }
+
+/** 界面语言：system 跟随 navigator.language（TD-FE-019） */
+export type Language = "system" | "zh" | "en";
 
 /** 优先分辨率 → yt-dlp -S res:H 的高度;原画 = null(不限) */
 export const PREFERRED_HEIGHT: Record<Settings["preferredQuality"], number | null> = {
@@ -62,6 +67,7 @@ export const DEFAULT_SETTINGS: Settings = {
   cookieFile: null,
   maxConcurrent: 1,
   preferredQuality: "原画",
+  language: "system",
 };
 
 export interface Quality {
@@ -153,16 +159,17 @@ export interface Task {
   downloaded: number;
 }
 
-/** 平台识别：用于 UI 上打标签，让用户一眼知道这条是哪个平台的 */
-export const PLATFORMS: { key: string; label: string; hosts: string[] }[] = [
-  { key: "douyin", label: "抖音", hosts: ["douyin.com", "iesdouyin.com"] },
-  { key: "tiktok", label: "TikTok", hosts: ["tiktok.com", "tiktokv.com"] },
-  { key: "xhs", label: "小红书", hosts: ["xiaohongshu.com", "xhslink.com"] },
-  { key: "instagram", label: "Instagram", hosts: ["instagram.com", "instagr.am"] },
-  { key: "pinterest", label: "Pinterest", hosts: ["pinterest.com", "pin.it"] },
-  { key: "x", label: "X", hosts: ["twitter.com", "x.com"] },
-  { key: "bilibili", label: "B站", hosts: ["bilibili.com", "b23.tv"] },
-  { key: "youtube", label: "YouTube", hosts: ["youtube.com", "youtu.be"] },
+/** 平台识别：用于 UI 上打标签，让用户一眼知道这条是哪个平台的。
+ *  label = 中文文案；labelEn = 英文文案（宣传语条按界面语言取用，TD-FE-019）。 */
+export const PLATFORMS: { key: string; label: string; labelEn: string; hosts: string[] }[] = [
+  { key: "douyin", label: "抖音", labelEn: "Douyin", hosts: ["douyin.com", "iesdouyin.com"] },
+  { key: "tiktok", label: "TikTok", labelEn: "TikTok", hosts: ["tiktok.com", "tiktokv.com"] },
+  { key: "xhs", label: "小红书", labelEn: "Xiaohongshu", hosts: ["xiaohongshu.com", "xhslink.com"] },
+  { key: "instagram", label: "Instagram", labelEn: "Instagram", hosts: ["instagram.com", "instagr.am"] },
+  { key: "pinterest", label: "Pinterest", labelEn: "Pinterest", hosts: ["pinterest.com", "pin.it"] },
+  { key: "x", label: "X", labelEn: "X", hosts: ["twitter.com", "x.com"] },
+  { key: "bilibili", label: "B站", labelEn: "Bilibili", hosts: ["bilibili.com", "b23.tv"] },
+  { key: "youtube", label: "YouTube", labelEn: "YouTube", hosts: ["youtube.com", "youtu.be"] },
 ];
 
 export function detectPlatform(url: string): string | null {

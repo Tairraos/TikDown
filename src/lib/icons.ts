@@ -13,6 +13,8 @@ import circleCheck from "lucide-static/icons/circle-check.svg?raw";
 import circleAlert from "lucide-static/icons/circle-alert.svg?raw";
 import clock from "lucide-static/icons/clock.svg?raw";
 import arrowDown from "lucide-static/icons/arrow-down.svg?raw";
+import moon from "lucide-static/icons/moon.svg?raw";
+import sun from "lucide-static/icons/sun.svg?raw";
 
 export type IconName =
   | "clipboard-paste"
@@ -24,7 +26,9 @@ export type IconName =
   | "circle-check"
   | "circle-alert"
   | "clock"
-  | "arrow-down";
+  | "arrow-down"
+  | "moon"
+  | "sun";
 
 const REGISTRY: Record<IconName, string> = {
   "clipboard-paste": clipboardPaste,
@@ -37,6 +41,8 @@ const REGISTRY: Record<IconName, string> = {
   "circle-alert": circleAlert,
   clock,
   "arrow-down": arrowDown,
+  moon,
+  sun,
 };
 
 /** 返回内联 SVG 的元素。size 单位 px,默认 16。 */

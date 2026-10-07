@@ -23,6 +23,8 @@ export class TaskStore {
   busy = false;
 
   private listeners = new Set<Listener>();
+  /** 下载成功（done 转变沿）监听——统计计数用（TD-FE-020） */
+  private doneListeners = new Set<(task: Task) => void>();
   private running = new Set<string>();
   private seq = 1;
 
@@ -36,6 +38,12 @@ export class TaskStore {
   onChange(fn: Listener): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
+  }
+
+  /** 订阅"任务下载成功"事件：仅 failed→done 等转变沿触发一次，进度/重复 done 不触发。 */
+  onDone(fn: (task: Task) => void): () => void {
+    this.doneListeners.add(fn);
+    return () => this.doneListeners.delete(fn);
   }
 
   private emit() {
@@ -52,9 +60,14 @@ export class TaskStore {
    * 终态任务从并发槽位移除并立即补位调度（TD-DL-004）。
    */
   handleEvent({ id, ...event }: TaskEventWrapper) {
+    const before = this.tasks.find((t) => t.id === id);
     this.tasks = this.tasks.map((t) => (t.id !== id ? t : applyEvent(t, event)));
     const task = this.tasks.find((t) => t.id === id);
     if (task && isTerminal(task.status)) {
+      // done 转变沿（进度事件/重复 done 不计）通知统计（TD-FE-020）
+      if (task.status === "done" && before?.status !== "done") {
+        this.doneListeners.forEach((fn) => fn(task));
+      }
       this.running.delete(id);
       this.startNext();
     }
