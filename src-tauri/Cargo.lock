@@ -3699,7 +3699,7 @@ dependencies = [
 
 [[package]]
 name = "tikdown"
-version = "2.2.0"
+version = "2.2.1"
 dependencies = [
  "fs4",
  "serde",
