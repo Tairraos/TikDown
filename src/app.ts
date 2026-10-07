@@ -44,7 +44,7 @@ export function mount(root: HTMLElement) {
   // ---- 顶栏(兼拖拽区) ----
   const brand = el(
     "div",
-    { class: "brand" },
+    { class: "brand", "data-tauri-drag-region": true },
     el("span", { class: "brand-name", text: "TikDown", "data-tauri-drag-region": true }),
     el("span", { class: "ver", text: `v${__APP_VERSION__}`, "data-tauri-drag-region": true })
   );
@@ -53,18 +53,25 @@ export function mount(root: HTMLElement) {
   const diskNum = el("span", { class: "disk-num" });
   const diskUnit = el("span", { class: "disk-unit" });
   const diskLabel = el("span", { class: "disk-label", text: t("diskFree") });
-  const diskChip = el("div", { class: "disk-chip" }, el("div", { class: "disk-line" }, diskNum, diskUnit), diskLabel);
+  const diskChip = el(
+    "div",
+    { class: "disk-chip", "data-tauri-drag-region": true },
+    el("div", { class: "disk-line", "data-tauri-drag-region": true }, diskNum, diskUnit),
+    diskLabel
+  );
   const pasteBtn = el(
     "button",
     { class: "paste-btn", title: t("pasteTitle") },
     icon("clipboard-paste", 20),
     el("span", { class: "paste-label" })
   );
+  // 拖拽区(TD-FE-016/022):Tauri 只认 mousedown 目标上的属性,
+  // 顶栏每一层容器都要登记,否则点到容器/间隙就拖不动(按钮自身不受影响)
   const topbar = el(
     "header",
     { class: "topbar", "data-tauri-drag-region": true },
-    el("div", { class: "topbar-left" }, brand, settingsBtn, themeBtn),
-    el("div", { class: "topbar-right" }, diskChip, pasteBtn)
+    el("div", { class: "topbar-left", "data-tauri-drag-region": true }, brand, settingsBtn, themeBtn),
+    el("div", { class: "topbar-right", "data-tauri-drag-region": true }, diskChip, pasteBtn)
   );
 
   const list = el("section", { class: "list" });
@@ -190,9 +197,7 @@ export function mount(root: HTMLElement) {
       setMsg("msgNoLink");
       return;
     }
-    const before = taskStore.tasks.length;
-    await taskStore.addUrls(text);
-    const added = taskStore.tasks.length - before;
+    const added = await taskStore.addUrls(text);
     setMsg(added > 0 ? "msgAdded" : "msgNoNew", added > 0 ? { n: added } : undefined);
   };
   pasteBtn.onclick = () => void paste();
