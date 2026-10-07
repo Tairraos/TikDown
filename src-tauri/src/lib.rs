@@ -1,4 +1,5 @@
 mod binresolve;
+mod disk;
 mod download;
 mod fetch;
 mod pathcheck;
@@ -225,6 +226,12 @@ async fn fetch_component(
     fetch::fetch(app, fetching, name)
 }
 
+/// 下载目录所在卷的剩余空间（字节）；查询失败时前端显示占位符（TD-CORE-010）
+#[tauri::command]
+fn disk_free(path: String) -> Result<u64, String> {
+    disk::free_space(std::path::Path::new(&path))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -243,7 +250,8 @@ pub fn run() {
             fetch_component,
             check_component,
             open_with_system,
-            reveal_in_manager
+            reveal_in_manager,
+            disk_free
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
