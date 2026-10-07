@@ -29,7 +29,8 @@ TikDown：多平台社媒视频下载器（Tauri v2 桌面应用）。只下载�
 
 - 安装：`npm install`
 - 前端开发：`npm run dev`（纯浏览器调试，IPC 走 mock）；桌面开发：`npm run app:dev`
-- 构建：`npm run build`（tsc + vite）；桌面打包：`npm run app:build`
+- 构建：`npm run build`（tsc + vite）；桌面打包：`npm run app:build`（仅 .app）
+- **出包（用户立规 2026-10-07）**：一律 `npm run app:release`——自动升一版 → 只打 .app（不打 dmg）→ 删除旧版本与过程产物；保留 `target/` 增量缓存。每次会话需要出包时都走它，不手工 `tauri build`
 - 测试：`npm test`（vitest）；Rust：`cargo test`（在 src-tauri/ 下）
 - lint：`npm run lint`；Rust：`cargo fmt --check && cargo clippy -- -D warnings`
 - 全部本地门禁一条命令：`npm run gate`
