@@ -15,6 +15,8 @@ import clock from "lucide-static/icons/clock.svg?raw";
 import arrowDown from "lucide-static/icons/arrow-down.svg?raw";
 import moon from "lucide-static/icons/moon.svg?raw";
 import sun from "lucide-static/icons/sun.svg?raw";
+import play from "lucide-static/icons/play.svg?raw";
+import pause from "lucide-static/icons/pause.svg?raw";
 
 export type IconName =
   | "clipboard-paste"
@@ -28,7 +30,9 @@ export type IconName =
   | "clock"
   | "arrow-down"
   | "moon"
-  | "sun";
+  | "sun"
+  | "play"
+  | "pause";
 
 const REGISTRY: Record<IconName, string> = {
   "clipboard-paste": clipboardPaste,
@@ -43,6 +47,8 @@ const REGISTRY: Record<IconName, string> = {
   "arrow-down": arrowDown,
   moon,
   sun,
+  play,
+  pause,
 };
 
 /** 返回内联 SVG 的元素。size 单位 px,默认 16。 */

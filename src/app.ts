@@ -2,7 +2,7 @@ import { SettingsStore } from "./state/settings";
 import { TaskStore } from "./state/tasks";
 import { StatsStore } from "./state/stats";
 import { invoke, readClipboard } from "./lib/ipc";
-import { detectPlatform, extractUrls, PLATFORMS } from "./lib/types";
+import { detectPlatformEntry, extractUrls } from "./lib/types";
 import { icon } from "./lib/icons";
 import { lang, setLang, t } from "./lib/i18n";
 import { currentTheme, toggleTheme } from "./lib/theme";
@@ -25,8 +25,9 @@ export function bigBytes(n: number | null): { num: string; unit: string } {
 }
 
 /**
- * 应用装配(TD-FE-017 参考图布局):
- * 左侧栏 = 品牌/统计卡/大粘贴按钮/设置+主题切换;主区 = 宣传语条/任务卡列表/状态栏+队列汇总。
+ * 应用装配(TD-FE-021 参考图,单列布局):
+ * 顶栏 = 品牌+版本+设置/主题 ｜ 磁盘剩余黄chip + 粘贴/下载按钮;
+ * 任务列表;底部黑色状态栏 = 组件tag+消息 ｜ 四组计数。
  */
 export function mount(root: HTMLElement) {
   const settingsStore = new SettingsStore();
@@ -40,64 +41,61 @@ export function mount(root: HTMLElement) {
   const app = el("div", { class: "app" });
   root.append(app);
 
-  // ---- 侧栏 ----
-  const statCount = el("span", { class: "stat-num" });
-  const statLabel1 = el("span", { class: "stat-label-text", text: t("stat7dTotal") });
-  const resetBtn = el("button", { class: "stat-reset", title: t("resetTitle"), text: t("reset") });
-  const statDiskNum = el("span", { class: "stat-num" });
-  const statDiskUnit = el("span", { class: "stat-unit" });
-  const statLabel2 = el("span", { class: "stat-label-text", text: t("diskFree") });
-
+  // ---- 顶栏(兼拖拽区) ----
   const brand = el(
     "div",
-    { class: "brand", "data-tauri-drag-region": true },
-    el("span", { class: "brand-name", text: "TikDown" }),
-    el("span", { class: "ver", text: `v${__APP_VERSION__}` })
+    { class: "brand" },
+    el("span", { class: "brand-name", text: "TikDown", "data-tauri-drag-region": true }),
+    el("span", { class: "ver", text: `v${__APP_VERSION__}`, "data-tauri-drag-region": true })
   );
-  const pasteBtn = el("button", { class: "paste-btn", title: t("pasteTitle") }, el("span", { class: "paste-label" }));
-  const settingsBtn = el(
+  const settingsBtn = el("button", { class: "icon-btn", "aria-label": t("settings") }, icon("settings", 18));
+  const themeBtn = el("button", { class: "icon-btn" });
+  const diskNum = el("span", { class: "disk-num" });
+  const diskUnit = el("span", { class: "disk-unit" });
+  const diskLabel = el("span", { class: "disk-label", text: t("diskFree") });
+  const diskChip = el("div", { class: "disk-chip" }, el("div", { class: "disk-line" }, diskNum, diskUnit), diskLabel);
+  const pasteBtn = el(
     "button",
-    { class: "side-settings", "aria-label": t("settings") },
-    icon("settings", 16),
-    el("span", { class: "side-settings-label" })
+    { class: "paste-btn", title: t("pasteTitle") },
+    icon("clipboard-paste", 20),
+    el("span", { class: "paste-label" })
   );
-  const themeBtn = el("button", { class: "theme-toggle" });
-
-  const sidebar = el(
-    "aside",
-    { class: "sidebar" },
-    brand,
-    el(
-      "div",
-      { class: "stat-card" },
-      el("div", { class: "stat-line" }, statCount),
-      el("div", { class: "stat-label" }, statLabel1),
-      resetBtn
-    ),
-    el(
-      "div",
-      { class: "stat-card" },
-      el("div", { class: "stat-line" }, statDiskNum, statDiskUnit),
-      el("div", { class: "stat-label" }, statLabel2)
-    ),
-    pasteBtn,
-    el("div", { class: "side-foot" }, settingsBtn, themeBtn)
+  const topbar = el(
+    "header",
+    { class: "topbar", "data-tauri-drag-region": true },
+    el("div", { class: "topbar-left" }, brand, settingsBtn, themeBtn),
+    el("div", { class: "topbar-right" }, diskChip, pasteBtn)
   );
 
-  // ---- 主区:宣传语条(兼拖拽)/任务列表/状态栏 ----
-  const tagline = el("header", { class: "tagline", "data-tauri-drag-region": true });
   const list = el("section", { class: "list" });
+
+  // ---- 底部状态栏:左 = 组件 tag + 消息;右 = 四组计数(参考图) ----
   const statusMsg = el("span", { class: "status-msg" });
   const coreContainer = el("div", { class: "core-tags" });
-  const queue = el("div", { class: "queue" });
+  const counts = {
+    ready: el("span", { class: "count" }),
+    downloading: el("span", { class: "count" }),
+    done: el("span", { class: "count" }),
+    failed: el("span", { class: "count" }),
+  };
+  const countItem = (ic: Parameters<typeof icon>[0], node: HTMLElement) =>
+    el("span", { class: "count-item" }, icon(ic, 13), node);
+  const queue = el(
+    "div",
+    { class: "queue" },
+    countItem("clock", counts.ready),
+    countItem("arrow-down", counts.downloading),
+    countItem("circle-check", counts.done),
+    countItem("circle-alert", counts.failed)
+  );
   const statusbar = el(
     "footer",
     { class: "statusbar" },
     el("div", { class: "status-left" }, coreContainer, statusMsg),
     queue
   );
-  const main = el("main", { class: "main" }, tagline, list, statusbar);
-  app.append(sidebar, main);
+
+  app.append(topbar, list, statusbar);
 
   // ---- 消息:按 key 记录,语言切换时随 render 重翻 ----
   let msgKey: string | null = null;
@@ -122,12 +120,24 @@ export function mount(root: HTMLElement) {
       diskBytes = null;
     }
   }
+  function renderDisk() {
+    const { num, unit } = bigBytes(diskBytes);
+    diskNum.textContent = num;
+    diskUnit.textContent = unit;
+  }
 
   // ---- 视图 ----
-  const taskListView = new TaskListView(list, detectPlatform, {
+  const taskListView = new TaskListView(list, (url) => {
+    // 平台标签随界面语言取中/英文(TD-FE-019/021)
+    const entry = detectPlatformEntry(url);
+    return entry ? (lang() === "zh" ? entry.label : entry.labelEn) : null;
+  }, {
     onFormat: (id, formatId) => taskStore.setFormat(id, formatId),
     onStart: (t_) => taskStore.startOne(t_),
     onCancel: (id) => taskStore.cancel(id),
+    onRemove: (id) => {
+      if (taskStore.remove(id)) setMsg("msgRemoved", { n: 1 });
+    },
   });
   // 设置弹层延迟到首次打开时构造——构造即挂载 overlay 会把整页蒙灰(E2E 发现)
   let settingsModal: SettingsPanelView | null = null;
@@ -146,7 +156,13 @@ export function mount(root: HTMLElement) {
           settingsModal?.container.remove();
           settingsModal = null;
         },
-        () => void taskStore.refreshStatus()
+        () => void taskStore.refreshStatus(),
+        // 统计收纳进设置弹层底行(TD-FE-021 新草图无侧栏)
+        () => ({ total: statsStore.total, recent7: statsStore.recent7 }),
+        () => {
+          statsStore.reset();
+          settingsModal?.render();
+        }
       );
     }
     settingsModal.render();
@@ -157,7 +173,7 @@ export function mount(root: HTMLElement) {
   // 主题切换:亮暗互换,图标/提示随状态
   const renderThemeBtn = () => {
     const dark = currentTheme() === "dark";
-    themeBtn.replaceChildren(icon(dark ? "sun" : "moon", 17));
+    themeBtn.replaceChildren(icon(dark ? "sun" : "moon", 18));
     themeBtn.title = t(dark ? "themeToLight" : "themeToDark");
     themeBtn.setAttribute("aria-label", themeBtn.title);
   };
@@ -166,7 +182,7 @@ export function mount(root: HTMLElement) {
     renderThemeBtn();
   };
 
-  // v1 交互:大按钮读取剪贴板 → 解析(支持多行批量)
+  // v1 交互:粘贴按钮读取剪贴板 → 解析(支持多行批量)
   const paste = async () => {
     const text = await readClipboard();
     const urls = extractUrls(text);
@@ -182,52 +198,29 @@ export function mount(root: HTMLElement) {
   pasteBtn.onclick = () => void paste();
 
   // 下载成功 → 统计 +1,并刷新磁盘剩余(文件落盘后空间变化)
-  statsStore.onChange(() => {
-    renderStats();
+  taskStore.onDone(() => {
+    statsStore.add(1);
     void refreshDisk().then(renderDisk);
   });
-  taskStore.onDone(() => statsStore.add(1));
-  resetBtn.onclick = () => statsStore.reset();
+  settingsBtn.setAttribute("aria-label", t("settings"));
 
-  // ---- 静态文案(语言/主题切换时整体重刷) ----
+  // ---- 静态文案(语言切换时整体重刷) ----
   function applyStaticTexts() {
-    statLabel1.textContent = t("stat7dTotal");
-    statLabel2.textContent = t("diskFree");
-    resetBtn.textContent = t("reset");
-    resetBtn.title = t("resetTitle");
-    (pasteBtn.firstChild as HTMLElement).textContent = t("pasteDownload");
+    diskLabel.textContent = t("diskFree");
+    diskChip.title = t("diskFree");
+    (pasteBtn.querySelector(".paste-label") as HTMLElement).textContent = t("pasteDownload");
     pasteBtn.title = t("pasteTitle");
-    (settingsBtn.lastChild as HTMLElement).textContent = t("settings");
+    settingsBtn.title = t("settings");
     settingsBtn.setAttribute("aria-label", t("settings"));
-
-    const labels = PLATFORMS.map((p) => (lang() === "zh" ? p.label : p.labelEn));
-    tagline.textContent = t("tagline", { list: labels.join(lang() === "zh" ? "、" : ", ") });
     renderThemeBtn();
-  }
-
-  function renderStats() {
-    statCount.textContent = `${statsStore.recent7}/${statsStore.total}`;
-  }
-
-  function renderDisk() {
-    const { num, unit } = bigBytes(diskBytes);
-    statDiskNum.textContent = num;
-    statDiskUnit.textContent = unit;
   }
 
   function renderQueue() {
     const c = taskStore.counts();
-    const active = taskStore.tasks.filter((x) => x.status === "downloading" || x.status === "merging").length;
-    const seg = (label: string, n: number) =>
-      el("span", { class: "queue-seg" }, el("span", { class: "queue-num", text: String(n) }), label);
-    clear(queue);
-    queue.append(
-      seg(t("qReady"), c.ready),
-      seg(t("qActive"), active),
-      seg(t("qDone"), c.done),
-      seg(t("qFailed"), c.failed)
-    );
-    if (c.skipped > 0) queue.append(seg(t("qSkipped"), c.skipped));
+    counts.ready.textContent = String(c.ready);
+    counts.downloading.textContent = String(taskStore.tasks.filter((x) => x.status === "downloading" || x.status === "merging").length);
+    counts.done.textContent = String(c.done);
+    counts.failed.textContent = String(c.failed);
   }
 
   // ---- 渲染循环(store → view) ----
@@ -239,7 +232,6 @@ export function mount(root: HTMLElement) {
     pasteBtn.classList.toggle("disabled", taskStore.busy || !taskStore.coreReady);
     if (msgKey) statusMsg.textContent = t(msgKey, msgParams);
 
-    renderStats();
     renderDisk();
     renderQueue();
     coreView.render(taskStore.statuses);

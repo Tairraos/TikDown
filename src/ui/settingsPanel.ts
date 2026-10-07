@@ -31,7 +31,9 @@ export class SettingsPanelView {
     private onTargetDir: (d: string) => void,
     private onChange: (s: Settings) => void,
     private onClose: () => void,
-    private onRefresh: () => void
+    private onRefresh: () => void,
+    private stats: () => { total: number; recent7: number } = () => ({ total: 0, recent7: 0 }),
+    private onResetStats: () => void = () => {}
   ) {
     this.container = el("div", { class: "overlay" });
     this.container.addEventListener("click", (e) => {
@@ -201,9 +203,20 @@ export class SettingsPanelView {
       )
     );
 
-    // ---- 底部:完成 = 关闭门禁入口 ----
+    // ---- 底部:完成 = 关闭门禁入口;统计收纳于此(新草图无侧栏,TD-FE-021) ----
     this.doneBtn = el("button", { class: "btn", text: t("btnDone"), onclick: () => void this.attemptClose() });
-    sheet.append(el("div", { class: "set-foot" }, el("span", { class: "set-path", text: t("footComponents") }), this.doneBtn));
+    const st = this.stats();
+    const statText = el("span", { class: "set-stats", text: `${t("stat7dTotal")}：${st.recent7}/${st.total}` });
+    sheet.append(
+      el(
+        "div",
+        { class: "set-foot" },
+        el("span", { class: "set-path", text: t("footComponents") }),
+        el("span", { class: "set-foot-stats" }, statText,
+          el("button", { class: "stat-reset", title: t("resetTitle"), text: t("reset"), onclick: this.onResetStats })),
+        this.doneBtn
+      )
+    );
   }
 
   private buildRow(name: CheckName, label: string, info = "", withFilePicker = false): PathCheckRowHandle {

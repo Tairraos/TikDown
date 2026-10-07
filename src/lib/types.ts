@@ -173,13 +173,18 @@ export const PLATFORMS: { key: string; label: string; labelEn: string; hosts: st
 ];
 
 export function detectPlatform(url: string): string | null {
+  return detectPlatformEntry(url)?.label ?? null;
+}
+
+/** 平台条目识别:界面语言需要英文标签时用(TD-FE-019/021)。 */
+export function detectPlatformEntry(url: string): (typeof PLATFORMS)[number] | null {
   let host: string;
   try {
     host = new URL(url).hostname.replace(/^www\./, "");
   } catch {
     return null;
   }
-  return PLATFORMS.find((p) => p.hosts.some((h) => host === h || host.endsWith("." + h)))?.label ?? null;
+  return PLATFORMS.find((p) => p.hosts.some((h) => host === h || host.endsWith("." + h))) ?? null;
 }
 
 /** 从一段可能混着文字的粘贴内容里抽出所有 http 链接（中文标点视为边界，TD-FE-006） */

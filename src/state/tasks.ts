@@ -238,6 +238,18 @@ export class TaskStore {
   cancel(id: string) {
     void invoke("cancel_download", { id });
   }
+
+  /**
+   * 移除任务(TD-FE-021):仅允许非运行中状态;下载中的任务先取消才能移除。
+   * 返回是否真的移除了(供 UI 提示)。
+   */
+  remove(id: string): boolean {
+    const task = this.tasks.find((t) => t.id === id);
+    if (!task || task.status === "downloading" || task.status === "merging") return false;
+    this.tasks = this.tasks.filter((t) => t.id !== id);
+    this.emit();
+    return true;
+  }
 }
 
 function isTerminal(status: Task["status"]): boolean {

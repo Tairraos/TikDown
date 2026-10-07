@@ -204,6 +204,26 @@ describe("TaskStore 事件路由", () => {
     expect(doneIds).toEqual([]);
   });
 
+  it("remove 移除非运行中任务,运行中拒绝(TD-FE-021)", async () => {
+    const store = storeWith(1);
+    await store.addUrls("https://a.com/1");
+    expect(store.remove("1")).toBe(true);
+    expect(store.tasks).toHaveLength(0);
+    expect(store.remove("1")).toBe(false); // 不存在的 id
+  });
+
+  it("remove 下载中/合并中的任务被拒绝,终态可移除(TD-FE-021)", async () => {
+    const store = storeWith(1);
+    await store.addUrls("https://a.com/1");
+    store.startOne(store.tasks[0]);
+    expect(store.remove("1")).toBe(false); // downloading
+    expect(store.tasks).toHaveLength(1);
+    store.handleEvent({ id: "1", state: "merging" } as never);
+    expect(store.remove("1")).toBe(false); // merging
+    store.handleEvent({ id: "1", state: "done", path: "/x.mp4" } as never);
+    expect(store.remove("1")).toBe(true);
+  });
+
   it("failed 事件写入错误信息", async () => {
     const store = storeWith(1);
     await store.addUrls("https://a.com/1");

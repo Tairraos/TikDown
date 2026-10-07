@@ -2,30 +2,20 @@ import { invoke } from "../lib/ipc";
 import type { Task } from "../lib/types";
 import { formatBytes, formatDuration, qualityLabel } from "../lib/types";
 import { t as tr } from "../lib/i18n";
-import { icon } from "../lib/icons";
+import { icon, type IconName } from "../lib/icons";
 import { clear, el } from "./dom";
 
 const statusLabel = (status: Task["status"]): string => tr(`status.${status}`);
-
-const STATUS_ICON: Record<Task["status"], Parameters<typeof icon>[0] | null> = {
-  pending: "clock",
-  probing: null,
-  ready: "clock",
-  downloading: "arrow-down",
-  merging: "arrow-down",
-  done: "circle-check",
-  failed: "circle-alert",
-  skipped: null,
-};
 
 export interface TaskListCallbacks {
   onFormat: (id: string, formatId: string | null) => void;
   onStart: (task: Task) => void;
   onCancel: (id: string) => void;
+  onRemove: (id: string) => void;
 }
 
 type RowParts = {
-  progressSlot: HTMLElement;
+  barSlot: HTMLElement;
   qualitySlot: HTMLElement;
   ops: HTMLElement;
   stateSpan: HTMLElement;
@@ -33,8 +23,14 @@ type RowParts = {
   titleSpan: HTMLElement;
 };
 
+/** 图标按钮(▶/⏸/✕/📁,TD-FE-021 参考图)。 */
+function iconBtn(name: IconName, title: string, onclick: () => void): HTMLElement {
+  return el("button", { class: "icon-btn small", title, "aria-label": title, onclick }, icon(name, 15));
+}
+
 /**
- * 任务列表(v1 视觉):缩略图 + URL/标题/体积 + 绿色进度条 + 右侧状态。
+ * 任务列表(TD-FE-021 参考图):缩略图 + URL/作者-标题/大小+内联绿色进度,
+ * 操作图标 ▶ 开始 ↻ 重试 ⏸ 取消 ✕ 移除 📁 定位,状态文字靠右缘。
  * 按任务 id 做 keyed 增量更新——进度事件高频到达时只改动对应行,避免整列重绘。
  */
 export class TaskListView {
@@ -85,12 +81,12 @@ export class TaskListView {
 
   private buildRow(t: Task): { row: HTMLElement; parts: RowParts } {
     const platform = this.platformOf(t.url);
-    const progressSlot = el("div", { class: "progress-slot" });
+    const barSlot = el("span", { class: "bar-slot" });
     const qualitySlot = el("div", { class: "qualities-slot" });
     const ops = el("div", { class: "ops" });
     const stateSpan = el("span", { class: `state ${t.status}` }, statusLabel(t.status));
     const msgSpan = el("span", { class: "msg" });
-    const titleSpan = el("span", { class: "title", text: t.info?.title ?? t.url });
+    const titleSpan = el("span", { class: "title", text: this.displayTitle(t) });
     const row = el(
       "div",
       { class: `task ${t.status}`, title: t.status === "done" ? tr("titlePlay") : undefined },
@@ -113,18 +109,22 @@ export class TaskListView {
           resolutionSpan(t),
           t.info?.duration ? el("span", { class: "dim", text: formatDuration(t.info.duration) }) : null,
           t.doneElapsedSec ? el("span", { class: "dim", text: tr("elapsed", { n: t.doneElapsedSec }) }) : null,
+          barSlot,
           msgSpan
         ),
-        progressSlot,
         qualitySlot
       ),
       ops
     );
-    if (t.status === "done" && t.donePath) {
-      row.onclick = () => void invoke("open_with_system", { path: t.donePath });
-    }
-    this.updateRow(row, t, { progressSlot, qualitySlot, ops, stateSpan, msgSpan, titleSpan });
-    return { row, parts: { progressSlot, qualitySlot, ops, stateSpan, msgSpan, titleSpan } };
+    this.updateRow(row, t, { barSlot, qualitySlot, ops, stateSpan, msgSpan, titleSpan });
+    return { row, parts: { barSlot, qualitySlot, ops, stateSpan, msgSpan, titleSpan } };
+  }
+
+  /** 第二行展示:作者 - 标题(TD-FE-021 参考图);无作者时只显示标题。 */
+  private displayTitle(t: Task): string {
+    const title = t.info?.title ?? t.url;
+    const uploader = t.info?.uploader?.trim();
+    return uploader && uploader !== title ? `${uploader} - ${title}` : title;
   }
 
   private updateRow(row: HTMLElement, t: Task, parts: RowParts) {
@@ -134,20 +134,18 @@ export class TaskListView {
     // 状态与错误信息随事件更新(E2E 发现的增量更新盲区)
     parts.stateSpan.replaceChildren(statusLabel(t.status));
     parts.stateSpan.className = `state ${t.status}`;
-    const st = STATUS_ICON[t.status];
-    if (st) parts.stateSpan.prepend(icon(st, 13));
     parts.msgSpan.textContent = t.error ?? "";
-    parts.titleSpan.textContent = t.info?.title ?? t.url;
+    parts.titleSpan.textContent = this.displayTitle(t);
 
-    clear(parts.progressSlot);
+    // 内联进度条(下载中/合并中):total 缺失(DASH 常见)时改不确定动画(TD-FE-013)
+    clear(parts.barSlot);
     if (t.status === "downloading" || t.status === "merging") {
-      // total 缺失(DASH 常见)时 percent 恒 0:进度条改为不确定动画,状态显示已下载 MB(TD-FE-013)
       const indeterminate = t.percent <= 0;
-      parts.progressSlot.append(
+      parts.barSlot.append(
         el(
-          "div",
+          "span",
           { class: "progress" },
-          el("div", {
+          el("span", {
             class: indeterminate ? "bar indeterminate" : "bar",
             style: indeterminate ? undefined : `width:${Math.min(100, t.percent)}%`,
           })
@@ -179,8 +177,24 @@ export class TaskListView {
       parts.qualitySlot.append(box);
     }
 
+    // 操作图标(TD-FE-021):▶ 开始 ↻ 重试 ⏸ 取消 📁 定位 ✕ 移除(运行中不可移除)
     clear(parts.ops);
-    // 右侧状态文字(任务行右缘),下载中带百分比
+    const running = t.status === "downloading" || t.status === "merging";
+    if (t.status === "ready") {
+      parts.ops.append(iconBtn("play", tr("btnDownload"), () => this.cb.onStart(t)));
+    } else if (t.status === "failed") {
+      parts.ops.append(iconBtn("rotate-cw", tr("btnRetry"), () => this.cb.onStart(t)));
+    } else if (t.status === "done" && t.donePath) {
+      parts.ops.append(iconBtn("play", tr("btnPlay"), () => void invoke("open_with_system", { path: t.donePath })));
+      parts.ops.append(
+        iconBtn("folder-open", tr("titleReveal"), () => void invoke("reveal_in_manager", { path: t.donePath }))
+      );
+    }
+    if (running) {
+      parts.ops.append(iconBtn("pause", tr("btnCancel"), () => this.cb.onCancel(t.id)));
+    } else if (t.status !== "probing") {
+      parts.ops.append(iconBtn("x", tr("btnRemove"), () => this.cb.onRemove(t.id)));
+    }
     parts.ops.append(parts.stateSpan);
     if (t.status === "downloading") {
       parts.stateSpan.replaceChildren(
@@ -188,31 +202,6 @@ export class TaskListView {
       );
     } else if (t.status === "merging") {
       parts.stateSpan.replaceChildren(statusLabel("merging"));
-    }
-    if (t.status === "ready") {
-      parts.ops.append(el("button", { class: "btn small", text: tr("btnDownload"), onclick: () => this.cb.onStart(t) }));
-    } else if (t.status === "failed") {
-      parts.ops.append(
-        el("button", { class: "btn small ghost", text: tr("btnRetry"), title: tr("btnRetry"), onclick: () => this.cb.onStart(t) })
-      );
-    }
-    if (t.status === "downloading" || t.status === "merging") {
-      parts.ops.append(
-        el("button", { class: "icon-btn small", title: tr("btnCancel"), "aria-label": tr("btnCancel"), onclick: () => this.cb.onCancel(t.id) }, icon("x", 14))
-      );
-    }
-    if (t.status === "done" && t.donePath) {
-      parts.ops.append(
-        el("button", {
-          class: "btn small ghost",
-          text: tr("btnLocate"),
-          title: tr("titleReveal"),
-          onclick: (e: Event) => {
-            e.stopPropagation(); // 不触发行点击播放
-            void invoke("reveal_in_manager", { path: t.donePath });
-          },
-        })
-      );
     }
   }
 }
