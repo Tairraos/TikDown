@@ -17,13 +17,19 @@ import { ERROR_CODES, adviceFor, adviceLines } from "../../src/lib/errorAdvice";
 
 const fromRoot = (...p: string[]) => join(process.cwd(), ...p);
 
-/** 从 Rust 源码里抠出 CODES 里的错误码字面量 */
+/**
+ * 从 Rust 源码里抠出 CODES 里的错误码。
+ *
+ * 一个 code 可挂多个关键词（AgeRestricted 有两种 yt-dlp 措辞），
+ * 所以这里取全部出现过的 code 并去重——比对的是 code 集合，不是条目数。
+ */
 function rustCodes(): string[] {
   const src = readFileSync(fromRoot("src-tauri/src/errcode.rs"), "utf8");
   const block = src.slice(src.indexOf("pub const CODES"));
   const end = block.indexOf("];");
   const body = block.slice(0, end);
-  return [...body.matchAll(/\(\s*"([A-Za-z]+)"/g)].map((m) => m[1]);
+  const codes = [...body.matchAll(/\(\s*"([A-Za-z]+)"/g)].map((m) => m[1]);
+  return [...new Set(codes)];
 }
 
 describe("错误码前后端契约(TD-PROBE-006)", () => {
