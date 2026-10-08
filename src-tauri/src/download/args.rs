@@ -65,9 +65,12 @@ pub fn yt_dlp_args(opts: &DownloadOptions, ffmpeg: Option<&Path>) -> Vec<String>
     args.push("--concurrent-fragments".into());
     args.push("4".into());
 
-    // Cookie 与探测共用同一份设置（TD-PROBE-001），不再有独立的 useCookies 开关
+    // Cookie 与探测共用同一份设置（TD-PROBE-001），不再有独立的 useCookies 开关。
+    // 走 probe_args 而非 cookie_args：连同 YouTube 客户端兼容参数一起下发（TD-PROBE-005），
+    // 否则登录态会让 yt-dlp 走 tv_downgraded 客户端并报 "The page needs to be reloaded"。
     let s = &opts.settings;
-    for a in probe::cookie_args(
+    for a in probe::probe_args(
+        &opts.url,
         s.cookie_mode.as_deref(),
         s.cookie_browser.as_deref(),
         s.cookie_file.as_deref(),

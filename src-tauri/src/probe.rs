@@ -136,63 +136,13 @@ fn has_video_stream(raw: &RawJson) -> bool {
         .any(|f| f.vcodec.as_deref().is_some_and(|v| v != "none"))
 }
 
-/// 把 yt-dlp 的 stderr 错误翻译成用户能看懂的中文。
+/// 把 yt-dlp 的 stderr 错误翻译成一句话摘要（兼容旧调用点）。
 ///
-/// 这些串经过了实测核对：yt-dlp 遇到登录墙时确实输出
-/// "Sign in to confirm your age" / "This content isn't available" 等。
+/// 分类本体在 `errcode`（TD-PROBE-006）：那边出错误码 + 摘要，这边只做转发，
+/// 避免两处各写一份关键词表而漂移。界面上给用户看的完整解释走前端（要双语）。
 pub fn explain_error(stderr: &str) -> String {
-    let s = stderr.to_lowercase();
-
-    let known: [(&str, &str); 9] = [
-        (
-            "sign in to confirm",
-            "该内容需要登录才能访问。请在设置里配置 Cookie：读取浏览器登录态，或导入 cookies.txt 文件。",
-        ),
-        ("private", "这是私密内容。请在设置里配置已登录对应账号的 Cookie。"),
-        // 注意:不能用裸 "age" 作关键词——"message"/"storage" 等词都含 "age",
-        // 会把任意错误误报成年龄限制(单测发现)。yt-dlp 的实际输出是:
-        // "Confirmed age restriction" / "Sign in to confirm your age"。
-        ("age restriction", "该内容有年龄限制。请在设置里配置已登录的 Cookie。"),
-        ("confirm your age", "该内容有年龄限制。请在设置里配置已登录的 Cookie。"),
-        (
-            "login required",
-            "该平台要求登录后才能查看。请在设置里配置 Cookie（浏览器登录态或 cookies.txt 文件）。",
-        ),
-        ("geo", "该内容有地区限制，当前网络无法访问。"),
-        (
-            "unsupported url",
-            "这个链接 yt-dlp 还不认识，可能需要升级 yt-dlp 版本。",
-        ),
-        ("404", "内容不存在或已被删除。"),
-        (
-            "http error 403",
-            "被平台拒绝访问（403）。通常是登录态失效或触发了风控，稍后重试或降低频率。",
-        ),
-    ];
-
-    for (needle, msg) in known {
-        if s.contains(needle) {
-            return msg.to_string();
-        }
-    }
-
-    // 兜底：取 stderr 最后一行非空内容，剥掉 ERROR: 前缀，避免整段堆栈糊到界面上。
-    // （TD-PROBE-003：原条件 `!empty && !starts_with(ERROR) || len>12` 因优先级，
-    //   任何超过 12 字符的 ERROR 行都会原样透传，与意图相悖。）
-    let line = stderr
-        .lines()
-        .rev()
-        .map(str::trim)
-        .find(|l| !l.is_empty())
-        .unwrap_or("解析失败，未知原因");
-    line.strip_prefix("ERROR:")
-        .unwrap_or(line)
-        .trim()
-        .chars()
-        .take(180)
-        .collect()
+    crate::errcode::explain_error(stderr)
 }
-
 /// 依据 Cookie 设置生成 yt-dlp 参数。
 ///
 /// 刻意以散字段而非 Settings 结构体作入参——probe 保持对设置层的零依赖（T7 白名单）。
@@ -216,6 +166,25 @@ pub fn cookie_args(
         },
         _ => vec![],
     }
+}
+
+/// Cookie 参数 + 平台兼容参数（探测与下载都走这里）。
+///
+/// 两者必须成对下发：只给下载加修复，探测那一步就会先失败，
+/// 登录墙内容根本走不到下载（TD-PROBE-001 的闭环要求）。
+///
+/// 兼容参数本体在 `compatibility` 模块（TD-PROBE-005：YouTube 登录态需换客户端）。
+pub fn probe_args(
+    url: &str,
+    mode: Option<&str>,
+    browser: Option<&str>,
+    cookie_file: Option<&str>,
+) -> Vec<String> {
+    let cookie = cookie_args(mode, browser, cookie_file);
+    let using_cookie = !cookie.is_empty();
+    let mut args = cookie;
+    args.extend(crate::compatibility::args_for(url, using_cookie));
+    args
 }
 
 #[cfg(test)]
@@ -271,8 +240,11 @@ mod tests {
         assert!(info.has_video, "应选中第一个含视频流的条目");
     }
 
+    /// explain_error 已转为转发 errcode（TD-PROBE-006），分类断言在 errcode 模块。
+    /// 这里只锁"转发没断"：登录墙必须仍带 Cookie 指引（界面 tips 的正文在��端，
+    /// 但摘要要保留可执行信息）。
     #[test]
-    fn explain_error_maps_login_wall() {
+    fn explain_error_still_routes_login_wall() {
         let msg = explain_error("ERROR: Sign in to confirm you're not a bot");
         assert!(msg.contains("Cookie"), "登录墙应指向 Cookie 配置: {msg}");
     }
@@ -301,5 +273,32 @@ mod tests {
         );
         // file 模式但未选文件 → 不带参数(而非报错)
         assert!(cookie_args(Some("file"), None, None).is_empty());
+    }
+
+    /// TD-PROBE-005 的集成面：probe_args 必须把 cookie 与客户端参数**成对**下发。
+    /// 只给下载加修复、探测那步就挂，登录墙内容根本走不到下载。
+    /// 拆模块后这里守住"委托没漏"，参数细节由 compatibility 模块自己测。
+    #[test]
+    fn youtube_with_cookie_switches_player_client() {
+        let a = probe_args(
+            "https://www.youtube.com/watch?v=abc",
+            Some("browser"),
+            Some("edge"),
+            None,
+        );
+        let i = a
+            .iter()
+            .position(|s| s == "--extractor-args")
+            .expect("应带客户端参数");
+        assert_eq!(a[i + 1], "youtube:player_client=default,web_embedded");
+        // cookie 参数仍在，两者并存
+        assert!(a.iter().any(|s| s == "--cookies-from-browser"));
+    }
+
+    /// 反例锁定：没 cookie 时**不能**加客户端参数。
+    /// 匿名下载本来就正常，乱加只会绑死 web_embedded 并丢掉可用画质。
+    #[test]
+    fn youtube_without_cookie_gets_no_client_override() {
+        assert!(probe_args("https://www.youtube.com/watch?v=abc", None, None, None).is_empty());
     }
 }

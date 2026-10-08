@@ -1,15 +1,18 @@
 mod binresolve;
+mod compatibility;
 mod disk;
 mod download;
+mod errcode;
 mod fetch;
 mod pathcheck;
 mod probe;
+mod thumb;
 
 use probe::RawJson;
 use std::collections::HashMap;
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
-use tauri::State;
+use tauri::{AppHandle, Manager, State};
 
 /// 运行中的任务句柄表，用于取消；任务终结时由等待线程回调清理（TD-DL-008）。
 #[derive(Clone, Default)]
@@ -82,11 +85,13 @@ async fn probe_batch(
                     url: u.clone(),
                     info: Some(info),
                     error: None,
+                    error_code: None,
                 },
-                Err(e) => BatchResult {
+                Err(f) => BatchResult {
                     url: u.clone(),
                     info: None,
-                    error: Some(e),
+                    error: Some(f.summary.to_string()),
+                    error_code: Some(f.code.to_string()),
                 },
             };
             drop(permit);
@@ -102,15 +107,22 @@ async fn probe_batch(
                 url: String::new(),
                 info: None,
                 error: Some(format!("探测任务异常：{e}")),
+                error_code: Some("Unknown".into()),
             }),
         }
     }
     Ok(out)
 }
 
-/// 探测单条链接的内部实现。返回结构化结果或用户可读的错误。
-fn probe_one(url: &str, settings: &Settings) -> Result<probe::MediaInfo, String> {
-    let ytdlp = binresolve::ytdlp_path(settings.ytdlp_path.as_deref())?;
+/// 探测单条链接的内部实现。
+///
+/// 失败时回 `Classified`（错误码 + 摘要）而非裸字符串——前端要按错误码渲染
+/// 跟随界面语言的多行解释（TD-PROBE-006），拿不到 code 就只能显示后端写死的中文。
+fn probe_one(
+    url: &str,
+    settings: &Settings,
+) -> Result<probe::MediaInfo, crate::errcode::Classified> {
+    let ytdlp = binresolve::ytdlp_path(settings.ytdlp_path.as_deref()).map_err(|e| unknown(&e))?;
 
     let mut cmd = Command::new(&ytdlp);
     cmd.arg("--dump-single-json")
@@ -118,7 +130,10 @@ fn probe_one(url: &str, settings: &Settings) -> Result<probe::MediaInfo, String>
         .arg("--no-playlist")
         .arg("--no-warnings");
     // 登录墙闭环（TD-PROBE-001）：探测与下载吃同一份 Cookie 设置
-    for a in probe::cookie_args(
+    // probe_args 额外带上平台兼容参数（TD-PROBE-005：YouTube 登录态需换客户端，
+    // 否则 tv_downgraded 解不开签名 → "The page needs to be reloaded"）
+    for a in probe::probe_args(
+        url,
         settings.cookie_mode.as_deref(),
         settings.cookie_browser.as_deref(),
         settings.cookie_file.as_deref(),
@@ -129,17 +144,26 @@ fn probe_one(url: &str, settings: &Settings) -> Result<probe::MediaInfo, String>
 
     let out = cmd
         .output()
-        .map_err(|e| format!("无法启动 yt-dlp：{}", e))?;
+        .map_err(|e| unknown(&format!("无法启动 yt-dlp：{e}")))?;
 
     if !out.status.success() {
         let err = String::from_utf8_lossy(&out.stderr);
-        return Err(probe::explain_error(&err));
+        return Err(errcode::classify(&err));
     }
 
-    let raw: RawJson =
-        serde_json::from_slice(&out.stdout).map_err(|e| format!("解析 yt-dlp 输出失败：{}", e))?;
+    let raw: RawJson = serde_json::from_slice(&out.stdout)
+        .map_err(|e| unknown(&format!("解析 yt-dlp 输出失败：{e}")))?;
 
     Ok(probe::parse(raw, url))
+}
+
+/// 内部错误（组件缺失、JSON 解析失败）统一归到 Unknown——
+/// 它们不是平台侧错误，让用户看到「未知错误」比看到误导性的分类更诚实。
+fn unknown(summary: &str) -> errcode::Classified {
+    errcode::Classified {
+        code: "Unknown",
+        summary: summary.to_string(),
+    }
 }
 
 #[derive(serde::Serialize)]
@@ -147,7 +171,11 @@ fn probe_one(url: &str, settings: &Settings) -> Result<probe::MediaInfo, String>
 struct BatchResult {
     url: String,
     info: Option<probe::MediaInfo>,
+    /// 用户可读的摘要（中文一行，进状态栏与任务行）
     error: Option<String>,
+    /// 稳定错误码（TD-PROBE-006）：前端按它渲染多行 tips 解释——文案在前端，
+    /// 才能跟随界面语言（TD-FE-019）。Unknown 时前端回落通用解释。
+    error_code: Option<String>,
 }
 
 #[tauri::command]
@@ -216,6 +244,56 @@ fn check_component(name: String, path: String) -> pathcheck::CheckResult {
     pathcheck::check_candidate(&name, std::path::Path::new(&path))
 }
 
+/// 完成视频的本地缩略图（TD-FE-024）。
+///
+/// 返回抽帧后的**磁盘路径**（不是 URL）：前端拿路径调 `convertFileSrc` 转成
+/// `asset://localhost/...`。这里刻意不自己拼 URL —— asset protocol 只处理
+/// `asset://`，返回 `file://` 会被 CSP 的 `media-src`/`img-src` 拦掉，
+/// 表现为「图片和视频都不显示」且毫无报错。
+///
+/// 失败时返回 Err 而不是 panic：缩略图是锦上添花，前端会回落到远端封面或占位图。
+#[tauri::command]
+fn video_thumbnail(
+    app: AppHandle,
+    settings: State<'_, Mutex<Settings>>,
+    path: String,
+) -> Result<String, String> {
+    let ffmpeg = {
+        let cfg = settings.lock().unwrap().clone();
+        binresolve::ffmpeg_path(cfg.ffmpeg_path.as_deref())
+    };
+    let p = std::path::Path::new(&path);
+    let thumb = thumb::ensure_thumb(p, ffmpeg.as_deref())?;
+    allow_file(&app, &thumb)?;
+    Ok(thumb.to_string_lossy().into_owned())
+}
+
+/// 把本地文件授权进 asset scope，返回其**磁盘路径**（TD-FE-024/025）。
+///
+/// 播放器与缩略图都要让 WebView 直读本地文件。走 asset protocol 而不是自建
+/// HTTP 服务：它**支持 Range/206**（tauri protocol/asset.rs），进度条拖动与
+/// 断点读取由上游实现，我们不重复造。
+///
+/// 安全边界：scope 配置默认为空，每次只放行**用户明确点开的那一个文件**，
+/// 不整目录放开——避免 WebView 侧任何注入面读到用户其他文件。
+///
+/// 返回路径而非 URL：前端统一经 `convertFileSrc` 转换（见 video_thumbnail 注释）。
+#[tauri::command]
+fn local_media_url(app: AppHandle, path: String) -> Result<String, String> {
+    let p = std::path::PathBuf::from(&path);
+    if !p.is_file() {
+        return Err(format!("文件不存在：{path}"));
+    }
+    allow_file(&app, &p)?;
+    Ok(path)
+}
+
+fn allow_file(app: &AppHandle, path: &std::path::Path) -> Result<(), String> {
+    app.asset_protocol_scope()
+        .allow_file(path)
+        .map_err(|e| format!("授权文件失败：{e}"))
+}
+
 /// 下载缺失组件到 ~/.tikdown
 #[tauri::command]
 async fn fetch_component(
@@ -251,7 +329,9 @@ pub fn run() {
             check_component,
             open_with_system,
             reveal_in_manager,
-            disk_free
+            disk_free,
+            video_thumbnail,
+            local_media_url
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

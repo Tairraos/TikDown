@@ -1,6 +1,6 @@
 [package]
 name = "tikdown"
-version = "2.2.2"
+version = "2.2.7"
 description = "多平台社媒视频下载器，只下载视频"
 edition = "2021"
 rust-version = "1.84"
@@ -15,7 +15,9 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+# protocol-asset：本地视频预览与缩略图靠 asset:// 直读磁盘文件（TD-FE-024/025）。
+# 该协议支持 Range/206，进度条拖动由上游实现，不需要自建流式服务。
+tauri = { version = "2", features = ["protocol-asset"] }
 tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

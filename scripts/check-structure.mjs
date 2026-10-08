@@ -13,14 +13,16 @@ let failures = [];
 // 命令层(lib.rs)可用全部模块;业务模块只准依赖白名单里的模块;叶子模块禁止 crate 内依赖。
 // 新增 .rs 文件若含 `use crate::` 而未在此登记,视为结构违规(强制显式化)。
 const RUST_ALLOW = {
-  "src-tauri/src/lib.rs": ["binresolve", "download", "fetch", "pathcheck", "probe"],
+  "src-tauri/src/lib.rs": ["binresolve", "compatibility", "download", "fetch", "pathcheck", "probe", "thumb"],
   "src-tauri/src/download/mod.rs": ["binresolve", "probe"],
   "src-tauri/src/download/args.rs": ["probe"],
   "src-tauri/src/download/progress.rs": [],
   "src-tauri/src/fetch.rs": ["binresolve"],
   "src-tauri/src/pathcheck.rs": ["binresolve"],
-  "src-tauri/src/probe.rs": [],
+  "src-tauri/src/probe.rs": ["compatibility"],
+  "src-tauri/src/compatibility.rs": [],
   "src-tauri/src/binresolve.rs": [],
+  "src-tauri/src/thumb.rs": [],
 };
 
 function walkRust(dir, out = []) {
