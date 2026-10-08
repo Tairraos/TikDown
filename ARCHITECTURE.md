@@ -29,11 +29,20 @@
 | 前端 state（`src/state/`） | `src/lib/`（ipc、types、utils） | 直接操作 DOM |
 | 前端 lib（`src/lib/`） | 无（叶子） | 依赖 state/ui |
 | Rust 命令层（`lib.rs`） | 业务模块（probe/download/fetch） | 绕过模块直接 spawn 子进程 |
-| Rust 业务模块 | `binresolve`（组件定位） | 相互依赖（download 可复用 probe::explain_error 例外已固化） |
+| Rust 业务模块 | `binresolve`（组件定位）、`thumb`（抽帧）、`compatibility`（平台 workaround） | 相互依赖（download 可复用 probe::explain_error 例外已固化） |
 | binresolve | 无（叶子，仅 std + which） | 依赖业务模块 |
 
 - 横切状态（`Settings`、运行中任务表 `Tasks`）只经 `lib.rs` 的 Tauri `State` 进入，业务模块通过参数接收，不主动触达全局。
 - 前后端契约：Rust 结构体（serde camelCase）↔ `src/lib/types.ts`，由契约测试锁定（`tests/fixtures/ipc-contract.json` 两侧共用）。新增/修改 IPC 字段必须同步契约 fixture 与两侧类型。
+
+## 本地媒体读取（缩略图与播放器）
+
+完成态要显示缩略图、点行要预览视频，都需要 WebView 直读磁盘上的文件。走 **asset protocol**（`asset://`），不用自建 HTTP 服务：
+
+- 它**原生支持 Range/206**（`tauri/src/protocol/asset.rs`），进度条拖动与按需读取由上游实现，我们不重复造。
+- 需要 `Cargo.toml` 开 `protocol-asset` feature + `tauri.conf.json` 里 `assetProtocol.enable`，两处缺一编译就报错。
+- **scope 默认为空，每次只放行用户明确点开的那一个文件**（`local_media_url` / `video_thumbnail` 命令里 `allow_file`），不整目录放开——避免 WebView 侧任何注入面读到用户其他文件。
+- CSP 需放行 `media-src asset:`（播放器）与 `img-src asset:`（缩略图）。
 
 ## 关键数据流
 
@@ -49,9 +58,11 @@
 | `src/` | 前端（UI 组件 / state / lib 三层，见白名单） |
 | `src-tauri/src/lib.rs` | Tauri 命令层：命令 + 全局 State |
 | `src-tauri/src/probe.rs` | yt-dlp JSON 解析、图文判定、错误翻译（explain_error） |
+| `src-tauri/src/compatibility.rs` | 平台兼容性 workaround（TD-PROBE-005：YouTube 登录态需换播放器客户端） |
 | `src-tauri/src/download.rs` | 下载子进程编排、进度解析（parse_progress）、取消 |
 | `src-tauri/src/fetch.rs` | yt-dlp/ffmpeg 按需下载（ureq）、解压、校验 |
 | `src-tauri/src/binresolve.rs` | 组件定位（探测顺序/版本门槛/路径解析） |
+| `src-tauri/src/thumb.rs` | 本地视频缩略图（ffmpeg 抽帧 → ~/.tikdown/thumbs） |
 | `src-tauri/src/disk.rs` | 下载目录所在卷剩余空间（fs4 statvfs，disk_free 命令） |
 | `scripts/` | 门禁脚本、版本 bump（`_bump_version.py`） |
 | `tests/` | 跨端共享契约 fixture |

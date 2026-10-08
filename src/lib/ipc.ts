@@ -86,6 +86,7 @@ function mockInvoke(cmd: string, args: Record<string, unknown> | undefined): Pro
               url,
               info: mockCannedInfo(url),
               error: null,
+              errorCode: null,
             }))
           );
         }, 400);
@@ -126,6 +127,13 @@ function mockInvoke(cmd: string, args: Record<string, unknown> | undefined): Pro
     case "open_with_system":
     case "reveal_in_manager":
       return Promise.resolve(null);
+    case "video_thumbnail":
+      // 浏览器环境没有 ffmpeg，也没有真实文件：返回空串让前端走占位图分支，
+      // 与真机 ffmpeg 缺失时的行为一致（回落而非报错）
+      return Promise.reject(new Error("mock: 无本地缩略图"));
+    case "local_media_url":
+      // 返回磁盘路径（非 URL）：真实 URL 由 convertFileSrc 转换，这里给个假路径
+      return Promise.resolve(String(args?.path ?? ""));
     case "disk_free":
       // 固定 215.3 GiB,与参考图示意一致;真实值走 Tauri disk_free 命令
       return Promise.resolve(231_211_000_000);
@@ -201,7 +209,7 @@ export async function readClipboard(): Promise<string> {
   }
 }
 
-/** 默认下载目录:Tauri 下取系统下载目录;浏览器 mock 返回临时目录。 */
+/** 默认下载目录：Tauri 下取系统下载目录；浏览器 mock 返回临时目录。 */
 export async function defaultDownloadDir(): Promise<string> {
   if (isTauri) {
     try {
@@ -212,4 +220,25 @@ export async function defaultDownloadDir(): Promise<string> {
     }
   }
   return "/tmp/tikdown-mock";
+}
+
+/**
+ * 本地磁盘路径 → WebView 可加载的 `asset://` URL（TD-FE-024/025）。
+ *
+ * **必须经 `convertFileSrc` 转换**，不能直接拿路径或 `file://` 喂给
+ * `<img>`/`<video>`：asset protocol 只处理 `asset://localhost/...`，
+ * `file://` 会被 CSP 的 `img-src`/`media-src` 拦掉，且不报任何错——
+ * 表现为「图片/视频都不显示」，极难排查。
+ *
+ * 后端只负责把文件放进 asset scope（见 lib.rs 的 local_media_url），
+ * URL 转换在前端做，两边职责不混。
+ */
+export async function toAssetUrl(path: string): Promise<string> {
+  if (isTauri) {
+    const { convertFileSrc } = await import("@tauri-apps/api/core");
+    return convertFileSrc(path);
+  }
+  // 浏览器环境：mock 协议必定 load 失败，等价于「取不到可播 URL」，
+  // 正好能验播放器降级到系统播放器的分支
+  return `mock://media${path.endsWith(".mp4") ? "" : ".mp4"}`;
 }

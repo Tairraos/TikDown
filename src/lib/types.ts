@@ -99,6 +99,8 @@ export interface BatchResult {
   url: string;
   info: MediaInfo | null;
   error: string | null;
+  /** 稳定错误码（TD-PROBE-006）：前端按它渲染多行 tips，文案在前端才能双语 */
+  errorCode: string | null;
 }
 
 export type DownloadOptions = {
@@ -145,6 +147,8 @@ export interface Task {
   status: TaskStatus;
   info: MediaInfo | null;
   error: string | null;
+  /** 稳定错误码：有值时 hover 错误会弹多行 tips（原因/怎么办/注意） */
+  errorCode: string | null;
   percent: number;
   speed: string;
   eta: string;

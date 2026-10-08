@@ -258,6 +258,32 @@ body {
 
 .msg { color: var(--err); font-weight: 600; }
 
+/* 错误 tips 泡泡(TD-PROBE-006)：多行解释「原因/怎么办/注意」 */
+.msg.has-tip {
+  cursor: help;
+  /* 虚线下划线提示可悬停——不加的话用户不知道这里能点 */
+  border-bottom: 1px dashed currentColor;
+}
+.msg.has-tip:hover { color: var(--text); }
+
+.err-tip {
+  position: fixed;
+  z-index: 60;
+  max-width: 340px;
+  padding: 10px 13px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  box-shadow: var(--shadow-pop);
+  pointer-events: auto; /* 必须能承接 hover，否则鼠标移过去泡泡就消失 */
+  user-select: text;
+}
+.err-tip-line + .err-tip-line { margin-top: 5px; }
+.err-tip-line:first-child { font-weight: 700; }
+
 /* 进度条(参考图:圆头绿条,无边框轨道;填充带行走纹理,慢速推进时也有"在动"的反馈) */
 .progress {
   display: block;
@@ -341,6 +367,82 @@ body {
 /* 完成任务行可点击播放 */
 .task.done { cursor: pointer; }
 .task.done:hover { opacity: 0.85; }
+
+/* ================= 视频预览弹层(TD-FE-025) ================= */
+.player-overlay { z-index: 40; }
+
+.player-sheet {
+  max-width: 880px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.player-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 12px 20px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.player-titles { min-width: 0; }
+.player-title {
+  font-size: 14px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.player-sub {
+  font-size: 11px;
+  color: var(--dim);
+  font-family: ui-monospace, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.player-close { width: 28px; height: 28px; flex: 0 0 auto; }
+.player-x { font-size: 14px; line-height: 1; }
+
+/* 舞台:黑底让画面突出,且给竖屏视频留出正确的呈现方式 */
+.player-stage {
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  max-height: min(62vh, 560px);
+}
+.player-video {
+  display: block;
+  max-width: 100%;
+  max-height: min(62vh, 560px);
+  /* 竖屏视频按原比例显示,不做裁切 */
+  object-fit: contain;
+  background: #000;
+}
+
+.player-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 11px 20px 13px;
+  border-top: 1px solid var(--line-soft);
+}
+.player-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  color: var(--dim);
+  min-width: 0;
+}
+.player-err { color: var(--err); font-weight: 600; }
+.player-btns { display: flex; gap: 7px; margin-left: auto; }
 
 /* ---- 按钮 ---- */
 .btn {

@@ -62,6 +62,43 @@
 - 与发布方式的对应：`tauri-action` 设 **releaseDraft: true**；**未添加** `gh release edit --draft=false` 自动转正兜底（用户选 draft，§3.3 明令禁止）
 - 与现有配置的关系：全新生成（此前无任何 CI）
 - 触发方式：用户合并 master 后手动 `git tag v2.0.0 && git push origin v2.0.0`（不提供删 tag 重打的 release 脚本——用户明确要求手动控制触发）
+
+## 4.1 从非 master 分支出包（2026-10-08 查证）
+
+**结论：可以，Release 不挑分支。**
+
+`release.yml` 的触发条件只有 tag，没有分支条件：
+
+```yaml
+on:
+  push:
+    tags:
+      - "v*"
+```
+
+GitHub Actions 在**tag 指向的提交**上运行，与该提交属于哪个分支无关。所以
+在任意分支上打 tag 即可出包，无需先合并到 master。
+
+**两条约束（唯一需要留意的地方）**：
+
+| 约束 | 说明 |
+|---|---|
+| tag 版本 == package.json 版本 | guard job 校验（§6.1）。tag 打错版本会直接红，且 Actions 不会重跑——须先删 tag 重打 |
+| 代码须已推到远端 | `git tag` 默认打本地已有提交；提交若只在本地，tag 推送后 Actions checkout 的是远端 ref，会失败或拿到旧代码 |
+
+**当前仓库的现实**（2026-10-08）：`master` 停在 2022 年的 Electron v1（commit 919e1ea），
+Tauri v2 全部代码在 `harnessing` 分支（领先 47 个提交）。**master 目前不能作为出包来源**——
+在 master 上打 tag 会打出 Electron 时代的旧应用，或直接因版本三处一致（§6.1）而红。
+
+**推荐做法**：出包前先合并到 master（或把 `harnessing` 设为发布主线），
+再在 master 上打 tag。`git checkout` 到别的分支也能打 tag（`git tag v2.2.7 <commit>`），
+但那条路径要自己保证版本号与代码一致，风险更高。
+
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-10-06 | 创建本文件；完成框架判定（Tauri）与现状盘点 | Harness 改造阶段 1（HARNESS-RULES §3.2 / §5） |
+| 2026-10-06 | §3.3 三问获得回答并落地 ci.yml + release.yml | 用户确认:三平台 / draft / 手动打 tag |
+| 2026-10-08 | 新增 §4.1「从非 master 分支出包」查证结论 | 用户提问：明确 Release 只认 tag、与分支无关；并记录 master 仍是 Electron 旧版这一现实 |
 - 构建失败排障：notify-failure job 输出 `::error::` 注解（无认证可读）；常见原因清单在 GATES.md
 
 ## 5. 变更历史
@@ -70,3 +107,4 @@
 |---|---|---|
 | 2026-10-06 | 创建本文件；完成框架判定（Tauri）与现状盘点 | Harness 改造阶段 1（HARNESS-RULES §3.2 / §5） |
 | 2026-10-06 | §3.3 三问获得回答并落地 ci.yml + release.yml | 用户确认:三平台 / draft / 手动打 tag |
+| 2026-10-08 | 新增 §4.1「从非 master 分支出包」查证结论 | 用户提问：明确 Release 只认 tag、与分支无关；并记录 master 仍是 Electron 旧版这一现实 |

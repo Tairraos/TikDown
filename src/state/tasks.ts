@@ -139,7 +139,7 @@ export class TaskStore {
       );
       this.tasks = [
         ...[...placeholderId.entries()].map(([url, id]) => ({
-          ...this.errTask(url, `解析失败：${String(e)}`),
+          ...this.errTask(url, `解析失败：${String(e)}`, "Unknown"),
           id,
         })),
         ...this.tasks.filter((p) => !freshSet.has(p.url)),
@@ -159,6 +159,7 @@ export class TaskStore {
       status: "probing",
       info: null,
       error: null,
+      errorCode: null,
       percent: 0,
       speed: "",
       eta: "",
@@ -172,13 +173,14 @@ export class TaskStore {
   }
 
   /** 统一的失败任务构造 */
-  private errTask(url: string, error: string): Task {
+  private errTask(url: string, error: string, errorCode: string | null = null): Task {
     return {
       id: this.nextId(),
       url,
       status: "failed",
       info: null,
       error,
+      errorCode,
       percent: 0,
       speed: "",
       eta: "",
@@ -193,7 +195,7 @@ export class TaskStore {
 
   private buildTask(r: BatchResult): Task {
     if (r.error) {
-      return this.errTask(r.url, r.error);
+      return this.errTask(r.url, r.error, r.errorCode ?? null);
     }
     const status = r.info?.isImageOnly ? "skipped" : "ready";
     return {
@@ -202,6 +204,7 @@ export class TaskStore {
       status,
       info: r.info,
       error: r.info?.isImageOnly ? "该内容为图文，没有可下载的视频" : null,
+      errorCode: null,
       percent: 0,
       speed: "",
       eta: "",
@@ -334,7 +337,12 @@ function applyEvent(task: Task, evt: Record<string, unknown>): Task {
       };
     }
     case "failed":
-      return { ...task, status: "failed", error: String(evt.message ?? "下载失败") };
+      return {
+        ...task,
+        status: "failed",
+        error: String(evt.message ?? "下载失败"),
+        errorCode: "Unknown",
+      };
     default:
       return task;
   }

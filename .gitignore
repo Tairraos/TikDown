@@ -22,3 +22,6 @@ prompr-history.txt
 # tauri icon 移动端附带产物(桌面应用不入库,§10.1)
 src-tauri/icons/android/
 src-tauri/icons/ios/
+
+# 编辑器/工具生成的本地文件
+.zcodeignore

@@ -9,10 +9,10 @@
 | 下载域（download 模块 + 队列） | 4 | P0×2 修复+契约测试；args/progress 纯函数 15 测；并发调度有界并有 8 测 | 5 | 真实 yt-dlp 集成测试（需联网 fixture）待补 |
 | 探测域（probe.rs + probe_batch） | 4 | 有界并发；cookie 闭环；explain_error 修复+7 测 | 5 | 真实平台登录墙场景实测（需用户配合登录） |
 | 组件管理域（binresolve/fetch/CorePanel） | 4 | 设置桥统一；ureq 流式进度；三平台解压；强制校验 | 4.5 | Windows/Linux 平台打包实测（本机仅 macOS） |
-| 前端域 | 4 | vanilla TS 三层；keyed 增量渲染；store/工具 74 测（含 i18n/stats/theme）；黑白双主题 + 中英双语 + 侧栏布局浏览器实测截图 | 4.5 | 真机打包后主题/语言/拖拽全链路复核 |
+| 前端域 | 4.5 | vanilla TS 三层；keyed 增量渲染；store/工具 96 测（含 i18n/stats/theme/drag-region/thumb-player）；黑白双主题 + 中英双语；拖拽区**真机实测**通过 | 5 | 竖屏/HDR 视频在应用内播放器的实机兼容性待更多样本 |
 | 工程化（门禁/CI/发布） | 3.5 | pre-commit/pre-push 全绿；覆盖率门禁实测拦截；版本 guard 本地生效 | 4.5 | GitHub CI 待 §3.3 三问（挂起中） |
 | 文档体系 | 4 | AGENTS/ARCHITECTURE/core-beliefs/规格/GATES/TESTING 齐备,链接门禁护航 | 4.5 | 文档园丁任务定期化(可选) |
-| 安全 | 4 | CSP 最小策略;下载强制校验;无注入面;npm audit 0 | 4.5 | 下载校验和(TD-SEC-002 余项) |
+| 安全 | 4.5 | CSP 最小策略;asset scope 逐文件放行(不整目录);下载强制校验;无注入面;npm audit 0 | 5 | 下载校验和(TD-SEC-002 余项) |
 
 ## 测量口径
 
@@ -30,3 +30,4 @@
 | 2026-10-06 | 4 | 4 | 4 | 4 | 3.5 | 4 | 4 | 五阶段完成(harnessing 分支,CI 挂起待三问) |
 | 2026-10-07 | 4 | 4 | 4 | 4 | 3.5 | 4 | 4 | UI 改版轮:侧栏布局/黑白主题/多语言/下载统计+disk_free(门禁全绿) |
 | 2026-10-07 | 4 | 4 | 4 | 4 | 3.5 | 4 | 4 | UI 二轮:新草图单列布局/图标化任务行/移除任务/出包规则机械化(76 前端测) |
+| 2026-10-08 | 4 | 4 | 4 | 4.5 | 3.5 | 4 | 4.5 | 交互修复:拖拽区真机实测通过(权限+deep)/本地抽帧缩略图/应用内播放器(asset protocol);96 前端 + 22 Rust 测 |
