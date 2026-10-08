@@ -31,6 +31,5 @@
 | [GATES.md](GATES.md) | 门禁清单（每项：触发/失败含义/修复指引） | 常驻（阶段 3 建立） |
 | [TESTING.md](TESTING.md) | 测试策略与分层 | 常驻（阶段 5 建立） |
 | [exec-plans/tech-debt-tracker.md](exec-plans/tech-debt-tracker.md) | 技术债台账 | 常驻 |
-| [exec-plans/active/](exec-plans/active/) | 进行中的执行计划 | 计划 |
 | [exec-plans/completed/](exec-plans/completed/) | 已完成计划与归档 | 计划 |
 | [exec-plans/completed/harness-2026-10-06.md](exec-plans/completed/harness-2026-10-06.md) | Harness 改造施工图（已竣工归档，长效契约在常驻文档） | 归档 |
