@@ -9,6 +9,7 @@ import { currentTheme, toggleTheme } from "./lib/theme";
 import { CorePanelView } from "./ui/corePanel";
 import { SettingsPanelView } from "./ui/settingsPanel";
 import { TaskListView } from "./ui/taskList";
+import { VideoPlayerView } from "./ui/playerDialog";
 import { clear, el } from "./ui/dom";
 
 /** 磁盘剩余的大数字展示:数值 + 短单位(G 而非 GB,参考图样式)。 */
@@ -22,6 +23,13 @@ export function bigBytes(n: number | null): { num: string; unit: string } {
     i++;
   }
   return { num: i === 0 ? String(Math.round(v)) : v.toFixed(1).replace(/\.0$/, ""), unit: u[i] };
+}
+
+/** 播放器弹层标题:与任务行显示同一套「作者 - 标题」,两处不一致会让人以为点错行 */
+function displayTitleOf(task: { info: { title: string; uploader: string } | null; url: string }): string {
+  const title = task.info?.title ?? task.url;
+  const uploader = task.info?.uploader?.trim();
+  return uploader && uploader !== title ? `${uploader} - ${title}` : title;
 }
 
 /**
@@ -44,9 +52,9 @@ export function mount(root: HTMLElement) {
   // ---- 顶栏(兼拖拽区) ----
   const brand = el(
     "div",
-    { class: "brand", "data-tauri-drag-region": true },
-    el("span", { class: "brand-name", text: "TikDown", "data-tauri-drag-region": true }),
-    el("span", { class: "ver", text: `v${__APP_VERSION__}`, "data-tauri-drag-region": true })
+    { class: "brand", "data-tauri-drag-region": "deep" },
+    el("span", { class: "brand-name", text: "TikDown" }),
+    el("span", { class: "ver", text: `v${__APP_VERSION__}` })
   );
   const settingsBtn = el("button", { class: "icon-btn", "aria-label": t("settings") }, icon("settings", 18));
   const themeBtn = el("button", { class: "icon-btn" });
@@ -55,8 +63,8 @@ export function mount(root: HTMLElement) {
   const diskLabel = el("span", { class: "disk-label", text: t("diskFree") });
   const diskChip = el(
     "div",
-    { class: "disk-chip", "data-tauri-drag-region": true },
-    el("div", { class: "disk-line", "data-tauri-drag-region": true }, diskNum, diskUnit),
+    { class: "disk-chip", "data-tauri-drag-region": "deep" },
+    el("div", { class: "disk-line" }, diskNum, diskUnit),
     diskLabel
   );
   const pasteBtn = el(
@@ -65,13 +73,15 @@ export function mount(root: HTMLElement) {
     icon("clipboard-paste", 20),
     el("span", { class: "paste-label" })
   );
-  // 拖拽区(TD-FE-016/022):Tauri 只认 mousedown 目标上的属性,
-  // 顶栏每一层容器都要登记,否则点到容器/间隙就拖不动(按钮自身不受影响)
+  // 拖拽区(TD-FE-016/022/023):整条顶栏可拖窗体,顶部 40px 内任意位置都算。
+  // 必须用 "deep" 而不是裸属性——Tauri 2.12 的 drag.js 里裸属性只认「直接点在
+  // 该元素上」(el === composedPath[0]),点到子元素或间隙就拖不动。
+  // 按钮(BUTTON 标签)即使祖先是 deep 也会自行阻断,交互不受影响。
   const topbar = el(
     "header",
-    { class: "topbar", "data-tauri-drag-region": true },
-    el("div", { class: "topbar-left", "data-tauri-drag-region": true }, brand, settingsBtn, themeBtn),
-    el("div", { class: "topbar-right", "data-tauri-drag-region": true }, diskChip, pasteBtn)
+    { class: "topbar", "data-tauri-drag-region": "deep" },
+    el("div", { class: "topbar-left" }, brand, settingsBtn, themeBtn),
+    el("div", { class: "topbar-right" }, diskChip, pasteBtn)
   );
 
   const list = el("section", { class: "list" });
@@ -134,6 +144,8 @@ export function mount(root: HTMLElement) {
   }
 
   // ---- 视图 ----
+  /** 当前打开的播放器；同时只允许一个（见 onPlay） */
+  let player: VideoPlayerView | null = null;
   const taskListView = new TaskListView(list, (url) => {
     // 平台标签随界面语言取中/英文(TD-FE-019/021)
     const entry = detectPlatformEntry(url);
@@ -144,6 +156,16 @@ export function mount(root: HTMLElement) {
     onCancel: (id) => taskStore.cancel(id),
     onRemove: (id) => {
       if (taskStore.remove(id)) setMsg("msgRemoved", { n: 1 });
+    },
+    // 播放走应用内弹窗（TD-FE-025）：不丢给系统播放器，跳出应用就丢了下载上下文。
+    // 同时只允许一个播放器——连点两行时后一个接管前一个，避免两个视频叠着播声音。
+    // 构造即挂载，所以只在真正打开时构造。
+    onPlay: (t_) => {
+      if (!t_.donePath) return;
+      player?.close();
+      player = new VideoPlayerView(app, t_.donePath, displayTitleOf(t_), () => {
+        player = null;
+      });
     },
   });
   // 设置弹层延迟到首次打开时构造——构造即挂载 overlay 会把整页蒙灰(E2E 发现)
